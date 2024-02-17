@@ -449,7 +449,6 @@ async def getmvp(interaction: discord.Interaction, week_start : str):
                             ORDER BY PostsCompleted DESC""", (week_start,)) as cursor:
             results1 = await cursor.fetchall()
     
-    print(results1)
     
     async with aiosqlite.connect(database) as db:
         async with db.execute("""SELECT InspecteeID, PostsCompleted 
@@ -458,11 +457,8 @@ async def getmvp(interaction: discord.Interaction, week_start : str):
                             ORDER BY PostsCompleted DESC""", (week_start,)) as cursor:
             results2 = await cursor.fetchall()
     
-    print(results2)
     
-    results = results1 + results2
-    
-    print(results)
+    results = sorted(results1+results2, key=lambda x: x[1], reverse=True)
     
     output = "```\n"
     
@@ -471,7 +467,7 @@ async def getmvp(interaction: discord.Interaction, week_start : str):
         if i == 0:
             output += f"## :CH_Diamond_Shiny: - <@{results[i][0]}> - {results[i][1]} posts"
         else:
-            output += f"### :Crown2Silver: - <@{results[i][0]}> - {results[i][1]} posts"
+            output += f"\n### :Crown2Silver: - <@{results[i][0]}> - {results[i][1]} posts"
             
     output += "\n```"
     
