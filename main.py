@@ -205,6 +205,24 @@ async def Get_Consecutive_Strikes(staff_member : int): # only accurate if quota 
         
     return counter
 
+async def get_table_record_counts():
+    conn = aiosqlite.connect(database)
+    cur = conn.cursor()
+    
+    cur.execute("SELECT name FROM sqlite_master WHERE type='table';")
+    tables = cur.fetchall()
+    
+    formatted_output = ""
+    
+    for table_name in tables:
+        cur.execute(f"SELECT COUNT(*) FROM {table_name[0]}")
+        record_count = cur.fetchone()[0]
+        
+        formatted_output += f"{table_name[0]} : {record_count}\n"
+    
+    conn.close()
+    
+    return formatted_output
 
 rewardGroup = Group(name = "reward", description= "Handle rewards", guild_ids=guild_id_l)
 
