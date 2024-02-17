@@ -492,25 +492,28 @@ async def checkstreak(interaction: discord.Interaction):
     await interaction.response.send_message(f"Your current strike streak is `{await Get_Consecutive_Strikes(interaction.user.id)}`", ephemeral=True)
 
 @tree.command(guild = discord.Object(id=guild_id), name = "sql", description='Run SQL')
-async def run_sql(interaction: discord.Interaction, sql : str):
+async def run_sql(interaction: discord.Interaction, sql : str, countrecords : bool = False):
     if interaction.user.id == 378963670589505557:
-        if "SELECT" in sql:
-            async with aiosqlite.connect(database) as db:
-                async with db.execute(sql) as cursor:
-                    rows = await cursor.fetchall()
-                    if rows != None:
-                        await interaction.response.send_message(str(rows), ephemeral=True)
-                    else:
-                        await interaction.response.send_message("Fetch result was none", ephemeral=True)
-            return
+        if not countrecords:
+            if "SELECT" in sql:
+                async with aiosqlite.connect(database) as db:
+                    async with db.execute(sql) as cursor:
+                        rows = await cursor.fetchall()
+                        if rows != None:
+                            await interaction.response.send_message(str(rows), ephemeral=True)
+                        else:
+                            await interaction.response.send_message("Fetch result was none", ephemeral=True)
+                return
+            else:
+                async with aiosqlite.connect(database) as db:
+                    await db.execute(sql)
+                    await db.commit()
+                await interaction.response.send_message("Done!", ephemeral=True)
+                return
         else:
-            async with aiosqlite.connect(database) as db:
-                await db.execute(sql)
-                await db.commit()
-            await interaction.response.send_message("Done!", ephemeral=True)
-            return
+            await interaction.response.send_message("not for you", ephemeral=True)
     else:
-        await interaction.response.send_message("not for you", ephemeral=True)
+        await interaction.response.send_message(await get_table_record_counts(), ephemeral=True)
 
 
 @logQuota.autocomplete('week_start')
