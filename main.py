@@ -228,7 +228,7 @@ async def checkRewards(interaction: discord.Interaction, staff_member : discord.
     
     for r in results:
         date = str(r[1]).split("-")
-        dt = datetime(date[0], date[1], date[2])
+        dt = datetime(int(date[0]), int(date[1]), int(date[2]))
         if dt > datetime.now() - timedelta(days=29):
             valid_rewards.append(r)
     
