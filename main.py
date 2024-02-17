@@ -511,9 +511,9 @@ async def run_sql(interaction: discord.Interaction, sql : str, countrecords : bo
                 await interaction.response.send_message("Done!", ephemeral=True)
                 return
         else:
-            await interaction.response.send_message("not for you", ephemeral=True)
+            await interaction.response.send_message(await get_table_record_counts(), ephemeral=True)
     else:
-        await interaction.response.send_message(await get_table_record_counts(), ephemeral=True)
+        await interaction.response.send_message("not for you", ephemeral=True)
 
 
 @logQuota.autocomplete('week_start')
