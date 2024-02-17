@@ -122,44 +122,41 @@ async def getCurrentSeniorQuota():
 async def CheckValidDate(date : str):
     return re.match(r"^20[0-9]{2}-([1-9]|1[0-2])-([1-9]|[12][0-9]|3[01])$", date) is not None
 
-async def GetEightWeekHistory(staff_member : int):
+async def GetQuotaHistory(staff_member : int):
     
     if not IsSenior(staff_member):
         async with aiosqlite.connect(database) as db:
-            async with db.execute("""SELECT WeekStart, Pass
+            async with db.execute("""SELECT WeekStart, Pass, PostsCompleted
                                     FROM Inspections
                                     WHERE InspecteeID = ?
                                     ORDER BY printf("%04d-%02d-%02d", 
                                     substr(WeekStart, 1, instr(WeekStart, '-') - 1), 
                                     substr(WeekStart, instr(WeekStart, '-') + 1, 2), 
                                     substr(WeekStart, -2)) DESC
-                                    LIMIT 8""", (staff_member,)) as cursor:
+                                    LIMIT 20""", (staff_member,)) as cursor:
                 rows = await cursor.fetchall()
     else:
         async with aiosqlite.connect(database) as db:
-            async with db.execute("""SELECT WeekStart, Pass
+            async with db.execute("""SELECT WeekStart, Pass, PostsCompleted
                                     FROM SeniorInspections
                                     WHERE InspecteeID = ?
                                     ORDER BY printf("%04d-%02d-%02d", 
                                     substr(WeekStart, 1, instr(WeekStart, '-') - 1), 
                                     substr(WeekStart, instr(WeekStart, '-') + 1, 2), 
                                     substr(WeekStart, -2)) DESC
-                                    LIMIT 8""", (staff_member,)) as cursor:
+                                    LIMIT 20""", (staff_member,)) as cursor:
                 rows = await cursor.fetchall()
 
     output = "```diff\n"
     for row in rows:
         if bool(int(row[1])):
-            output += f"+ {row[0]} - `Pass`\n"
+            output += f"+ {row[0]} - `Pass` - `{row[2]} posts\n"
         else:
-            output += f"- {row[0]} - `Fail`\n"
+            output += f"- {row[0]} - `Fail` - `{row[2]} posts\n"
     output += "```"
     return output
     # maybe done idk
-    
-    
-# do strikes converting to punishments
-    
+
 async def Get_Consecutive_Strikes(staff_member : int): # only accurate if quota logs are fully up to date
     flat_list = []
     
@@ -209,8 +206,6 @@ async def Get_Consecutive_Strikes(staff_member : int): # only accurate if quota 
     return counter
 
 
-
-
 rewardGroup = Group(name = "reward", description= "Handle rewards", guild_ids=guild_id_l)
 
 @rewardGroup.command(name = "check_staff", description='Check a staff members rewards')
@@ -239,7 +234,6 @@ async def checkRewards(interaction: discord.Interaction, staff_member : discord.
     
     await interaction.followup.send(message, ephemeral=True)
             
-
 @rewardGroup.command(name = "give", description='Give a reward')
 @app_commands.describe(week_start="Format: YYYY-MM-DD | Must use Monday of week",charges="Number of weeks this reward is useable for")
 async def giveReward(interaction: discord.Interaction, staff_member : discord.Member, week_start : str, reward_type : str, charges : int):
@@ -439,110 +433,38 @@ async def viewWeek(interaction: discord.Interaction, week_start : str):
     embed = discord.Embed(title=f"Inspection Week Starting {week_start}", description=body, color=maincolour)
     
     await interaction.followup.send(embed=embed)
-    
-@quotaGroup.command(name = "check_staff", description='View information about a specific staff member')
-async def viewStaff(interaction: discord.Interaction, staff_member : discord.Member):
-    await interaction.response.defer(thinking=True, ephemeral=True)
-    
-    totalposts = 0
-    
-    posts = []
-    PFHistory = []
-    async with aiosqlite.connect(database) as db:
-        async with db.execute("""SELECT InspecteeID, PostsCompleted, PostRequirement, Activity
-                                FROM Inspections, Weeks 
-                                WHERE InspecteeID=? AND StartDate=WeekStart
-                                ORDER BY WeekStart DESC""", (staff_member.id,)) as cursor:
-            rows = await cursor.fetchall()
-            
-    if len(rows) > 0:
-        for row in rows:
-            posts.append(row[1])
-            if (row[3] == -1):
-                PFHistory.append(row[1] > row[2])
-            else:
-                PFHistory.append(row[1] > row[2] and bool(row[3]))
-    
-        fStreakRecord = 0
-        pStreakRecord = 0
-        
-        fStreak = 0
-        pStreak = 0
-        
-        fTotal = 0
-        pTotal = 0
-        
-        totalposts = sum(posts)
-        weekrecord = max(posts)
-        
-        if PFHistory[0] == True:
-            pTotal += 1
-            pStreak += 1
-        else:
-            fTotal += 1
-            fStreak += 1
-        
-        PFHistory.reverse()
-        posts.reverse()
-        for i in range(1, len(PFHistory)):
-            if PFHistory[i] == True:
-                pTotal += 1
-                pStreak += 1
-                if fStreak > fStreakRecord:
-                    fStreakRecord = fStreak
-                fStreak = 0
-            elif PFHistory[i] == False:
-                fTotal += 1
-                fStreak += 1
-                if pStreak > pStreakRecord:
-                    pStreakRecord = pStreak
-                pStreak = 0
-        
-        if pStreak > pStreakRecord:
-            pStreakRecord = pStreak
-        if fStreak > fStreakRecord:
-            fStreakRecord = fStreak
-        
-        PFHistory.reverse()
-        posts.reverse()
-        
-        body = ""
-        
-        body += f"Total Posts: `{totalposts}` posts"
-        body += f"\nWeek Record: `{weekrecord}` posts"
-        body += f"\n### Longest Streaks:\n- Pass: `{pStreakRecord}`\n- Fail: `{fStreakRecord}`"
-        body += f"\n\nCurrent streak: `{pStreak}` (Pass)" if pStreak > fStreak else f"\n\nCurrent streak: `{fStreak}` (Fail)"
-        
-        c = 0
-        body += "\n\n### Recent Inspection History:"
-        for i in range(0, min(len(PFHistory), 10)):
-            body += "\n`Pass`" if PFHistory[i] else "\n`Fail`"
-            body += f" | `{posts[i]}` posts"
-        
-        embed = discord.Embed(title= f"{staff_member.global_name}'s Quota Report", description=body, colour=maincolour)
-    
-        await interaction.followup.send(embed=embed)
-    else:
-        await interaction.followup.send("User has no quota logs", ephemeral=True)
 
-@quotaGroup.command(name = "eightweekhistory", description='Get a users most recent eight weeks of quota history')
+@quotaGroup.command(name = "get_history", description='Get a users most recent weeks of quota history')
 async def eightweek(interaction: discord.Interaction, staff_member : discord.Member):
-    await interaction.response.send_message(await GetEightWeekHistory(staff_member.id), ephemeral=True)
+    await interaction.response.send_message(await GetQuotaHistory(staff_member.id), ephemeral=True)
 
-@quotaGroup.command(name = "strike", description='Give a Strike')
-@app_commands.describe(week_start="Format: YYYY-MM-DD | Must use Monday of week")
-async def giveStrike(interaction: discord.Interaction, staff_member : discord.Member, week_start : str):
-    await interaction.response.defer(thinking=True, ephemeral=True)
-
-    if not await CheckValidDate(week_start):
-        await interaction.followup.send("Please enter a valid date", ephemeral=True)
-        return
+@quotaGroup.command(name = "mvp", description='Get the mvp list for a week')
+async def getmvp(interaction: discord.Interaction, week_start : str):
+    await interaction.response.defer(thinking=True)
     
     async with aiosqlite.connect(database) as db:
-        await db.execute('INSERT INTO Strikes (RecipientID, SeniorID, DateGiven) VALUES (?, ?, ?)', (staff_member.id, interaction.user.id, week_start))
-        await db.commit()
+        async with db.execute("""SELECT I.InspecteeID, I.PostsCompleted 
+                            FROM Inspections I
+                            JOIN SeniorInspections SI ON I.InspecteeID = SI.InspecteeID
+                            WHERE I.WeekStart=? AND I.PostsCompleted > 99
+                            ORDER BY I.PostsCompleted DESC""", (week_start,)) as cursor:
+            results = await cursor.fetchall()
+            
+    output = "```\n"
     
-    await interaction.followup.send("Success!", ephemeral=True)
+    
+    for i in range(0, len(results)):
+        if i == 0:
+            output += f"## :CH_Diamond_Shiny: - <@{results[i][0]}> - {results[i][1]} posts"
+        else:
+            output += f"### :Crown2Silver: - <@{results[i][0]}> - {results[i][1]} posts"
+            
+    output += "\n```"
+    
+    await interaction.followup.send(output)
+    
+    
+        
 
 
 tree.add_command(quotaGroup)
@@ -573,14 +495,24 @@ async def run_sql(interaction: discord.Interaction, sql : str):
         await interaction.response.send_message("not for you", ephemeral=True)
 
 
-@giveStrike.autocomplete('week_start')
-@viewWeek.autocomplete('week_start')
 @logQuota.autocomplete('week_start')
-@giveReward.autocomplete('week_start')
 async def autocomplete_callback(interaction: discord.Interaction, current: str):
     choicelist = []   
     
-    for i in range(-31,31):
+    for i in range(-9,0):
+        dt = datetime.now() + timedelta(days=i)
+        if dt.weekday() == 0:
+            choicelist.append(app_commands.Choice(name = f'{dt.year}-{dt.month}-{dt.day}', value = f'{dt.year}-{dt.month}-{dt.day}'))
+    
+    return choicelist
+
+@viewWeek.autocomplete('week_start')
+@giveReward.autocomplete('week_start')
+@getmvp.autocomplete('week_start')
+async def autocomplete_callback(interaction: discord.Interaction, current: str):
+    choicelist = []   
+    
+    for i in range(-62,0):
         dt = datetime.now() + timedelta(days=i)
         if dt.weekday() == 0:
             choicelist.append(app_commands.Choice(name = f'{dt.year}-{dt.month}-{dt.day}', value = f'{dt.year}-{dt.month}-{dt.day}'))
