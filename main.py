@@ -205,24 +205,6 @@ async def Get_Consecutive_Strikes(staff_member : int): # only accurate if quota 
         
     return counter
 
-async def get_table_record_counts():
-    conn = aiosqlite.connect(database)
-    cur = conn.cursor()
-    
-    cur.execute("SELECT name FROM sqlite_master WHERE type='table';")
-    tables = cur.fetchall()
-    
-    formatted_output = ""
-    
-    for table_name in tables:
-        cur.execute(f"SELECT COUNT(*) FROM {table_name[0]}")
-        record_count = cur.fetchone()[0]
-        
-        formatted_output += f"{table_name[0]} : {record_count}\n"
-    
-    conn.close()
-    
-    return formatted_output
 
 rewardGroup = Group(name = "reward", description= "Handle rewards", guild_ids=guild_id_l)
 
@@ -492,26 +474,23 @@ async def checkstreak(interaction: discord.Interaction):
     await interaction.response.send_message(f"Your current strike streak is `{await Get_Consecutive_Strikes(interaction.user.id)}`", ephemeral=True)
 
 @tree.command(guild = discord.Object(id=guild_id), name = "sql", description='Run SQL')
-async def run_sql(interaction: discord.Interaction, sql : str, countrecords : bool = False):
+async def run_sql(interaction: discord.Interaction, sql : str):
     if interaction.user.id == 378963670589505557:
-        if not countrecords:
-            if "SELECT" in sql:
-                async with aiosqlite.connect(database) as db:
-                    async with db.execute(sql) as cursor:
-                        rows = await cursor.fetchall()
-                        if rows != None:
-                            await interaction.response.send_message(str(rows), ephemeral=True)
-                        else:
-                            await interaction.response.send_message("Fetch result was none", ephemeral=True)
-                return
-            else:
-                async with aiosqlite.connect(database) as db:
-                    await db.execute(sql)
-                    await db.commit()
-                await interaction.response.send_message("Done!", ephemeral=True)
-                return
+        if "SELECT" in sql:
+            async with aiosqlite.connect(database) as db:
+                async with db.execute(sql) as cursor:
+                    rows = await cursor.fetchall()
+                    if rows != None:
+                        await interaction.response.send_message(str(rows), ephemeral=True)
+                    else:
+                        await interaction.response.send_message("Fetch result was none", ephemeral=True)
+            return
         else:
-            await interaction.response.send_message(await get_table_record_counts(), ephemeral=True)
+            async with aiosqlite.connect(database) as db:
+                await db.execute(sql)
+                await db.commit()
+            await interaction.response.send_message("Done!", ephemeral=True)
+            return
     else:
         await interaction.response.send_message("not for you", ephemeral=True)
 
