@@ -443,13 +443,21 @@ async def getmvp(interaction: discord.Interaction, week_start : str):
     await interaction.response.defer(thinking=True)
     
     async with aiosqlite.connect(database) as db:
-        async with db.execute("""SELECT I.InspecteeID, I.PostsCompleted 
-                            FROM Inspections I
-                            JOIN SeniorInspections SI ON I.InspecteeID = SI.InspecteeID
-                            WHERE I.WeekStart=? AND I.PostsCompleted > 99
-                            ORDER BY I.PostsCompleted DESC""", (week_start,)) as cursor:
-            results = await cursor.fetchall()
-            
+        async with db.execute("""SELECT InspecteeID, PostsCompleted 
+                            FROM Inspections
+                            WHERE WeekStart=? AND PostsCompleted > 99
+                            ORDER BY PostsCompleted DESC""", (week_start,)) as cursor:
+            results1 = await cursor.fetchall()
+    
+    async with aiosqlite.connect(database) as db:
+        async with db.execute("""SELECT InspecteeID, PostsCompleted 
+                            FROM SeniorInspections
+                            WHERE WeekStart=? AND PostsCompleted > 99
+                            ORDER BY PostsCompleted DESC""", (week_start,)) as cursor:
+            results2 = await cursor.fetchall()
+    
+    results = results1 + results2
+    
     output = "```\n"
     
     
