@@ -496,8 +496,11 @@ async def run_sql(interaction: discord.Interaction, sql : str):
             async with aiosqlite.connect(database) as db:
                 async with db.execute(sql) as cursor:
                     rows = await cursor.fetchall()
+                    output = ""
+                    for row in rows:
+                        output += str(row) + "\n"
                     if rows != None:
-                        await interaction.response.send_message(str("\n".join(list(rows))), ephemeral=True)
+                        await interaction.response.send_message(output, ephemeral=True)
                     else:
                         await interaction.response.send_message("Fetch result was none", ephemeral=True)
             return
