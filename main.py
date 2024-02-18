@@ -497,7 +497,7 @@ async def run_sql(interaction: discord.Interaction, sql : str):
                 async with db.execute(sql) as cursor:
                     rows = await cursor.fetchall()
                     if rows != None:
-                        await interaction.response.send_message(str(rows), ephemeral=True)
+                        await interaction.response.send_message(str("\n".join(list(rows))), ephemeral=True)
                     else:
                         await interaction.response.send_message("Fetch result was none", ephemeral=True)
             return
