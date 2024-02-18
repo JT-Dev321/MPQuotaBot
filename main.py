@@ -21,6 +21,8 @@ load_dotenv()
 guild_id = 768851165671850015
 guild_id_l = [guild_id]
 
+log_channel_id = 1208810891626151976
+
 senior_role_id = 768851165671850021
 
 database = 'quotaDB.sqlite'
@@ -116,6 +118,7 @@ async def IsSenior(staff_member):
 
 async def getCurrentQuota():
     return int(open("currentquota.txt", "r").readline().split("|")[0])
+
 async def getCurrentSeniorQuota():
     return int(open("currentquota.txt", "r").readline().split("|")[1])
 
@@ -262,7 +265,6 @@ tree.add_command(rewardGroup)
 quotaGroup = Group(name = "quota", description = "Handle quotas", guild_ids=guild_id_l)
 
 @quotaGroup.command(name = "log", description='Log a quota for an individual')
-@app_commands.checks.has_role(senior_role_id)
 @app_commands.describe(week_start="Format: YYYY-MM-DD | Must use Monday of week", activity="False = Fail | True = Pass | Blank = N/A", excused="Use if user is excused DUE TO AN INACTIVITY NOTICE", apply_rewards="Leave Alone", auto_strike="Leave Alone")
 async def logQuota(interaction: discord.Interaction, staff_member : discord.Member, post_count : int, week_start : str, activity : bool = None, excused : bool = False, apply_rewards : bool = True, auto_strike : bool = True):
     await interaction.response.defer(thinking=True, ephemeral=True)
@@ -323,7 +325,7 @@ async def logQuota(interaction: discord.Interaction, staff_member : discord.Memb
         for r in results:
             date = str(r[2]).split("-")
             dt = datetime(int(date[0]), int(date[1]), int(date[2]))
-            if dt > datetime.now() - timedelta(days=29):
+            if dt > datetime.now() - timedelta(days=31):
                 valid_rewards.append(r)
         
         if len(valid_rewards) > 0: # consume reward if applicable
@@ -381,6 +383,10 @@ async def logQuota(interaction: discord.Interaction, staff_member : discord.Memb
         await db.commit()
 
 
+    logchannel = get(interaction.guild.channels, id=log_channel_id)
+    
+    await logchannel.send(f"### {interaction.user.mention} logged {staff_member.mention}'s quota.\n- Posts: {post_count}\n- Activity: {activity}")
+    
     finalmsg = f"Done! - Quota for {staff_member.mention} has been logged successfully."
 
     if striked:
