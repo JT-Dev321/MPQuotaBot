@@ -315,7 +315,7 @@ async def logQuota(interaction: discord.Interaction, staff_member : discord.Memb
         return
 
     # REWARDS
-    if apply_rewards and not excused:
+    if apply_rewards and not excused and post_count < requirement:
         async with aiosqlite.connect(database) as db: # get rewards
             async with db.execute('SELECT ID, Type, DateGiven, Charges FROM Rewards WHERE RecipientID=? AND Charges > 0', (staff_member.id,)) as cursor:
                 results = await cursor.fetchall()
