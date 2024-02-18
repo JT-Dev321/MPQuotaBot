@@ -22,7 +22,7 @@ guild_id = 768851165671850015
 guild_id_l = [guild_id]
 
 log_channel_id = 1208810891626151976
-
+strike_log_channel_id = 1208827574998933616
 senior_role_id = 768851165671850021
 
 database = 'quotaDB.sqlite'
@@ -153,9 +153,9 @@ async def GetQuotaHistory(staff_member : int):
     output = "```diff\n"
     for row in rows:
         if bool(int(row[1])):
-            output += f"+ {row[0]} - `Pass` - `{row[2]} posts\n"
+            output += f"+ {row[0]} - Pass - {row[2]} posts\n"
         else:
-            output += f"- {row[0]} - `Fail` - `{row[2]} posts\n"
+            output += f"- {row[0]} - Fail - {row[2]} posts\n"
     output += "```"
     return output
     # maybe done idk
@@ -384,13 +384,16 @@ async def logQuota(interaction: discord.Interaction, staff_member : discord.Memb
 
 
     logchannel = get(interaction.guild.channels, id=log_channel_id)
+    strikelogchannel = get(interaction.guild.channels, id=strike_log_channel_id)
     
-    await logchannel.send(f"### {interaction.user.mention} logged {staff_member.mention}'s quota.\n- Posts: {post_count}\n- Activity: {activity}")
+    
+    logmsg = await logchannel.send(f"### {interaction.user.mention} logged {staff_member.mention}'s quota.\n- Posts: {post_count}\n- Activity: {activity}")
     
     finalmsg = f"Done! - Quota for {staff_member.mention} has been logged successfully."
 
     if striked:
         finalmsg += "\n- The user was striked"
+        await strikelogchannel.send(f"{staff_member.mention} [was striked]({logmsg.jump_url})\n\nQuota History:\n{await GetQuotaHistory(staff_member.id)}")
     if reward_excused:
         finalmsg += "\n- The user was excused by an active reward"
 
@@ -398,6 +401,9 @@ async def logQuota(interaction: discord.Interaction, staff_member : discord.Memb
     strike_streak = await Get_Consecutive_Strikes(staff_member.id)
     if strike_streak > 0:
         finalmsg += f"\n\nPlease note that this user's current consecutive strike streak is now `{strike_streak}`, any actions that need to be taken based on this information are not automated."
+
+    
+    
 
     await interaction.followup.send(finalmsg)
     
@@ -479,9 +485,6 @@ async def getmvp(interaction: discord.Interaction, week_start : str):
     
     await interaction.followup.send(output)
     
-    
-        
-
 
 tree.add_command(quotaGroup)
 
@@ -499,7 +502,7 @@ async def run_sql(interaction: discord.Interaction, sql : str):
                     output = ""
                     for row in rows:
                         output += str(row) + "\n"
-                    if rows != None:
+                    if len(rows) > 0:
                         await interaction.response.send_message(output, ephemeral=True)
                     else:
                         await interaction.response.send_message("Fetch result was none", ephemeral=True)
