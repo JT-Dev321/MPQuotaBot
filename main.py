@@ -433,7 +433,7 @@ async def viewWeek(interaction: discord.Interaction, week_start : str):
     output = ""
     
     for i in range(0, len(results)):
-        output += f"<@{results[i][0]}> - {results[i][1]} posts"
+        output += f"- <@{results[i][0]}> - {results[i][1]} posts\n"
             
     
     await interaction.followup.send(output)
