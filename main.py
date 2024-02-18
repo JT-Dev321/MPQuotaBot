@@ -410,41 +410,33 @@ async def logQuota(interaction: discord.Interaction, staff_member : discord.Memb
 @quotaGroup.command(name = "check_week", description='View information about a specific week')
 @app_commands.describe(week_start="Format: YYYY-MM-DD | Must use Monday of week")
 async def viewWeek(interaction: discord.Interaction, week_start : str):
-    await interaction.response.defer(thinking=True, ephemeral=True)
+    await interaction.response.defer(thinking=True)
     
-    if not await CheckValidDate(week_start):
-        await interaction.followup.send("Please enter a valid date", ephemeral=True)
-        return
-
-    dict = {}
     async with aiosqlite.connect(database) as db:
-        async with db.execute("""SELECT InspecteeID, InspectorID, PostsCompleted, Activity
-                                FROM Inspections, Weeks 
-                                WHERE StartDate=? AND Startdate=WeekStart""", (week_start,)) as cursor:
-                rows = await cursor.fetchall()
-                for row in rows:
-                    inspectee = int(row[0])
-                    inspector = int(row[1])
-                    posts = int(row[2])
-                    activity = int(row[3])
-                    
-                    if not inspector in dict.keys():
-                        dict.update({inspector : []})
-                    
-                    dict[inspector].append([inspectee, [posts, activity]])
+        async with db.execute("""SELECT InspecteeID, PostsCompleted 
+                            FROM Inspections
+                            WHERE WeekStart=?
+                            ORDER BY PostsCompleted DESC""", (week_start,)) as cursor:
+            results1 = await cursor.fetchall()
     
-    body = ""
-    print(dict)
-    for key in dict:
-        body += f"<@{key}>"
-        print(dict[key])
-        for s in dict[key]:
-            body += f"\n- <@{s[0]}> | {s[1][0]}{'' if s[1][1] == -1 else ' | ' + str(bool(s[1][1]))}"
-        body += "\n\n"
     
-    embed = discord.Embed(title=f"Inspection Week Starting {week_start}", description=body, color=maincolour)
+    async with aiosqlite.connect(database) as db:
+        async with db.execute("""SELECT InspecteeID, PostsCompleted 
+                            FROM SeniorInspections
+                            WHERE WeekStart=?
+                            ORDER BY PostsCompleted DESC""", (week_start,)) as cursor:
+            results2 = await cursor.fetchall()
     
-    await interaction.followup.send(embed=embed)
+    
+    results = sorted(results1+results2, key=lambda x: x[1], reverse=True)
+    
+    output = ""
+    
+    for i in range(0, len(results)):
+        output += f"<@{results[i][0]}> - {results[i][1]} posts"
+            
+    
+    await interaction.followup.send(output)
 
 @quotaGroup.command(name = "get_history", description='Get a users most recent weeks of quota history')
 async def eightweek(interaction: discord.Interaction, staff_member : discord.Member):
