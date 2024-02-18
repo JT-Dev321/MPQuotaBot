@@ -393,7 +393,6 @@ async def logQuota(interaction: discord.Interaction, staff_member : discord.Memb
 
     if striked:
         finalmsg += "\n- The user was striked"
-        await strikelogchannel.send(f"{staff_member.mention} [was striked]({logmsg.jump_url})\n\nQuota History:\n{await GetQuotaHistory(staff_member.id)}")
     if reward_excused:
         finalmsg += "\n- The user was excused by an active reward"
 
@@ -402,8 +401,8 @@ async def logQuota(interaction: discord.Interaction, staff_member : discord.Memb
     if strike_streak > 0:
         finalmsg += f"\n\nPlease note that this user's current consecutive strike streak is now `{strike_streak}`, any actions that need to be taken based on this information are not automated."
 
-    
-    
+    if striked:
+        await strikelogchannel.send(f"{staff_member.mention} [was striked]({logmsg.jump_url})\n\nQuota History:\n{await GetQuotaHistory(staff_member.id)}")
 
     await interaction.followup.send(finalmsg)
     
@@ -439,10 +438,11 @@ async def viewWeek(interaction: discord.Interaction, week_start : str):
     await interaction.followup.send(output)
 
 @quotaGroup.command(name = "get_history", description='Get a users most recent weeks of quota history')
-async def eightweek(interaction: discord.Interaction, staff_member : discord.Member):
+async def gethistory(interaction: discord.Interaction, staff_member : discord.Member):
     await interaction.response.send_message(await GetQuotaHistory(staff_member.id), ephemeral=True)
 
 @quotaGroup.command(name = "mvp", description='Get the mvp list for a week')
+@app_commands.describe(week_start="Format: YYYY-MM-DD | Must use Monday of week")
 async def getmvp(interaction: discord.Interaction, week_start : str):
     await interaction.response.defer(thinking=True)
     
@@ -480,9 +480,6 @@ async def getmvp(interaction: discord.Interaction, week_start : str):
 
 tree.add_command(quotaGroup)
 
-@tree.command(guild = discord.Object(id=guild_id), name = "checkstrikestreak", description='Check your current strike streak')
-async def checkstreak(interaction: discord.Interaction):
-    await interaction.response.send_message(f"Your current strike streak is `{await Get_Consecutive_Strikes(interaction.user.id)}`", ephemeral=True)
 
 @tree.command(guild = discord.Object(id=guild_id), name = "sql", description='Run SQL')
 async def run_sql(interaction: discord.Interaction, sql : str):
