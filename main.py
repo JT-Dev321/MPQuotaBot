@@ -482,7 +482,7 @@ async def getmvp(interaction: discord.Interaction, week_start : str):
 
 tree.add_command(quotaGroup)
 
-@tree.command(name = "check_history", description='Check your own quota history!')
+@tree.command(guild = discord.Object(id=guild_id), name = "check_history", description='Check your own quota history!')
 async def getownhistory(interaction: discord.Interaction):
     await interaction.response.send_message(await GetQuotaHistory(interaction.user.id), ephemeral=True)
 
