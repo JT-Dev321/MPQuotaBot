@@ -157,6 +157,8 @@ async def GetQuotaHistory(staff_member : int):
         else:
             output += f"- {row[0]} - Fail - {row[2]} posts\n"
     output += "```"
+    if (len(rows) == 0):
+        output = "No Results"
     return output
     # maybe done idk
 
@@ -480,6 +482,9 @@ async def getmvp(interaction: discord.Interaction, week_start : str):
 
 tree.add_command(quotaGroup)
 
+@tree.command(name = "check_history", description='Check your own quota history!')
+async def getownhistory(interaction: discord.Interaction):
+    await interaction.response.send_message(await GetQuotaHistory(interaction.user.id), ephemeral=True)
 
 @tree.command(guild = discord.Object(id=guild_id), name = "sql", description='Run SQL')
 async def run_sql(interaction: discord.Interaction, sql : str):
