@@ -152,7 +152,7 @@ async def GetQuotaHistory(staff_member : int):
 
     output = "```diff\n"
     for row in rows:
-        if bool(int(row[1])):
+        if int(row[1]) == 1:
             output += f"+ {row[0]} - Pass - {row[2]} posts\n"
         else:
             output += f"- {row[0]} - Fail - {row[2]} posts\n"
