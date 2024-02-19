@@ -113,7 +113,7 @@ async def IsSenior(staff_member):
     if isinstance(staff_member, discord.Member):
         return senior_role_id in [r.id for r in staff_member.roles]
     elif isinstance(staff_member, int):
-        staff_member = get((client.get_guild(guild_id)).members, id = staff_member)
+        staff_member = get((aclient.get_guild(guild_id)).members, id = staff_member)
         return senior_role_id in [r.id for r in staff_member.roles]
 
 async def getCurrentQuota():
