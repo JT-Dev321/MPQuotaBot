@@ -127,7 +127,7 @@ async def CheckValidDate(date : str):
 
 async def GetQuotaHistory(staff_member : int):
     
-    if not IsSenior(staff_member):
+    if not await IsSenior(staff_member):
         async with aiosqlite.connect(database) as db:
             async with db.execute("""SELECT WeekStart, Pass, PostsCompleted
                                     FROM Inspections
@@ -149,14 +149,9 @@ async def GetQuotaHistory(staff_member : int):
                                     substr(WeekStart, -2)) DESC
                                     LIMIT 20""", (staff_member,)) as cursor:
                 rows = await cursor.fetchall()
-
-    print(rows)
     
     output = "```diff\n"
     for row in rows:
-        print(row)
-        print(row[1])
-        print(int(row[1]) == 1)
         if int(row[1]) == 1:
             output += f"+ {row[0]} - Pass - {row[2]} posts\n"
         else:
