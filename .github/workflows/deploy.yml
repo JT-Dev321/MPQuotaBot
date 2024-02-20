@@ -19,8 +19,11 @@ jobs:
       - name: Adding Known Hosts
         run: ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Send files to VPS
-        run: rsync -avz -r --delete --exclude=".git" --exclude=".github" --exclude="quotaDB.sqlite" . ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:${{ secrets.SSH_DIRECTORY_PATH }}
+      - name: Send build files to VPS
+        run: rsync -avz -r --delete --include="main.py" --include="currentquota.txt" --exclude="*" . ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:${{ secrets.SSH_DIRECTORY_PATH }}/build
+
+      - name: Send other files to VPS
+        run: rsync -avs -r --delete --include"requirements.txt" --exclude="*" . ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:${{ secrets.SSH_DIRECTORY_PATH }}
 
       - name: Restart PM2 Process
         run: ssh ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "cd ${{ secrets.SSH_DIRECTORY_PATH }}; export NVM_DIR=~/.nvm; source ~/.nvm/nvm.sh; pm2 restart MPQuotaBot;"
