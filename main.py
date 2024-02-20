@@ -508,7 +508,8 @@ async def run_sql(interaction: discord.Interaction, sql : str):
             await interaction.response.send_message("Done!", ephemeral=True)
             return
     else:
-        await interaction.response.send_message("not for you go away", ephemeral=True)
+        await interaction.response.send_message("not for you go away!", ephemeral=True)
+
 
 
 @logQuota.autocomplete('week_start')
