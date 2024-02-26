@@ -441,7 +441,7 @@ async def viewWeek(interaction: discord.Interaction, week_start : str):
         output += f"- <@{results[i][0]}> - {results[i][1]} posts\n"
         loggedStaff.append(results[i][0])
     
-    missingnstaff = set(loggedStaff).symmetric_difference(set(expectedStaff))
+    missingnstaff = list(set(loggedStaff).symmetric_difference(set(expectedStaff)))
     
     if len(missingnstaff) > 0:
         output += "\n\nMissing:"
