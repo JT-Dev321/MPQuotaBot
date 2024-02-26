@@ -24,6 +24,7 @@ guild_id_l = [guild_id]
 log_channel_id = 1208810891626151976
 strike_log_channel_id = 1208827574998933616
 senior_role_id = 768851165671850021
+staff_role_id = 796462879246909532
 
 database = 'quotaDB.sqlite'
 
@@ -433,9 +434,19 @@ async def viewWeek(interaction: discord.Interaction, week_start : str):
     
     output = ""
     
+    loggedStaff = [] # list of ids
+    expectedStaff = [m.id for m in get(interaction.guild.roles, id = 796462879246909532).members]
+    
     for i in range(0, len(results)):
         output += f"- <@{results[i][0]}> - {results[i][1]} posts\n"
-            
+        loggedStaff.append(results[i][0])
+    
+    missingnstaff = set(loggedStaff).symmetric_difference(set(expectedStaff))
+    
+    if len(missingnstaff) > 0:
+        output += "\n\nMissing:"
+        for i in range(len(missingnstaff)):
+            output += f"- <@{missingnstaff[i]}>"
     
     await interaction.followup.send(output)
 
