@@ -446,7 +446,7 @@ async def viewWeek(interaction: discord.Interaction, week_start : str):
     if len(missingnstaff) > 0:
         output += "\n\nMissing:"
         for i in range(len(missingnstaff)):
-            output += f"- <@{missingnstaff[i]}>"
+            output += f"\n- <@{missingnstaff[i]}>"
     
     await interaction.followup.send(output)
 
