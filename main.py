@@ -547,6 +547,12 @@ async def autocomplete_callback(interaction: discord.Interaction, current: str):
     
     return choicelist
 
+@aclient.event
+async def on_app_command_completion(interaction : discord.Interaction, command : app_commands.Command):
+    print_red("---Command Used---")
+    print_red(f"{interaction.user.name} ({interaction.user.id})")
+    print_red(f"Used command {command.name} with parameters:\n{command.parameters}")
+    print_red("-------------------")
 
 @tree.error
 async def on_app_command_error(interaction : discord.Interaction, error : AppCommandError):
