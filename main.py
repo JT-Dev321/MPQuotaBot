@@ -211,7 +211,6 @@ async def Get_Consecutive_Strikes(staff_member : int): # only accurate if quota 
         
     return counter
 
-
 rewardGroup = Group(name = "reward", description= "Handle rewards", guild_ids=guild_id_l)
 
 @rewardGroup.command(name = "check_staff", description='Check a staff members rewards')
@@ -269,7 +268,7 @@ quotaGroup = Group(name = "quota", description = "Handle quotas", guild_ids=guil
 
 @quotaGroup.command(name = "log", description='Log a quota for an individual')
 @app_commands.describe(week_start="Format: YYYY-MM-DD | Must use Monday of week", activity="False = Fail | True = Pass | Blank = N/A", excused="Use if user is excused DUE TO AN INACTIVITY NOTICE", apply_rewards="Leave Alone", auto_strike="Leave Alone")
-async def logQuota(interaction: discord.Interaction, staff_member : discord.Member, post_count : int, week_start : str, activity : bool = None, excused : bool = False, apply_rewards : bool = True, auto_strike : bool = True):
+async def logQuota(interaction: discord.Interaction, staff_member : discord.Member, post_count : int, week_start : str, activity : bool = None, excused : bool = False, apply_rewards : bool = True, auto_strike : bool = True, override_existing : bool = False):
     await interaction.response.defer(thinking=True, ephemeral=True)
     # all wrong to do with senior quota (post count)
     reward_excused = False
@@ -313,7 +312,7 @@ async def logQuota(interaction: discord.Interaction, staff_member : discord.Memb
         async with aiosqlite.connect(database) as db:
             async with db.execute('SELECT InspecteeID FROM SeniorInspections WHERE WeekStart=? AND InspecteeID=?', (week_start,staff_member.id)) as cursor:
                 existing_quota = await cursor.fetchone()
-    if existing_quota != None:
+    if existing_quota != None and not override_existing:
         await interaction.followup.send(f"This user already has a quota recorded for this week (`{week_start}`)", ephemeral=True)
         return
 
