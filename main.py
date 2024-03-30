@@ -304,7 +304,6 @@ async def logQuota(interaction: discord.Interaction, staff_member : discord.Memb
 
     # ensure users quota hasnt already been recorded for that week
     existing_quota = None
-    existing_warning_msg = ""
     if not Is_Senior:
         async with aiosqlite.connect(database) as db:
             async with db.execute('SELECT InspecteeID FROM Inspections WHERE WeekStart=? AND InspecteeID=?', (week_start,staff_member.id)) as cursor:
@@ -314,8 +313,7 @@ async def logQuota(interaction: discord.Interaction, staff_member : discord.Memb
             async with db.execute('SELECT InspecteeID FROM SeniorInspections WHERE WeekStart=? AND InspecteeID=?', (week_start,staff_member.id)) as cursor:
                 existing_quota = await cursor.fetchone()
     if existing_quota != None and not override_existing:
-        existing_warning_msg = "This user already had a quota recorded for this week."
-        # await interaction.followup.send(f"This user already has a quota recorded for this week (`{week_start}`)", ephemeral=True)
+        await interaction.followup.send(f"This user already has a quota recorded for this week (`{week_start}`)", ephemeral=True)
         return
     
 
@@ -396,7 +394,7 @@ async def logQuota(interaction: discord.Interaction, staff_member : discord.Memb
     
     finalmsg = f"Done! - Quota for {staff_member.mention} has been logged successfully."
 
-    if len(existing_warning_msg) > 0:
+    if override_existing:
         finalmsg += f"\nThis user already had a quota recorded - It has been overridden!\n**Please do the following:**\n- Delete the old log in <#{log_channel_id}>\n- Remove any old strikes the user may have gotten (if the old quota recorded as a fail)\n- Replenish any rewards mistakenly consumed by this action"
 
     if striked:
