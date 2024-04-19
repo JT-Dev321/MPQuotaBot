@@ -15,6 +15,8 @@ import re
 
 import math
 
+import ast
+
 from dotenv import load_dotenv
 load_dotenv()
 
