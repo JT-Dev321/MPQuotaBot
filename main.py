@@ -680,6 +680,46 @@ async def autocomplete_callback(interaction: discord.Interaction, current: str):
     
     return choicelist
 
+def insert_returns(body):
+    if isinstance(body[-1], ast.Expr):
+        body[-1] = ast.Return(body[-1].value)
+        ast.fix_missing_locations(body[-1])
+
+    if isinstance(body[-1], ast.If):
+        insert_returns(body[-1].body)
+        insert_returns(body[-1].orelse)
+
+    if isinstance(body[-1], ast.With):
+        insert_returns(body[-1].body)
+
+@tree.command(guild = discord.Object(id=guild_id), name="eval", description="Eval something")
+async def eval_py(interaction : discord.Interaction, cmd : str, ephemeral : bool = True):
+    if interaction.user.id == 378963670589505557:
+        fn_name = "_eval_expr"
+        
+        # wrap in async def body
+        body = f"async def {fn_name}():\n\t{cmd}"
+        
+        parsed = ast.parse(body)
+        body = parsed.body[0].body
+
+        insert_returns(body)
+
+        env = {
+            'bot': aclient,
+            'discord': discord,
+            'interaction': interaction,
+            '__import__': __import__
+        }
+        exec(compile(parsed, filename="<ast>", mode="exec"), env)
+
+        result = (await eval(f"{fn_name}()", env))
+        if len(result) == 0:
+            result = "No return value"
+        await interaction.response.send_message(result, ephemeral=ephemeral)
+    else:
+        await interaction.response.send_message("YOU ARENT ME!!!", ephemeral=True)
+
 @aclient.event
 async def on_app_command_completion(interaction : discord.Interaction, command : app_commands.Command):
     print_red("---Command Used---")
