@@ -45,6 +45,7 @@ def print_red(text):
 def print_green(text):
     print(f"\033[1;32m{text}\033[0m")
 
+
 class client(discord.Client):
     def __init__(self):
         super().__init__(intents=discord.Intents.all())
