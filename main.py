@@ -60,7 +60,8 @@ class client(discord.Client):
             await db.execute("""CREATE TABLE IF NOT EXISTS Weeks(
                                 StartDate TEXT PRIMARY KEY, 
                                 PostRequirement INTEGER,
-                                SeniorPostRequirement INTEGER
+                                SeniorPostRequirement INTEGER,
+                                InternPostRequirement INTEGER
                                 )""")
             
             await db.execute("""CREATE TABLE IF NOT EXISTS Inspections(
@@ -293,7 +294,7 @@ async def logQuota(interaction: discord.Interaction, staff_member : discord.Memb
     requirement = 0
     if Is_Senior:
         requirement = await getCurrentSeniorQuota()
-    elif IsIntern(staff_member):
+    elif await IsIntern(staff_member):
         requirement = await getCurrentInternQuota()
     else:
         requirement = await getCurrentQuota()
@@ -390,7 +391,7 @@ async def logQuota(interaction: discord.Interaction, staff_member : discord.Memb
             existing_week = await cursor.fetchone()
         
         if existing_week is None:
-            await db.execute('INSERT INTO Weeks (StartDate, PostRequirement, SeniorPostRequirement) VALUES (?, ?, ?, ?)', (week_start, await getCurrentQuota(), await getCurrentSeniorQuota(), await getCurrentInternQuota()))
+            await db.execute('INSERT INTO Weeks (StartDate, PostRequirement, SeniorPostRequirement, InternPostRequirement) VALUES (?, ?, ?, ?)', (week_start, await getCurrentQuota(), await getCurrentSeniorQuota(), await getCurrentInternQuota()))
             await db.commit()
         
         if not Is_Senior:
