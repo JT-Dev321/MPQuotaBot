@@ -544,7 +544,7 @@ async def run_sql(interaction: discord.Interaction, sql : str):
 
 @tree.command(guild = discord.Object(id=guild_id), name = "make_groups", description='Sorts interns into sr timezone groups')
 @app_commands.checks.has_role(768851165671850022)
-async def make_intern_groups(interaction: discord.Interaction, copyable : bool = False):
+async def make_intern_groups(interaction: discord.Interaction, copyable : bool = False, csv_groups : bool = False):
     
     interns = []
     leaders = []
@@ -660,9 +660,12 @@ async def make_intern_groups(interaction: discord.Interaction, copyable : bool =
         output += "\n\n"
     if copyable:
         await interaction.response.send_message(f"```\n{output}```")
+    if csv_groups:
+        for p in sp.keys():
+            print(sp)
     else:
         embed = discord.Embed(
-            color = redcolour,
+            color = maincolour,
             description = output,
             title = "Intern groupings"
         )
