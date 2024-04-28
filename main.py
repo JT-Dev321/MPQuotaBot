@@ -390,7 +390,7 @@ async def logQuota(interaction: discord.Interaction, staff_member : discord.Memb
             existing_week = await cursor.fetchone()
         
         if existing_week is None:
-            await db.execute('INSERT INTO Weeks (StartDate, PostRequirement, SeniorPostRequirement) VALUES (?, ?, ?)', (week_start, await getCurrentQuota(), await getCurrentSeniorQuota(), await getCurrentInternQuota()))
+            await db.execute('INSERT INTO Weeks (StartDate, PostRequirement, SeniorPostRequirement) VALUES (?, ?, ?, ?)', (week_start, await getCurrentQuota(), await getCurrentSeniorQuota(), await getCurrentInternQuota()))
             await db.commit()
         
         if not Is_Senior:
