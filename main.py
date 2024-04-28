@@ -15,6 +15,8 @@ import re
 
 import math
 
+import ast
+
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -26,6 +28,7 @@ strike_log_channel_id = 1208827574998933616
 senior_role_id = 768851165671850021
 intern_role_id = 938808499972997121
 staff_role_id = 796462879246909532
+candidate_role_id = 768851165671850017
 
 database = 'quotaDB.sqlite'
 
@@ -328,6 +331,7 @@ async def logQuota(interaction: discord.Interaction, staff_member : discord.Memb
     if existing_quota != None and not override_existing:
         await interaction.followup.send(f"This user already has a quota recorded for this week (`{week_start}`)", ephemeral=True)
         return
+    
 
     # REWARDS
     if apply_rewards and not excused and post_count < requirement:
@@ -407,6 +411,9 @@ async def logQuota(interaction: discord.Interaction, staff_member : discord.Memb
     
     finalmsg = f"Done! - Quota for {staff_member.mention} has been logged successfully."
 
+    if override_existing:
+        finalmsg += f"\nThis user already had a quota recorded - It has been overridden!\n**Please do the following:**\n- Delete the old log in <#{log_channel_id}>\n- Remove any old strikes the user may have gotten (if the old quota recorded as a fail)\n- Replenish any rewards mistakenly consumed by this action"
+
     if striked:
         finalmsg += "\n- The user was striked"
     if reward_excused:
@@ -446,7 +453,7 @@ async def viewWeek(interaction: discord.Interaction, week_start : str):
     results = sorted(results1+results2, key=lambda x: x[1], reverse=True)
     
     output = ""
-    
+
     loggedStaff = [] # list of ids
     expectedStaff = [m.id for m in get(interaction.guild.roles, id = 796462879246909532).members]
     
@@ -534,7 +541,136 @@ async def run_sql(interaction: discord.Interaction, sql : str):
     else:
         await interaction.response.send_message("not for you go away!", ephemeral=True)
 
+@tree.command(guild = discord.Object(id=guild_id), name = "make_groups", description='Sorts interns into sr timezone groups')
+@app_commands.checks.has_role(768851165671850022)
+async def make_intern_groups(interaction: discord.Interaction, copyable : bool = False):
+    
+    interns = []
+    leaders = []
+    
+    candidate_role = get(interaction.guild.roles, id = candidate_role_id)
 
+    for m in candidate_role.members:
+        if m.nick != None:
+            if " | " in m.nick:
+
+                nickname_split = m.nick.split(" | ")
+                timezone_nickname = nickname_split[1]
+                timezone_number = ""
+
+                if "+" in timezone_nickname:
+                    timezone_number = timezone_nickname.split("+")[1]
+                elif "-" in timezone_nickname:
+                    timezone_number = timezone_nickname.split("-")[1]
+
+                if timezone_number == "5:30":
+                    timezone_number = 5.5
+                
+                float(timezone_number)
+
+                inter_array = [str(m.id), timezone_number]
+                interns.append(inter_array)
+
+    coach_role = get(interaction.guild.roles, id = 1229906177203372065)
+
+    for m in coach_role.members:
+        if m.nick != None:
+            if " | " in m.nick:
+                nickname_split = m.nick.split(" | ")
+                timezone_nickname = nickname_split[1]
+                timezone_number = ""
+
+                if "+" in timezone_nickname:
+                    timezone_number = timezone_nickname.split("+")[1]
+                elif "-" in timezone_nickname:
+                    timezone_number = timezone_nickname.split("-")[1]
+
+                if timezone_number == "5:30":
+                    timezone_number = 5.5
+                
+                float(timezone_number)
+
+                leader_array = [str(m.id), timezone_number, []]
+                leaders.append(leader_array)
+    
+    # print(leaders, interns)
+
+    # ahmood. | GMT+3
+        
+    #eaders = [["dav", 1, []], ["red", 10 , []], ["knight", 5.3, []], ["deep", 0, []], ["picture", -6, []]]
+    #interns = [["Wezza", 3], ["lillyx", 0], ["ahmood", 3], ["6b", 1], ["Kmdq", 0], ["abluety", -4], ["Helix", 2], ["Synthe", -5], ["Keegan", -5], ["cap", -4], 
+            #["ZizzleWizard", -4], ["Bored", -5], ["Pocopotato", -7], ["carisoul", -7], ["okcrystal", +2], ["invanthegreat01", -4], ["jinxisfly", -5], ["Maximoose.7", -6],  
+            #["Rafael" , 1], ["Yoshi", 1], ["Potata" , 5.30], ["nzl" , 5.30], ["qvjk" , 8], ["FrostChain" , 8], ["Abdiel" , 8], ["Mamba" , -6], ["knnni" , -5]]
+
+    sorted_pairs = []
+
+    def sort_interns(leaders: list, interns: list):
+        leader_count = 0
+        amount_of_interns = len(interns)
+        sorted_pairs = {}  # Initialize as empty dictionary
+
+        # removes any possible empty lists
+        leaders = [i for i in leaders if i != []]
+        interns = [j for j in interns if j != []]
+
+        while len(interns) > 0:
+            if len(leaders) == leader_count:
+                leader_count = 0
+
+            leader_now = leaders[leader_count]
+            best_intern_tz_dif = 100
+            best_intern = None  # Initialize as None
+
+            C = 25  # --12 + 12 + 1 (-gmt-12 + gmt+12 + 1)
+
+            for intern in interns:
+                distance_1 = int(leader_now[1]) - int(intern[1])
+                distance_2 = int(intern[1]) - int(leader_now[1])
+
+                D_1 = distance_1 if distance_1 >= 0 else distance_1 + C
+                D_2 = distance_2 if distance_2 >= 0 else distance_2 + C
+
+                actual_distance = min(D_1, D_2)
+
+                if actual_distance < best_intern_tz_dif:
+                    best_intern_tz_dif = actual_distance
+                    best_intern = intern
+                        
+                    if actual_distance == 0:
+                        break
+
+            if best_intern:  # Check that best_intern is not None
+                if leader_now[0] not in sorted_pairs:
+                    sorted_pairs[leader_now[0]] = []
+                sorted_pairs[leader_now[0]].append(best_intern)
+
+                interns.remove(best_intern)
+
+            leader_count += 1
+
+        return sorted_pairs
+
+    sp = sort_interns(leaders, interns)
+    output = ""
+    for p in sp.keys():
+        output += f"<@{p}>**'s Group:**\n"
+        for p2 in sp[p]:
+            output += f"> <@{p2[0]}>\n"
+        output += "\n\n"
+    if copyable:
+        await interaction.response.send_message(f"```\n{output}```")
+    else:
+        embed = discord.Embed(
+            color = redcolour,
+            description = output,
+            title = "Intern groupings"
+        )
+        await interaction.response.send_message(embed=embed)
+    # print(sort_interns(leaders, interns))
+
+def parse_timezone(name):
+    timezone = name.split(" | GMT")[1]
+    return int(timezone)
 
 @logQuota.autocomplete('week_start')
 async def autocomplete_callback(interaction: discord.Interaction, current: str):
@@ -559,6 +695,46 @@ async def autocomplete_callback(interaction: discord.Interaction, current: str):
             choicelist.append(app_commands.Choice(name = f'{dt.year}-{dt.month}-{dt.day}', value = f'{dt.year}-{dt.month}-{dt.day}'))
     
     return choicelist
+
+def insert_returns(body):
+    if isinstance(body[-1], ast.Expr):
+        body[-1] = ast.Return(body[-1].value)
+        ast.fix_missing_locations(body[-1])
+
+    if isinstance(body[-1], ast.If):
+        insert_returns(body[-1].body)
+        insert_returns(body[-1].orelse)
+
+    if isinstance(body[-1], ast.With):
+        insert_returns(body[-1].body)
+
+@tree.command(guild = discord.Object(id=guild_id), name="eval", description="Eval something")
+async def eval_py(interaction : discord.Interaction, cmd : str, ephemeral : bool = True):
+    if interaction.user.id == 378963670589505557:
+        fn_name = "_eval_expr"
+        
+        # wrap in async def body
+        body = f"async def {fn_name}():\n\t{cmd}"
+        
+        parsed = ast.parse(body)
+        body = parsed.body[0].body
+
+        insert_returns(body)
+
+        env = {
+            'bot': aclient,
+            'discord': discord,
+            'interaction': interaction,
+            '__import__': __import__
+        }
+        exec(compile(parsed, filename="<ast>", mode="exec"), env)
+
+        result = (await eval(f"{fn_name}()", env))
+        if len(result) == 0:
+            result = "No return value"
+        await interaction.response.send_message(result, ephemeral=ephemeral)
+    else:
+        await interaction.response.send_message("YOU ARENT ME!!!", ephemeral=True)
 
 @aclient.event
 async def on_app_command_completion(interaction : discord.Interaction, command : app_commands.Command):
