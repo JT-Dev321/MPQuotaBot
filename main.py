@@ -661,8 +661,13 @@ async def make_intern_groups(interaction: discord.Interaction, copyable : bool =
     if copyable:
         await interaction.response.send_message(f"```\n{output}```")
     if csv_groups:
+        output = ""
         for p in sp.keys():
-            print(sp)
+            output += f"<@{p}>: "
+            for p2 in sp[p]:
+                output += f"{p2[0]},"
+            output += "\n\n"
+        await interaction.response.send_message(output)
     else:
         embed = discord.Embed(
             color = maincolour,
