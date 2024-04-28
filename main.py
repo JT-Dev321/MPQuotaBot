@@ -24,6 +24,7 @@ guild_id_l = [guild_id]
 log_channel_id = 1208810891626151976
 strike_log_channel_id = 1208827574998933616
 senior_role_id = 768851165671850021
+intern_role_id = 938808499972997121
 staff_role_id = 796462879246909532
 
 database = 'quotaDB.sqlite'
@@ -116,12 +117,22 @@ async def IsSenior(staff_member):
     elif isinstance(staff_member, int):
         staff_member = get((aclient.get_guild(guild_id)).members, id = staff_member)
         return senior_role_id in [r.id for r in staff_member.roles]
+    
+async def IsIntern(staff_member):
+    if isinstance(staff_member, discord.Member):
+        return intern_role_id in [r.id for r in staff_member.roles]
+    elif isinstance(staff_member, int):
+        staff_member = get((aclient.get_guild(guild_id)).members, id = staff_member)
+        return intern_role_id in [r.id for r in staff_member.roles]
 
 async def getCurrentQuota():
-    return int(open("currentquota.txt", "r").readline().split("|")[0])
+    return int(open("currentquota.txt", "r").readline().split("|")[1])
 
 async def getCurrentSeniorQuota():
-    return int(open("currentquota.txt", "r").readline().split("|")[1])
+    return int(open("currentquota.txt", "r").readline().split("|")[2])
+
+async def getCurrentInternQuota():
+    return int(open("currentquota.txt", "r").readline().split("|")[0])
 
 async def CheckValidDate(date : str):
     return re.match(r"^20[0-9]{2}-([1-9]|1[0-2])-([1-9]|[12][0-9]|3[01])$", date) is not None
@@ -267,7 +278,7 @@ tree.add_command(rewardGroup)
 quotaGroup = Group(name = "quota", description = "Handle quotas", guild_ids=guild_id_l)
 
 @quotaGroup.command(name = "log", description='Log a quota for an individual')
-@app_commands.describe(week_start="Format: YYYY-MM-DD | Must use Monday of week", activity="False = Fail | True = Pass | Blank = N/A", excused="Use if user is excused DUE TO AN INACTIVITY NOTICE", apply_rewards="Leave Alone", auto_strike="Leave Alone")
+@app_commands.describe(week_start="Format: YYYY-MM-DD | Must use Monday of week", activity="False = Fail | True = Pass | Blank = N/A", excused="Use if user is excused DUE TO AN INACTIVITY NOTICE", apply_rewards="Leave Alone", auto_strike="Leave Alone", override_existing="Leave Alone")
 async def logQuota(interaction: discord.Interaction, staff_member : discord.Member, post_count : int, week_start : str, activity : bool = None, excused : bool = False, apply_rewards : bool = True, auto_strike : bool = True, override_existing : bool = False):
     await interaction.response.defer(thinking=True, ephemeral=True)
     # all wrong to do with senior quota (post count)
@@ -277,10 +288,12 @@ async def logQuota(interaction: discord.Interaction, staff_member : discord.Memb
 
     # work out the target users quota requirement
     requirement = 0
-    if not Is_Senior:
-        requirement = await getCurrentQuota()
-    else:
+    if Is_Senior:
         requirement = await getCurrentSeniorQuota()
+    elif IsIntern(staff_member):
+        requirement = await getCurrentInternQuota()
+    else:
+        requirement = await getCurrentQuota()
 
     # check if inspector is a senior
     if not await IsSenior(interaction.user):
@@ -373,7 +386,7 @@ async def logQuota(interaction: discord.Interaction, staff_member : discord.Memb
             existing_week = await cursor.fetchone()
         
         if existing_week is None:
-            await db.execute('INSERT INTO Weeks (StartDate, PostRequirement, SeniorPostRequirement) VALUES (?, ?, ?)', (week_start, await getCurrentQuota(), await getCurrentSeniorQuota()))
+            await db.execute('INSERT INTO Weeks (StartDate, PostRequirement, SeniorPostRequirement) VALUES (?, ?, ?)', (week_start, await getCurrentQuota(), await getCurrentSeniorQuota(), await getCurrentInternQuota()))
             await db.commit()
         
         if not Is_Senior:
@@ -382,6 +395,7 @@ async def logQuota(interaction: discord.Interaction, staff_member : discord.Memb
         else:
             await db.execute('INSERT INTO SeniorInspections (InspecteeID, InspectorID, PostsCompleted, Activity, WeekStart, InactivityExcused, RewardExcused, Pass) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', 
                                                                     (staff_member.id, interaction.user.id, post_count, int(activity), week_start, int(excused), int(reward_excused), int(post_count >= requirement and activity or excused or reward_excused)))
+
         await db.commit()
 
 
