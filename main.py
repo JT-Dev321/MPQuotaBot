@@ -464,12 +464,16 @@ async def viewWeek(interaction: discord.Interaction, week_start : str):
     
     missingnstaff = list(set(loggedStaff).symmetric_difference(set(expectedStaff)))
     
+    await interaction.channel.send(output)
+
+    output = ""
+
     if len(missingnstaff) > 0:
         output += "\n\nMissing:"
         for i in range(len(missingnstaff)):
             output += f"<@{missingnstaff[i]}>,"
     
-    await interaction.followup.send(output)
+    await interaction.channel.send(output)
 
 @quotaGroup.command(name = "get_history", description='Get a users most recent weeks of quota history')
 async def gethistory(interaction: discord.Interaction, staff_member : discord.Member):
