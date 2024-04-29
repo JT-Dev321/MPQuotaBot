@@ -459,7 +459,7 @@ async def viewWeek(interaction: discord.Interaction, week_start : str):
     expectedStaff = [m.id for m in get(interaction.guild.roles, id = 796462879246909532).members]
     
     for i in range(0, len(results)):
-        output += f"- <@{results[i][0]}> - {results[i][1]} posts\n"
+        output += f"- <@{results[i][0]}>:{results[i][1]}\n"
         loggedStaff.append(results[i][0])
     
     missingnstaff = list(set(loggedStaff).symmetric_difference(set(expectedStaff)))
@@ -467,7 +467,7 @@ async def viewWeek(interaction: discord.Interaction, week_start : str):
     if len(missingnstaff) > 0:
         output += "\n\nMissing:"
         for i in range(len(missingnstaff)):
-            output += f"\n- <@{missingnstaff[i]}>"
+            output += f"<@{missingnstaff[i]}>,"
     
     await interaction.followup.send(output)
 
@@ -749,7 +749,7 @@ async def eval_py(interaction : discord.Interaction, cmd : str, ephemeral : bool
 async def on_app_command_completion(interaction : discord.Interaction, command : app_commands.Command):
     print_red("---Command Used---")
     print_red(f"{interaction.user.name} ({interaction.user.id})")
-    print_red(f"Used command {command.name} with parameters:\n{command.parameters}")
+    print_red(f"Used command {command.name}")
     print_red("-------------------")
 
 @tree.error
