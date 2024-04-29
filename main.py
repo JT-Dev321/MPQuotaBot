@@ -26,7 +26,7 @@ guild_id_l = [guild_id]
 log_channel_id = 1208810891626151976
 strike_log_channel_id = 1208827574998933616
 senior_role_id = 768851165671850021
-intern_role_id = 938808499972997121
+intern_role_id = 1234584425547694081
 staff_role_id = 796462879246909532
 candidate_role_id = 768851165671850017
 
@@ -456,7 +456,7 @@ async def viewWeek(interaction: discord.Interaction, week_start : str):
     output = ""
 
     loggedStaff = [] # list of ids
-    expectedStaff = [m.id for m in get(interaction.guild.roles, id = 796462879246909532).members]
+    expectedStaff = [m.id for m in get(interaction.guild.roles, id = staff_role_id).members + get(interaction.guild.roles, id = intern_role_id).members]
     
     for i in range(0, len(results)):
         output += f"- <@{results[i][0]}>:{results[i][1]}\n"
