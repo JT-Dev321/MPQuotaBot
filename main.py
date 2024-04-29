@@ -481,22 +481,22 @@ async def gethistory(interaction: discord.Interaction, staff_member : discord.Me
 
 @quotaGroup.command(name = "mvp", description='Get the mvp list for a week')
 @app_commands.describe(week_start="Format: YYYY-MM-DD | Must use Monday of week")
-async def getmvp(interaction: discord.Interaction, week_start : str):
+async def getmvp(interaction: discord.Interaction, week_start : str, threshold : int):
     await interaction.response.defer(thinking=True)
     
     async with aiosqlite.connect(database) as db:
         async with db.execute("""SELECT InspecteeID, PostsCompleted 
                             FROM Inspections
-                            WHERE WeekStart=? AND PostsCompleted > 99
-                            ORDER BY PostsCompleted DESC""", (week_start,)) as cursor:
+                            WHERE WeekStart=? AND PostsCompleted > ?
+                            ORDER BY PostsCompleted DESC""", (week_start, threshold)) as cursor:
             results1 = await cursor.fetchall()
     
     
     async with aiosqlite.connect(database) as db:
         async with db.execute("""SELECT InspecteeID, PostsCompleted 
                             FROM SeniorInspections
-                            WHERE WeekStart=? AND PostsCompleted > 99
-                            ORDER BY PostsCompleted DESC""", (week_start,)) as cursor:
+                            WHERE WeekStart=? AND PostsCompleted > ?
+                            ORDER BY PostsCompleted DESC""", (week_start, threshold)) as cursor:
             results2 = await cursor.fetchall()
     
     
