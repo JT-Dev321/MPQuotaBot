@@ -28,7 +28,7 @@ strike_log_channel_id = 1208827574998933616
 senior_role_id = 768851165671850021
 intern_role_id = 1234584425547694081
 staff_role_id = 796462879246909532
-candidate_role_id = 796462879246909532
+candidate_role_id = 768851165671850017
 
 database = 'quotaDB.sqlite'
 
