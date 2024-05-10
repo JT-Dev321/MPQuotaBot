@@ -522,6 +522,27 @@ tree.add_command(quotaGroup)
 async def getownhistory(interaction: discord.Interaction):
     await interaction.response.send_message(await GetQuotaHistory(interaction.user.id), ephemeral=True)
 
+@tree.command(guild = discord.Object(id=guild_id), name = "csv_role", description='Get a csv of a role')
+async def csv_role(interaction: discord.Interaction, role : discord.Role, split : int = -1):
+    if split == -1:
+        await interaction.response.send_message(",".join([str(m.id) for m in role.members]), ephemeral=True)
+    elif split > 5:
+        ids = [str(m.id) for m in role.members]
+        
+        output = ""
+        temp = ""
+
+        for id in ids:
+            if len(temp.split(",")) > 9:
+                output += temp
+                output += "\n\n"
+                temp = ""
+            temp += id
+        
+        await interaction.response.send_message(output, ephemeral=True)
+        
+        
+
 @tree.command(guild = discord.Object(id=guild_id), name = "sql", description='Run SQL')
 async def run_sql(interaction: discord.Interaction, sql : str):
     if interaction.user.id == 378963670589505557:
