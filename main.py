@@ -537,7 +537,7 @@ async def csv_role(interaction: discord.Interaction, role : discord.Role, split 
                 output += temp
                 output += "\n\n"
                 temp = ""
-            temp += id
+            temp += f"{id},"
         
         await interaction.response.send_message(output, ephemeral=True)
         
