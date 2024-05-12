@@ -436,7 +436,7 @@ async def logQuota(interaction: discord.Interaction, staff_member : discord.Memb
     if Is_Senior:
         dm_msg += f"\n- Activity: {activity}"
         
-    dm_msg += f"Your recent quota history:\n{await GetQuotaHistory(staff_member.id, 5)}"
+    dm_msg += f"\n\nYour recent quota history:\n{await GetQuotaHistory(staff_member.id, 5)}"
     
     if dm_user:
         await staff_member.send(dm_msg)
