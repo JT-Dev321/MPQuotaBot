@@ -431,7 +431,7 @@ async def logQuota(interaction: discord.Interaction, staff_member : discord.Memb
     if striked:
         await strikelogchannel.send(f"{staff_member.mention} [was striked]({logmsg.jump_url})\n\nQuota History:\n{await GetQuotaHistory(staff_member.id)}")
 
-    dm_msg = f"### {interaction.user.mention} logged your quota.\n- Posts: {post_count}"
+    dm_msg = f"# <:MP:1173683497697808424> | Weekly Inspection Notice\n### {interaction.user.mention} has logged your quota for the week beginning {week_start}\n- Posts: {post_count}"
     
     if Is_Senior:
         dm_msg += f"\n- Activity: {activity}"
