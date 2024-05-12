@@ -141,7 +141,7 @@ async def getCurrentInternQuota():
 async def CheckValidDate(date : str):
     return re.match(r"^20[0-9]{2}-([1-9]|1[0-2])-([1-9]|[12][0-9]|3[01])$", date) is not None
 
-async def GetQuotaHistory(staff_member : int):
+async def GetQuotaHistory(staff_member : int, limit : int = 20):
     
     if not await IsSenior(staff_member):
         async with aiosqlite.connect(database) as db:
@@ -152,7 +152,7 @@ async def GetQuotaHistory(staff_member : int):
                                     substr(WeekStart, 1, instr(WeekStart, '-') - 1), 
                                     substr(WeekStart, instr(WeekStart, '-') + 1, 2), 
                                     substr(WeekStart, -2)) DESC
-                                    LIMIT 20""", (staff_member,)) as cursor:
+                                    LIMIT ?""", (staff_member, str(limit))) as cursor:
                 rows = await cursor.fetchall()
     else:
         async with aiosqlite.connect(database) as db:
@@ -163,7 +163,7 @@ async def GetQuotaHistory(staff_member : int):
                                     substr(WeekStart, 1, instr(WeekStart, '-') - 1), 
                                     substr(WeekStart, instr(WeekStart, '-') + 1, 2), 
                                     substr(WeekStart, -2)) DESC
-                                    LIMIT 20""", (staff_member,)) as cursor:
+                                    LIMIT ?""", (staff_member, str(limit))) as cursor:
                 rows = await cursor.fetchall()
     
     
@@ -286,7 +286,7 @@ quotaGroup = Group(name = "quota", description = "Handle quotas", guild_ids=guil
 
 @quotaGroup.command(name = "log", description='Log a quota for an individual')
 @app_commands.describe(week_start="Format: YYYY-MM-DD | Must use Monday of week", activity="False = Fail | True = Pass | Blank = N/A", excused="Use if user is excused DUE TO AN INACTIVITY NOTICE", apply_rewards="Leave Alone", auto_strike="Leave Alone", override_existing="Leave Alone")
-async def logQuota(interaction: discord.Interaction, staff_member : discord.Member, post_count : int, week_start : str, activity : bool = None, excused : bool = False, apply_rewards : bool = True, auto_strike : bool = True, override_existing : bool = False):
+async def logQuota(interaction: discord.Interaction, staff_member : discord.Member, post_count : int, week_start : str, activity : bool = None, excused : bool = False, apply_rewards : bool = True, auto_strike : bool = True, override_existing : bool = False, dm_user : bool = True):
     await interaction.response.defer(thinking=True, ephemeral=True)
     # all wrong to do with senior quota (post count)
     reward_excused = False
@@ -431,6 +431,16 @@ async def logQuota(interaction: discord.Interaction, staff_member : discord.Memb
     if striked:
         await strikelogchannel.send(f"{staff_member.mention} [was striked]({logmsg.jump_url})\n\nQuota History:\n{await GetQuotaHistory(staff_member.id)}")
 
+    dm_msg = f"### {interaction.user.mention} logged your quota.\n- Posts: {post_count}"
+    
+    if Is_Senior:
+        dm_msg += f"\n- Activity: {activity}"
+        
+    dm_msg += f"Your recent quota history:\n{await GetQuotaHistory(staff_member, 5)}"
+    
+    if dm_user:
+        await staff_member.send(dm_msg)
+    
     await interaction.followup.send(finalmsg)
     
 @quotaGroup.command(name = "check_week", description='View information about a specific week')
