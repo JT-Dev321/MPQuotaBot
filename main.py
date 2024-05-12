@@ -166,6 +166,9 @@ async def GetQuotaHistory(staff_member : int):
                                     LIMIT 20""", (staff_member,)) as cursor:
                 rows = await cursor.fetchall()
     
+    
+    rows.reverse()
+    
     output = "```diff\n"
     for row in rows:
         if int(row[1]) == 1:
