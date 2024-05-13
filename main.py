@@ -14,7 +14,7 @@ import asyncio
 import re
 
 import math
-
+import itertools
 import ast
 
 from dotenv import load_dotenv
@@ -543,12 +543,15 @@ internGroup = Group(name = "intern", description = "Handle intern", guild_ids=gu
 @internGroup.command(name = "register", description='Register interns from a role')
 async def register_from_role(interaction: discord.Interaction, role : discord.Role = None, id_csv : str = None):
     
-    if role == None and id_csv == None:
-        await interaction.response.send_message("Choose a source to get them from!", ephemeral=True)
+    if (role == None and id_csv == None) or (role != None and id_csv != None):
+        await interaction.response.send_message("Choose one source to get them from!", ephemeral=True)
     
-    async with aiosqlite.connect(database) as db:
-        async with db.execute("SELECT InternID FROM Interns") as cursor:
-            existing_interns = map(list, await cursor.fetchall())
+    if role != None:
+        async with aiosqlite.connect(database) as db:
+            async with db.execute("SELECT InternID FROM Interns") as cursor:
+                existing_interns = list(itertools.chain.from_iterable(await cursor.fetchall()))
+    else:
+        existing_interns = id_csv.split(",")
     
     counter = 0
     for m in role.members:
