@@ -551,7 +551,7 @@ async def register_from_role(interaction: discord.Interaction, role : discord.Ro
             existing_interns = list(itertools.chain.from_iterable(await cursor.fetchall()))
     print(existing_interns)
     counter = 0
-    for id in ([m.id for m in role.members] if role != None else id_csv.split(",")):
+    for id in map(int, [m.id for m in role.members] if role != None else id_csv.split(",")):
         if id not in existing_interns:
             async with aiosqlite.connect(database) as db:
                 await db.execute("INSERT INTO Interns (InternID, DateJoined) VALUES (?, ?)", (id, datetime.now().strftime('%Y-%m-%d')))
