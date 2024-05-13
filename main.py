@@ -546,15 +546,12 @@ async def register_from_role(interaction: discord.Interaction, role : discord.Ro
     if (role == None and id_csv == None) or (role != None and id_csv != None):
         await interaction.response.send_message("Choose one source to get them from!", ephemeral=True)
     
-    if role != None:
-        async with aiosqlite.connect(database) as db:
-            async with db.execute("SELECT InternID FROM Interns") as cursor:
-                existing_interns = list(itertools.chain.from_iterable(await cursor.fetchall()))
-    else:
-        existing_interns = id_csv.split(",")
+    async with aiosqlite.connect(database) as db:
+        async with db.execute("SELECT InternID FROM Interns") as cursor:
+            existing_interns = list(itertools.chain.from_iterable(await cursor.fetchall()))
     
     counter = 0
-    for m in role.members:
+    for m in (role.members if role != None else id_csv.split(",")):
         if m.id not in existing_interns:
             async with aiosqlite.connect(database) as db:
                 await db.execute("INSERT INTO Interns (InternID, DateJoined) VALUES (?, ?)", (m.id, datetime.now().strftime('%Y-%m-%d')))
