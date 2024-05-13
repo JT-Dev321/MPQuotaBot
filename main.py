@@ -555,6 +555,7 @@ async def register_from_role(interaction: discord.Interaction, role : discord.Ro
         if id not in existing_interns:
             async with aiosqlite.connect(database) as db:
                 await db.execute("INSERT INTO Interns (InternID, DateJoined) VALUES (?, ?)", (id, datetime.now().strftime('%Y-%m-%d')))
+                await db.commit()
                 counter += 1
                 
     await interaction.response.send_message(f"Enrolled {counter} people", ephemeral=True)
