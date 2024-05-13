@@ -549,7 +549,7 @@ async def register_from_role(interaction: discord.Interaction, role : discord.Ro
     async with aiosqlite.connect(database) as db:
         async with db.execute("SELECT InternID FROM Interns") as cursor:
             existing_interns = list(itertools.chain.from_iterable(await cursor.fetchall()))
-    
+    print(existing_interns)
     counter = 0
     for id in ([m.id for m in role.members] if role != None else id_csv.split(",")):
         if id not in existing_interns:
