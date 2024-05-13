@@ -105,6 +105,13 @@ class client(discord.Client):
                                 Charges INTEGER
                                 )""")
             
+            await db.execute("""CREATE TABLE IF NOT EXISTS Interns(
+                                ID INTEGER PRIMARY KEY, 
+                                InternID INTEGER, 
+                                DateJoined TEXT,
+                                RemovalReason TEXT
+                                )""")
+            
     async def on_ready(self):
         await self.wait_until_ready()
         if not self.synced:
@@ -528,12 +535,51 @@ async def getmvp(interaction: discord.Interaction, week_start : str, threshold :
     
     await interaction.followup.send(output)
     
-
 tree.add_command(quotaGroup)
+
+
+internGroup = Group(name = "intern", description = "Handle intern", guild_ids=guild_id_l)
+
+@internGroup.command(name = "register_from_role", description='Register interns from a role')
+async def register_from_role(interaction: discord.Interaction, role : discord.Role):
+    
+    async with aiosqlite.connect(database) as db:
+        async with db.execute("SELECT InternID FROM Interns") as cursor:
+            existing_interns = map(list, await cursor.fetchall())
+    
+    counter = 0
+    for m in role.members:
+        if m.id not in existing_interns:
+            async with aiosqlite.connect(database) as db:
+                await db.execute("INSERT INTO Interns (InternID, DateJoined) VALUES (?, ?)", (m.id, datetime.now().strftime('%Y-%m-%d')))
+                counter += 1
+                
+    await interaction.response.send_message(f"Enrolled {counter} people", ephemeral=True)
+                
+@internGroup.command(name = "remove", description='Remove an intern')
+async def remove_intern(interaction: discord.Interaction, intern : discord.User, reason : str):
+    
+    async with aiosqlite.connect(database) as db:
+        async with db.execute("SELECT InternID FROM Interns") as cursor:
+            existing_interns = map(list, await cursor.fetchall())
+            
+    if intern.id in existing_interns:
+        async with aiosqlite.connect(database) as db:
+            await db.execute("UPDATE Interns SET RemovalReason = ? WHERE InternID = ?", (reason, interaction.user.id))
+            await db.commit()
+    else:
+        await interaction.response.send_message("Not in DB", ephemeral=True)
+    
+    await interaction.response.send_message("Dont forget to kick them!", ephemeral=True)
+
+tree.add_command(internGroup)
+
 
 @tree.command(guild = discord.Object(id=guild_id), name = "check_history", description='Check your own quota history!')
 async def getownhistory(interaction: discord.Interaction):
     await interaction.response.send_message(await GetQuotaHistory(interaction.user.id), ephemeral=True)
+
+
 
 @tree.command(guild = discord.Object(id=guild_id), name = "csv_role", description='Get a csv of a role')
 async def csv_role(interaction: discord.Interaction, role : discord.Role, splitby : int = -1):
