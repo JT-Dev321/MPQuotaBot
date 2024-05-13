@@ -540,8 +540,11 @@ tree.add_command(quotaGroup)
 
 internGroup = Group(name = "intern", description = "Handle intern", guild_ids=guild_id_l)
 
-@internGroup.command(name = "register_from_role", description='Register interns from a role')
-async def register_from_role(interaction: discord.Interaction, role : discord.Role):
+@internGroup.command(name = "register", description='Register interns from a role')
+async def register_from_role(interaction: discord.Interaction, role : discord.Role = None, id_csv : str = None):
+    
+    if role == None and id_csv == None:
+        await interaction.response.send_message("Choose a source to get them from!", ephemeral=True)
     
     async with aiosqlite.connect(database) as db:
         async with db.execute("SELECT InternID FROM Interns") as cursor:
