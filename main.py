@@ -567,7 +567,7 @@ async def remove_intern(interaction: discord.Interaction, intern : discord.User,
     
     async with aiosqlite.connect(database) as db:
         async with db.execute("SELECT InternID FROM Interns") as cursor:
-            existing_interns = map(list, await cursor.fetchall())
+            existing_interns = list(itertools.chain.from_iterable(await cursor.fetchall()))
             
     if intern.id in existing_interns:
         async with aiosqlite.connect(database) as db:
