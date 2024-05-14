@@ -307,7 +307,7 @@ class parse_data_modal(ui.Modal, title = 'Data parser'):
         output = ""
         
         for name in quotaDict:
-            output += f"/quota log staff_member:{name} post_count:{quotaDict[name]} week_start: "
+            output += f"/quota log staff_member:{name} post_count:{quotaDict[name]} week_start: \n"
         
         await interaction.response.send_message(output)
      
