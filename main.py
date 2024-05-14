@@ -549,7 +549,7 @@ async def register_from_role(interaction: discord.Interaction, role : discord.Ro
     async with aiosqlite.connect(database) as db:
         async with db.execute("SELECT InternID FROM Interns") as cursor:
             existing_interns = list(itertools.chain.from_iterable(await cursor.fetchall()))
-    print(existing_interns)
+    
     counter = 0
     for id in map(int, [m.id for m in role.members] if role != None else id_csv.split(",")):
         if id not in existing_interns:
@@ -569,7 +569,7 @@ async def remove_intern(interaction: discord.Interaction, intern : discord.User,
             
     if intern.id in existing_interns:
         async with aiosqlite.connect(database) as db:
-            await db.execute("UPDATE Interns SET RemovalReason = ? WHERE InternID = ?", (reason, interaction.user.id))
+            await db.execute("UPDATE Interns SET RemovalReason = ? WHERE InternID = ?", (reason, intern.id))
             await db.commit()
     else:
         await interaction.response.send_message("Not in DB", ephemeral=True)
