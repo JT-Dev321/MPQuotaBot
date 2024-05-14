@@ -310,20 +310,6 @@ class parse_data_modal(ui.Modal, title = 'Data parser'):
             output += f"/quota log staff_member:{name} post_count:{quotaDict[name]} week_start: \n"
         
         await interaction.response.send_message(output)
-     
-"""
-0 mad_01
-1 Marketplace Quota
-2 6 May 2024 to 12 May 2024
-3 
-4 MP Posts Handled: 31
-5 
-6 brightvalley2
-7 Marketplace Quota
-8 6 May 2024 to 12 May 2024
-9 
-10 MP Posts Handled: 36
-"""
 
 quotaGroup = Group(name = "quota", description = "Handle quotas", guild_ids=guild_id_l)
 
