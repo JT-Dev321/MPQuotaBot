@@ -289,7 +289,7 @@ async def autocomplete_callback(interaction: discord.Interaction, current: str):
 
 tree.add_command(rewardGroup)
 
-class announce_embed(ui.Modal, title = 'Data parser'):
+class parse_data_modal(ui.Modal, title = 'Data parser'):
 
     def __init__(self):
         super().__init__()
@@ -324,8 +324,9 @@ class announce_embed(ui.Modal, title = 'Data parser'):
 quotaGroup = Group(name = "quota", description = "Handle quotas", guild_ids=guild_id_l)
 
 @quotaGroup.command(name = "parsedata", description='Parse data')
-async def logQuota(interaction: discord.Interaction, data : str):
-    await interaction.response.send_modal
+async def parseData(interaction: discord.Interaction):
+    await interaction.response.send_modal(parse_data_modal())
+    
 @quotaGroup.command(name = "log", description='Log a quota for an individual')
 @app_commands.describe(week_start="Format: YYYY-MM-DD | Must use Monday of week", activity="False = Fail | True = Pass | Blank = N/A", excused="Use if user is excused DUE TO AN INACTIVITY NOTICE", apply_rewards="Leave Alone", auto_strike="Leave Alone", override_existing="Leave Alone")
 async def logQuota(interaction: discord.Interaction, staff_member : discord.Member, post_count : int, week_start : str, activity : bool = None, excused : bool = False, apply_rewards : bool = True, auto_strike : bool = True, override_existing : bool = False, dm_user : bool = True):
