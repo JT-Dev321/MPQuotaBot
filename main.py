@@ -289,8 +289,43 @@ async def autocomplete_callback(interaction: discord.Interaction, current: str):
 
 tree.add_command(rewardGroup)
 
+class announce_embed(ui.Modal, title = 'Data parser'):
+
+    def __init__(self):
+        super().__init__()
+
+    data = ui.TextInput(label = 'Data', style = discord.TextStyle.paragraph, required = True)
+    
+    async def on_submit(self, interaction: discord.Interaction) -> None:
+        splitData = self.data.value.split('\n')
+        
+        quotaDict = {}
+        
+        for i in range(0, len(splitData), 6):
+            quotaDict.update({f"{splitData[i]}" : int(splitData[i+4].split(': ')[1])})
+        
+        await interaction.response.send_message(quotaDict)
+        
+     
+"""
+0 mad_01
+1 Marketplace Quota
+2 6 May 2024 to 12 May 2024
+3 
+4 MP Posts Handled: 31
+5 
+6 brightvalley2
+7 Marketplace Quota
+8 6 May 2024 to 12 May 2024
+9 
+10 MP Posts Handled: 36
+"""
+
 quotaGroup = Group(name = "quota", description = "Handle quotas", guild_ids=guild_id_l)
 
+@quotaGroup.command(name = "parsedata", description='Parse data')
+async def logQuota(interaction: discord.Interaction, data : str):
+    await interaction.response.send_modal
 @quotaGroup.command(name = "log", description='Log a quota for an individual')
 @app_commands.describe(week_start="Format: YYYY-MM-DD | Must use Monday of week", activity="False = Fail | True = Pass | Blank = N/A", excused="Use if user is excused DUE TO AN INACTIVITY NOTICE", apply_rewards="Leave Alone", auto_strike="Leave Alone", override_existing="Leave Alone")
 async def logQuota(interaction: discord.Interaction, staff_member : discord.Member, post_count : int, week_start : str, activity : bool = None, excused : bool = False, apply_rewards : bool = True, auto_strike : bool = True, override_existing : bool = False, dm_user : bool = True):
@@ -838,10 +873,7 @@ async def eval_py(interaction : discord.Interaction, cmd : str, ephemeral : bool
 
 @aclient.event
 async def on_app_command_completion(interaction : discord.Interaction, command : app_commands.Command):
-    print_red("---Command Used---")
-    print_red(f"{interaction.user.name} ({interaction.user.id})")
-    print_red(f"Used command {command.name}")
-    print_red("-------------------")
+    print_red(f"{interaction.user.name} ({interaction.user.id}) Used command {command.name}")
 
 @tree.error
 async def on_app_command_error(interaction : discord.Interaction, error : AppCommandError):
