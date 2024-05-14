@@ -304,8 +304,12 @@ class parse_data_modal(ui.Modal, title = 'Data parser'):
         for i in range(0, len(splitData), 6):
             quotaDict.update({f"{splitData[i]}" : int(splitData[i+4].split(': ')[1])})
         
-        await interaction.response.send_message(quotaDict)
+        output = ""
         
+        for name in quotaDict:
+            output += f"/quota log staff_member:{name} post_count:{quotaDict[name]} week_start: "
+        
+        await interaction.response.send_message(output)
      
 """
 0 mad_01
