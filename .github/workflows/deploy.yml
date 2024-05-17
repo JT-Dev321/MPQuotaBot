@@ -32,7 +32,6 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            export PATH=$PATH:\/home\/${{ secrets.SSH_USERNAME }\/.local\/share\/fnm\/node-versions\/v20.13.1\/installation\/bin
             echo $PATH
             cd ${{ secrets.SSH_DIRECTORY_PATH }}
 
