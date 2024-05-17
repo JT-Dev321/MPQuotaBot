@@ -32,6 +32,7 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
+            source ~/.profile
             echo $PATH
             cd ${{ secrets.SSH_DIRECTORY_PATH }}
 
