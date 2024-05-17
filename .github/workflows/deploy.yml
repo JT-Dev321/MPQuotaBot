@@ -26,4 +26,4 @@ jobs:
         run: rsync -avs -r --delete --include="requirements.txt" --include="currentquota.txt" --exclude="*" . ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:${{ secrets.SSH_DIRECTORY_PATH }}
 
       - name: Restart PM2 Process
-        run: ssh ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "cd ${{ secrets.SSH_DIRECTORY_PATH }}; export NVM_DIR=~/.nvm; source ~/.nvm/nvm.sh; pm2 restart MPQuotaBot;"
+        run: ssh ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "cd ${{ secrets.SSH_DIRECTORY_PATH }}; pm2 restart MPQuotaBot;"
