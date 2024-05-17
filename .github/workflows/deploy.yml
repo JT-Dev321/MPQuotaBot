@@ -32,8 +32,8 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            exec bash \-l
-            
+            source ~/.profile
+            echo $PATH
             cd ${{ secrets.SSH_DIRECTORY_PATH }}
 
             pm2 restart MPQuotaBot
