@@ -334,7 +334,7 @@ async def set_quota(interaction: discord.Interaction, role : str, value : int):
     prev = await get_variable(role)
     await set_variable(role, value)
     
-    await interaction.response.send_message(f"Changed quota for {role} from {prev} to {value}")
+    await interaction.response.send_message(f"Changed quota for `{role}` from `{prev}` to `{value}`", ephemeral=True)
 
 @quotaGroup.command(name = "parsedata", description='Parse data')
 async def parseData(interaction: discord.Interaction):
