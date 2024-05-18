@@ -161,13 +161,13 @@ async def set_variable(key, value):
         await db.commit()
 
 async def getCurrentQuota():
-    return get_variable("normal")
+    return int(get_variable("normal"))
 
 async def getCurrentSeniorQuota():
-    return get_variable("senior")
+    return int(get_variable("senior"))
 
 async def getCurrentInternQuota():
-    return get_variable("intern")
+    return int(get_variable("intern"))
 
 async def CheckValidDate(date : str):
     return re.match(r"^20[0-9]{2}-([1-9]|1[0-2])-([1-9]|[12][0-9]|3[01])$", date) is not None
