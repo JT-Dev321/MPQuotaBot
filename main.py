@@ -25,6 +25,7 @@ guild_id_l = [guild_id]
 
 log_channel_id = 1208810891626151976
 strike_log_channel_id = 1208827574998933616
+management_role_id = 768851165671850022
 senior_role_id = 768851165671850021
 intern_role_id = 1234584425547694081
 staff_role_id = 796462879246909532
@@ -126,6 +127,13 @@ class client(discord.Client):
         
 aclient = client()
 tree = app_commands.CommandTree(aclient)
+
+async def IsManagement(staff_member):
+    if isinstance(staff_member, discord.Member):
+        return management_role_id in [r.id for r in staff_member.roles]
+    elif isinstance(staff_member, int):
+        staff_member = get((aclient.get_guild(guild_id)).members, id = staff_member)
+        return management_role_id in [r.id for r in staff_member.roles]
 
 async def IsSenior(staff_member):
     if isinstance(staff_member, discord.Member):
@@ -330,6 +338,7 @@ class parse_data_modal(ui.Modal, title = 'Data parser'):
 quotaGroup = Group(name = "quota", description = "Handle quotas", guild_ids=guild_id_l)
 
 @quotaGroup.command(name = "set", description='Set a quota')
+@app_commands.checks.has_role(management_role_id)
 async def set_quota(interaction: discord.Interaction, role : str, value : int):
     prev = await get_variable(role)
     await set_variable(role, value)
@@ -680,7 +689,7 @@ async def run_sql(interaction: discord.Interaction, sql : str):
         await interaction.response.send_message("not for you go away!", ephemeral=True)
 
 @tree.command(guild = discord.Object(id=guild_id), name = "make_groups", description='Sorts interns into sr timezone groups')
-@app_commands.checks.has_role(768851165671850022)
+@app_commands.checks.has_role(management_role_id)
 async def make_intern_groups(interaction: discord.Interaction, copyable : bool = False, csv_groups : bool = False):
     
     interns = []
