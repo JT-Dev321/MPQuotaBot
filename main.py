@@ -112,6 +112,11 @@ class client(discord.Client):
                                 RemovalReason TEXT
                                 )""")
             
+            await db.execute("""CREATE TABLE IF NOT EXISTS Quotas(
+                                key TEXT PRIMARY KEY,
+                                value TEXT
+                                )""")
+            
     async def on_ready(self):
         await self.wait_until_ready()
         if not self.synced:
@@ -136,14 +141,25 @@ async def IsIntern(staff_member):
         staff_member = get((aclient.get_guild(guild_id)).members, id = staff_member)
         return intern_role_id in [r.id for r in staff_member.roles]
 
+async def get_variable(key):
+    async with aiosqlite.connect(database) as db:
+        async with db.execute('SELECT value FROM Quotas WHERE key=?', (key,)) as cursor:
+            result = await cursor.fetchone()
+            return result[0] if result else None
+
+async def set_variable(key, value):
+    async with aiosqlite.connect(database) as db:
+        await db.execute('INSERT OR REPLACE INTO Quotas (key, value) VALUES (?, ?)', (key, value))
+        await db.commit()
+
 async def getCurrentQuota():
-    return int(open("currentquota.txt", "r").readline().split("|")[1])
+    return get_variable("normal")
 
 async def getCurrentSeniorQuota():
-    return int(open("currentquota.txt", "r").readline().split("|")[2])
+    return get_variable("senior")
 
 async def getCurrentInternQuota():
-    return int(open("currentquota.txt", "r").readline().split("|")[0])
+    return get_variable("intern")
 
 async def CheckValidDate(date : str):
     return re.match(r"^20[0-9]{2}-([1-9]|1[0-2])-([1-9]|[12][0-9]|3[01])$", date) is not None
@@ -312,6 +328,13 @@ class parse_data_modal(ui.Modal, title = 'Data parser'):
         await interaction.response.send_message(output)
 
 quotaGroup = Group(name = "quota", description = "Handle quotas", guild_ids=guild_id_l)
+
+@quotaGroup.command(name = "set", description='Set a quota')
+async def set_quota(interaction: discord.Interaction, role : str, value : int):
+    prev = await get_variable(role)
+    await set_variable(role, value)
+    
+    await interaction.response.send_message(f"Changed quota for {role} from {prev} to {value}")
 
 @quotaGroup.command(name = "parsedata", description='Parse data')
 async def parseData(interaction: discord.Interaction):
@@ -610,7 +633,6 @@ async def getownhistory(interaction: discord.Interaction):
     await interaction.response.send_message(await GetQuotaHistory(interaction.user.id), ephemeral=True)
 
 
-
 @tree.command(guild = discord.Object(id=guild_id), name = "csv_role", description='Get a csv of a role')
 async def csv_role(interaction: discord.Interaction, role : discord.Role, splitby : int = -1):
     if splitby == -1:
@@ -631,9 +653,7 @@ async def csv_role(interaction: discord.Interaction, role : discord.Role, splitb
         if temp != "":
             output += temp
             
-        await interaction.response.send_message(output, ephemeral=True)
-        
-        
+        await interaction.response.send_message(output, ephemeral=True)  
 
 @tree.command(guild = discord.Object(id=guild_id), name = "sql", description='Run SQL')
 async def run_sql(interaction: discord.Interaction, sql : str):
@@ -806,6 +826,14 @@ async def autocomplete_callback(interaction: discord.Interaction, current: str):
         dt = datetime.now() + timedelta(days=i)
         if dt.weekday() == 0:
             choicelist.append(app_commands.Choice(name = f'{dt.year}-{dt.month}-{dt.day}', value = f'{dt.year}-{dt.month}-{dt.day}'))
+    
+    return choicelist
+
+@set_quota.autocomplete('role')
+async def autocomplete_callback(interaction: discord.Interaction, current: str):
+    choicelist = [app_commands.Choice(name = 'intern', value = 'intern'),
+                  app_commands.Choice(name = 'normal', value = 'normal'),
+                  app_commands.Choice(name = 'senior', value = 'senior')]
     
     return choicelist
 
