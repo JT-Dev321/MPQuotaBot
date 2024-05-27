@@ -421,11 +421,11 @@ async def logQuota(interaction: discord.Interaction, staff_member : discord.Memb
     
     # Excused
     excused = False
-    if not override_excused:
+    if not override_excused and post_count < requirement:
         async with aiosqlite.connect(database) as db:
             async with db.execute('SELECT StaffID FROM Excused WHERE InspectionCount > 0 AND StaffID = ?', (staff_member.id,)) as cursor:
-                existing_quota = await cursor.fetchone()
-            if existing_quota is not None:
+                row = await cursor.fetchone()
+            if row is not None:
                 excused = True
                 await db.execute('UPDATE Excused SET InspectionCount = InspectionCount - 1 WHERE StaffID = ?', (staff_member.id,))
                 await db.commit()
