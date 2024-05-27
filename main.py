@@ -119,8 +119,7 @@ class client(discord.Client):
                                 )""")
             
             await db.execute("""CREATE TABLE IF NOT EXISTS Excused(
-                                ID INTEGER PRIMARY KEY,
-                                StaffID INTEGER,
+                                StaffID INTEGER PRIMARY KEY,
                                 InspectionCount INTEGER
                                 )""")
             
