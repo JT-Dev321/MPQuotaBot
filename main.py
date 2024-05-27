@@ -364,10 +364,12 @@ async def inactivity_add(interaction: discord.Interaction, staff_member : discor
     async with aiosqlite.connect(database) as db:
         await db.execute('INSERT OR REPLACE INTO Excused (StaffID, InspectionCount) VALUES (?, ?)', (staff_member.id, inspection_count))
         await db.commit()
+        await interaction.response.send_message("Successfully added user!", ephemeral=True)
+    
 
 @quotaGroup.command(name = "log", description='Log a quota for an individual')
-@app_commands.describe(week_start="Format: YYYY-MM-DD | Must use Monday of week", activity="Senior Only", excused="Use if user is excused", apply_rewards="Default: True", auto_strike="Default: True", override_existing="Default: False", dm_user="Default: True")
-async def logQuota(interaction: discord.Interaction, staff_member : discord.Member, post_count : int, week_start : str, activity : bool = None, excused : bool = False, apply_rewards : bool = True, auto_strike : bool = True, override_existing : bool = False, dm_user : bool = True):
+@app_commands.describe(week_start="Format: YYYY-MM-DD | Must use Monday of week", activity="Senior Only", override_excused="Use to override excused", apply_rewards="Default: True", auto_strike="Default: True", override_existing="Default: False", dm_user="Default: True")
+async def logQuota(interaction: discord.Interaction, staff_member : discord.Member, post_count : int, week_start : str, activity : bool = None, override_excused : bool = False, apply_rewards : bool = True, auto_strike : bool = True, override_existing : bool = False, dm_user : bool = True):
     await interaction.response.defer(thinking=True, ephemeral=True)
     # all wrong to do with senior quota (post count)
     reward_excused = False
@@ -419,13 +421,16 @@ async def logQuota(interaction: discord.Interaction, staff_member : discord.Memb
     
     # Excused
     excused = False
-    async with aiosqlite.connect(database) as db:
-        async with db.execute('SELECT StaffID FROM Excused WHERE InspectionCount > 0 AND StaffID = ?', (staff_member.id)) as cursor:
-            existing_quota = await cursor.fetchone()
-        if existing_quota != None:
-            excused = True
-            await db.execute('UPDATE Excused SET InspectionCount = InspectionCount - 1 WHERE StaffID = ?', (staff_member.id))
-            await db.commit()
+    if not override_excused:
+        async with aiosqlite.connect(database) as db:
+            async with db.execute('SELECT StaffID FROM Excused WHERE InspectionCount > 0 AND StaffID = ?', (staff_member.id,)) as cursor:
+                existing_quota = await cursor.fetchone()
+            if existing_quota is not None:
+                excused = True
+                await db.execute('UPDATE Excused SET InspectionCount = InspectionCount - 1 WHERE StaffID = ?', (staff_member.id,))
+                await db.commit()
+    else:
+        excused = True
     
     # REWARDS
     if apply_rewards and not excused and post_count < requirement:
