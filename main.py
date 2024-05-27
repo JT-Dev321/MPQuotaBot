@@ -118,6 +118,12 @@ class client(discord.Client):
                                 value TEXT
                                 )""")
             
+            await db.execute("""CREATE TABLE IF NOT EXISTS Excused(
+                                ID INTEGER PRIMARY KEY,
+                                StaffID INTEGER,
+                                InspectionCount INTEGER
+                                )""")
+            
     async def on_ready(self):
         await self.wait_until_ready()
         if not self.synced:
@@ -336,10 +342,14 @@ class parse_data_modal(ui.Modal, title = 'Data parser'):
         for name in quotaDict:
             output += f"`/quota log staff_member:{name} post_count:{quotaDict[name]} week_start: `\n"
         
-        await interaction.response.send_message(output)
+        await interaction.response.send_message(output, ephemeral=True)
 
 quotaGroup = Group(name = "quota", description = "Handle quotas", guild_ids=guild_id_l)
 
+@quotaGroup.command(name = "parsedata", description='Parse data')
+async def parseData(interaction: discord.Interaction):
+    await interaction.response.send_modal(parse_data_modal())
+    
 @quotaGroup.command(name = "set", description='Set a quota')
 @app_commands.checks.has_role(management_role_id)
 async def set_quota(interaction: discord.Interaction, role : str, value : int):
@@ -348,12 +358,15 @@ async def set_quota(interaction: discord.Interaction, role : str, value : int):
     
     await interaction.response.send_message(f"Changed quota for `{role}` from `{prev}` to `{value}`", ephemeral=True)
 
-@quotaGroup.command(name = "parsedata", description='Parse data')
-async def parseData(interaction: discord.Interaction):
-    await interaction.response.send_modal(parse_data_modal())
-    
+@quotaGroup.command(name = "inactivity_add", description='Add a user to inactivity')
+@app_commands.checks.has_role(management_role_id)
+async def inactivity_add(interaction: discord.Interaction, staff_member : discord.Member, inspection_count : int):
+    async with aiosqlite.connect(database) as db:
+        await db.execute('INSERT OR REPLACE INTO Excused (StaffID, InspectionCount) VALUES (?, ?)', (staff_member.id, inspection_count))
+        await db.commit()
+
 @quotaGroup.command(name = "log", description='Log a quota for an individual')
-@app_commands.describe(week_start="Format: YYYY-MM-DD | Must use Monday of week", activity="False = Fail | True = Pass | Blank = N/A", excused="Use if user is excused DUE TO AN INACTIVITY NOTICE", apply_rewards="Leave Alone", auto_strike="Leave Alone", override_existing="Leave Alone")
+@app_commands.describe(week_start="Format: YYYY-MM-DD | Must use Monday of week", activity="Senior Only", excused="Use if user is excused", apply_rewards="Default: True", auto_strike="Default: True", override_existing="Default: False", dm_user="Default: True")
 async def logQuota(interaction: discord.Interaction, staff_member : discord.Member, post_count : int, week_start : str, activity : bool = None, excused : bool = False, apply_rewards : bool = True, auto_strike : bool = True, override_existing : bool = False, dm_user : bool = True):
     await interaction.response.defer(thinking=True, ephemeral=True)
     # all wrong to do with senior quota (post count)
@@ -404,7 +417,16 @@ async def logQuota(interaction: discord.Interaction, staff_member : discord.Memb
         await interaction.followup.send(f"This user already has a quota recorded for this week (`{week_start}`)", ephemeral=True)
         return
     
-
+    # Excused
+    excused = False
+    async with aiosqlite.connect(database) as db:
+        async with db.execute('SELECT StaffID FROM Excused WHERE InspectionCount > 0 AND StaffID = ?', (staff_member.id)) as cursor:
+            existing_quota = await cursor.fetchone()
+        if existing_quota != None:
+            excused = True
+            await db.execute('UPDATE Excused SET InspectionCount = InspectionCount - 1 WHERE StaffID = ?', (staff_member.id))
+            await db.commit()
+    
     # REWARDS
     if apply_rewards and not excused and post_count < requirement:
         async with aiosqlite.connect(database) as db: # get rewards
@@ -596,6 +618,7 @@ async def getmvp(interaction: discord.Interaction, week_start : str, threshold :
     
     await interaction.followup.send(output)
     
+
 tree.add_command(quotaGroup)
 
 
