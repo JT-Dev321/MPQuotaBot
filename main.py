@@ -475,7 +475,7 @@ async def logQuota(interaction: discord.Interaction, staff_member : discord.Memb
                     await db.execute('INSERT INTO Strikes (RecipientID, SeniorID, DateGiven) VALUES (?, ?, ?)', (staff_member.id, interaction.user.id, week_start))
                     await db.commit()
         else:
-            if post_count < requirement and activity:
+            if post_count < requirement and not activity:
                 striked = True
                 async with aiosqlite.connect(database) as db:
                     await db.execute('INSERT INTO Strikes (RecipientID, SeniorID, DateGiven) VALUES (?, ?, ?)', (staff_member.id, interaction.user.id, week_start))
