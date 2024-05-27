@@ -417,7 +417,7 @@ async def logQuota(interaction: discord.Interaction, staff_member : discord.Memb
     if existing_quota != None and not override_existing:
         await interaction.followup.send(f"This user already has a quota recorded for this week (`{week_start}`)", ephemeral=True)
         return
-    
+
     # Excused
     excused = False
     if not override_excused and post_count < requirement:
