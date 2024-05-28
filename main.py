@@ -313,7 +313,7 @@ async def distribute_rewards(interaction: discord.Interaction, week_start : str,
                         await db.execute('INSERT INTO Rewards (RecipientID, SeniorID, DateGiven, Type, Charges) VALUES (?, ?, ?, ?, ?)', (UserId, interaction.user.id, week_start, "Quota Half", 1))
                         await db.commit()
                         counter += 1
-                await interaction.followup.send("Done! - Given {counter} rewards.", ephemeral=True)
+                await interaction.followup.send(f"Done! - Given {counter} rewards.", ephemeral=True)
             else:
                 output = ""
                 for row in results:
