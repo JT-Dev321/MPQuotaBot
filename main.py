@@ -270,6 +270,56 @@ async def Get_Consecutive_Strikes(staff_member : int): # only accurate if quota 
 
 rewardGroup = Group(name = "reward", description= "Handle rewards", guild_ids=guild_id_l)
 
+
+@rewardGroup.command(name = "distribute", description='Distribute rewards based on the previous 4 inspections.')
+@app_commands.checks.has_role(management_role_id)
+async def distribute_rewards(interaction: discord.Interaction, week_start : str, just_show : bool = False):
+    ids_to_check = [m.id for m in get(interaction.guild.roles, id = staff_role_id).members]
+    
+    
+    async with aiosqlite.connect(database) as db:
+        query = """
+            SELECT InspecteeID, SUM(PostsCompleted) AS PostsCompletedSum
+            FROM (
+                SELECT InspecteeID, PostsCompleted,
+                       ROW_NUMBER() OVER (PARTITION BY InspecteeID ORDER BY WeekStart DESC) AS RowNum
+                FROM Inspections
+            ) sub
+            WHERE RowNum <= 4
+            GROUP BY InspecteeID
+            ORDER BY InspecteeID;
+        """
+        results = await cursor.fetchall()
+        
+        if not just_show:
+            async with db.execute(query) as cursor:
+                counter = 0
+                for row in results:
+                    UserId = row[0]
+                    PostSum = row[1]
+                    if PostSum > 900:
+                        await db.execute('INSERT INTO Rewards (RecipientID, SeniorID, DateGiven, Type, Charges) VALUES (?, ?, ?, ?, ?)', (UserId, interaction.user.id, week_start, "Quota Excused", 2))
+                        await db.commit()
+                        counter += 1
+                    elif PostSum > 600:
+                        await db.execute('INSERT INTO Rewards (RecipientID, SeniorID, DateGiven, Type, Charges) VALUES (?, ?, ?, ?, ?)', (UserId, interaction.user.id, week_start, "Quota Excused", 1))
+                        await db.commit()
+                        counter += 1
+                    elif PostSum > 450:
+                        await db.execute('INSERT INTO Rewards (RecipientID, SeniorID, DateGiven, Type, Charges) VALUES (?, ?, ?, ?, ?)', (UserId, interaction.user.id, week_start, "Quota Half", 2))
+                        await db.commit()
+                        counter += 1
+                    elif PostSum > 300:
+                        await db.execute('INSERT INTO Rewards (RecipientID, SeniorID, DateGiven, Type, Charges) VALUES (?, ?, ?, ?, ?)', (UserId, interaction.user.id, week_start, "Quota Half", 1))
+                        await db.commit()
+                        counter += 1
+            await interaction.response.send_message("Done! - Given {counter} rewards.", ephemeral=True)
+        else:
+            output = ""
+            for row in results:
+                output += f"<@{row[0]}> - {row[1]}"
+            await interaction.response.send_message(output, ephemeral=True)
+
 @rewardGroup.command(name = "check_staff", description='Check a staff members rewards')
 async def checkRewards(interaction: discord.Interaction, staff_member : discord.Member):
     await interaction.response.defer(thinking=True, ephemeral=True)
@@ -492,11 +542,11 @@ async def logQuota(interaction: discord.Interaction, staff_member : discord.Memb
             await db.commit()
         
         if not Is_Senior:
-            await db.execute('INSERT INTO Inspections (InspecteeID, InspectorID, PostsCompleted, WeekStart, InactivityExcused, RewardExcused, Pass) VALUES (?, ?, ?, ?, ?, ?, ?)', 
-                                                                    (staff_member.id, interaction.user.id, post_count, week_start, int(excused), int(reward_excused), int(post_count >= requirement or int(excused) or int(reward_excused))))
+            await db.execute('INSERT OR REPLACE INTO Inspections (InspecteeID, InspectorID, PostsCompleted, WeekStart, InactivityExcused, RewardExcused, Pass) VALUES (?, ?, ?, ?, ?, ?, ?)', 
+                                (staff_member.id, interaction.user.id, post_count, week_start, int(excused), int(reward_excused), int(post_count >= requirement or int(excused) or int(reward_excused))))
         else:
-            await db.execute('INSERT INTO SeniorInspections (InspecteeID, InspectorID, PostsCompleted, Activity, WeekStart, InactivityExcused, RewardExcused, Pass) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', 
-                                                                    (staff_member.id, interaction.user.id, post_count, int(activity), week_start, int(excused), int(reward_excused), int(post_count >= requirement and activity or excused or reward_excused)))
+            await db.execute('INSERT OR REPLACE INTO SeniorInspections (InspecteeID, InspectorID, PostsCompleted, Activity, WeekStart, InactivityExcused, RewardExcused, Pass) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', 
+                                (staff_member.id, interaction.user.id, post_count, int(activity), week_start, int(excused), int(reward_excused), int(post_count >= requirement and activity or excused or reward_excused)))
 
         await db.commit()
 
@@ -504,13 +554,15 @@ async def logQuota(interaction: discord.Interaction, staff_member : discord.Memb
     logchannel = get(interaction.guild.channels, id=log_channel_id)
     strikelogchannel = get(interaction.guild.channels, id=strike_log_channel_id)
     
-    
-    logmsg = await logchannel.send(f"### {interaction.user.mention} logged {staff_member.mention}'s quota.\n- Posts: {post_count}\n- Activity: {activity}")
+    logmsg = f"### {interaction.user.mention} logged {staff_member.mention}'s quota.\n- Posts: {post_count}\n- Activity: {activity}"
+    if reward_excused:
+        logmsg += f"\n- A reward was consumed to excuse this user"
+    await logchannel.send(logmsg)
     
     finalmsg = f"Done! - Quota for {staff_member.mention} has been logged successfully."
 
     if override_existing:
-        finalmsg += f"\nThis user already had a quota recorded - It has been overridden!\n**Please do the following:**\n- Delete the old log in <#{log_channel_id}>\n- Remove any old strikes the user may have gotten (if the old quota recorded as a fail)\n- Replenish any rewards mistakenly consumed by this action"
+        finalmsg += f"\nIf this user already had a quota recorded, it has been overridden!\n**Please do the following:**\n- Delete the old log in <#{log_channel_id}>\n- Remove any old strikes the user may have gotten (if the old quota recorded as a fail)\n- Replenish any rewards mistakenly consumed by this action"
 
     if striked:
         finalmsg += "\n- The user was striked"
@@ -878,6 +930,7 @@ async def autocomplete_callback(interaction: discord.Interaction, current: str):
 
 @viewWeek.autocomplete('week_start')
 @giveReward.autocomplete('week_start')
+@distribute_rewards.autocomplete('week_start')
 @getmvp.autocomplete('week_start')
 async def autocomplete_callback(interaction: discord.Interaction, current: str):
     choicelist = []   
