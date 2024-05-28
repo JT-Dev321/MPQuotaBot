@@ -275,7 +275,7 @@ rewardGroup = Group(name = "reward", description= "Handle rewards", guild_ids=gu
 @app_commands.checks.has_role(management_role_id)
 async def distribute_rewards(interaction: discord.Interaction, week_start : str, just_show : bool = False):
     ids_to_check = [m.id for m in get(interaction.guild.roles, id = staff_role_id).members]
-    
+    await interaction.response.defer(thinking=True)
     
     async with aiosqlite.connect(database) as db:
         query = """
@@ -313,12 +313,12 @@ async def distribute_rewards(interaction: discord.Interaction, week_start : str,
                         await db.execute('INSERT INTO Rewards (RecipientID, SeniorID, DateGiven, Type, Charges) VALUES (?, ?, ?, ?, ?)', (UserId, interaction.user.id, week_start, "Quota Half", 1))
                         await db.commit()
                         counter += 1
-            await interaction.response.send_message("Done! - Given {counter} rewards.", ephemeral=True)
+            await interaction.followup.send("Done! - Given {counter} rewards.", ephemeral=True)
         else:
             output = ""
             for row in results:
                 output += f"<@{row[0]}> - {row[1]}"
-            await interaction.response.send_message(output, ephemeral=True)
+            await interaction.followup.send(output, ephemeral=True)
 
 @rewardGroup.command(name = "check_staff", description='Check a staff members rewards')
 async def checkRewards(interaction: discord.Interaction, staff_member : discord.Member):
