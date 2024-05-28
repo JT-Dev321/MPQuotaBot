@@ -317,7 +317,7 @@ async def distribute_rewards(interaction: discord.Interaction, week_start : str,
             else:
                 output = ""
                 for row in results:
-                    output += f"<@{row[0]}> - {row[1]}"
+                    output += f"<@{row[0]}> - {row[1]}\n"
                 await interaction.followup.send(output, ephemeral=True)
 
 @rewardGroup.command(name = "check_staff", description='Check a staff members rewards')
