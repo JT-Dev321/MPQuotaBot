@@ -605,7 +605,7 @@ async def logQuota(interaction: discord.Interaction, staff_member : discord.Memb
 @quotaGroup.command(name = "check_week", description='View information about a specific week')
 @app_commands.describe(week_start="Format: YYYY-MM-DD | Must use Monday of week")
 async def viewWeek(interaction: discord.Interaction, week_start : str):
-    await interaction.response.defer(thinking=True)
+    await interaction.response.defer(thinking=True, ephemeral=True)
     
     async with aiosqlite.connect(database) as db:
         async with db.execute("""SELECT InspecteeID, PostsCompleted 
@@ -631,7 +631,7 @@ async def viewWeek(interaction: discord.Interaction, week_start : str):
     expectedStaff = [m.id for m in get(interaction.guild.roles, id = staff_role_id).members + get(interaction.guild.roles, id = intern_role_id).members]
     
     for i in range(0, len(results)):
-        output += f"- <@{results[i][0]}>:{results[i][1]}\n"
+        output += f"- <@{results[i][0]}> - {results[i][1]}\n"
         loggedStaff.append(results[i][0])
     
     missingnstaff = list(set(loggedStaff).symmetric_difference(set(expectedStaff)))
@@ -639,9 +639,8 @@ async def viewWeek(interaction: discord.Interaction, week_start : str):
     output2 = ""
 
     if len(missingnstaff) > 0:
-        output2 += "\n\nMissing:"
         for i in range(len(missingnstaff)):
-            output2 += f"<@{missingnstaff[i]}>,"
+            output2 += f"<@{missingnstaff[i]}>, "
     
     await interaction.followup.send(embeds=[discord.Embed(title = "Results", description=output, colour=maincolour), discord.Embed(title = "Missing Users", description=output2, colour=maincolour)], ephemeral = True)
 
