@@ -415,7 +415,20 @@ async def inactivity_add(interaction: discord.Interaction, staff_member : discor
         await db.commit()
         await interaction.response.send_message("Successfully added user!", ephemeral=True)
     
-
+@quotaGroup.command(name = "inactivity_view", description='View all active inactivity notices.')
+@app_commands.checks.has_role(management_role_id)
+async def inactivity_view(interaction: discord.Interaction):
+    async with aiosqlite.connect(database) as db:
+        async with db.execute('SELECT StaffID, InspectionCount FROM Excused WHERE InspectionCount > 0') as cursor:
+            results = await cursor.fetchone()
+    
+    output = ""
+    
+    for row in results:
+        ouput += f"<@{row[0]}> - {row[1]}"
+    
+    await interaction.response.send_message(embed=discord.Embed(title = "Current inactivity notices", description=output, colour=maincolour), ephemeral=True)
+    
 @quotaGroup.command(name = "log", description='Log a quota for an individual')
 @app_commands.describe(week_start="Format: YYYY-MM-DD | Must use Monday of week", activity="Senior Only", override_excused="Use to override excused", apply_rewards="Default: True", auto_strike="Default: True", override_existing="Default: False", dm_user="Default: True")
 async def logQuota(interaction: discord.Interaction, staff_member : discord.Member, post_count : int, week_start : str, activity : bool = None, override_excused : bool = False, apply_rewards : bool = True, auto_strike : bool = True, override_existing : bool = False, dm_user : bool = True):
@@ -623,8 +636,8 @@ async def viewWeek(interaction: discord.Interaction, week_start : str):
     
     missingnstaff = list(set(loggedStaff).symmetric_difference(set(expectedStaff)))
     
-    await interaction.channel.send(output)
-
+    await interaction.channel.send(embed=discord.Embed(title = "Results", description=output, colour=maincolour))
+    
     output = ""
 
     if len(missingnstaff) > 0:
@@ -632,7 +645,7 @@ async def viewWeek(interaction: discord.Interaction, week_start : str):
         for i in range(len(missingnstaff)):
             output += f"<@{missingnstaff[i]}>,"
     
-    await interaction.channel.send(output)
+    await interaction.response.send_message(embed=discord.Embed(title = "Missing Users", description=output, colour=maincolour))
 
 @quotaGroup.command(name = "get_history", description='Get a users most recent weeks of quota history')
 async def gethistory(interaction: discord.Interaction, staff_member : discord.Member):
