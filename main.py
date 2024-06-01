@@ -438,6 +438,9 @@ async def logQuota(interaction: discord.Interaction, staff_member : discord.Memb
     striked = False
     Is_Senior = await IsSenior(staff_member)
 
+    if staff_member.id not in interaction.guild.members:
+        await interaction.response.send_message("This user is not in the server.", ephemeral=True)
+    
     # work out the target users quota requirement
     requirement = 0
     if Is_Senior:
