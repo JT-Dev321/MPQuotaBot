@@ -287,7 +287,7 @@ async def distribute_rewards(interaction: discord.Interaction, week_start : str,
             ) sub
             WHERE RowNum <= 4
             GROUP BY InspecteeID
-            ORDER BY PostsCompleted DESC;
+            ORDER BY PostsCompletedSum;
         """
         async with db.execute(query) as cursor:
             results = await cursor.fetchall()
