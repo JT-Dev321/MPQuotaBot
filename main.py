@@ -422,12 +422,12 @@ async def inactivity_view(interaction: discord.Interaction):
         async with db.execute('SELECT StaffID, InspectionCount FROM Excused WHERE InspectionCount > 0') as cursor:
             results = await cursor.fetchall()
     
-    output = ""
+    output = f"Total: `{len(results)}`\n\n"
     
     for row in results:
-        output += f"<@{row[0]}> - `{row[1]}`\n"
+        output += f"- <@{row[0]}> - `{row[1]}`\n"
     
-    await interaction.response.send_message(embed=discord.Embed(title = "Current inactivity notices", description=output, colour=maincolour), ephemeral=True)
+    await interaction.response.send_message(embed=discord.Embed(title = f"Current Inactivity Notices", description=output, colour=maincolour), ephemeral=True)
     
 @quotaGroup.command(name = "log", description='Log a quota for an individual')
 @app_commands.describe(week_start="Format: YYYY-MM-DD | Must use Monday of week", activity="Senior Only", override_excused="Use to override excused", apply_rewards="Default: True", auto_strike="Default: True", override_existing="Default: False", dm_user="Default: True")
