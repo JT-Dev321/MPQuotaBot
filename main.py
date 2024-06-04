@@ -570,7 +570,7 @@ async def logQuota(interaction: discord.Interaction, staff_member : discord.Memb
     logmsg = f"### {interaction.user.mention} logged {staff_member.mention}'s quota.\n- Posts: {post_count}\n- Activity: {activity}"
     if reward_excused:
         logmsg += f"\n- A reward was consumed to excuse this user"
-    await logchannel.send(logmsg)
+    logmsgsent = await logchannel.send(logmsg)
     
     finalmsg = f"Done! - Quota for {staff_member.mention} has been logged successfully."
 
@@ -588,7 +588,7 @@ async def logQuota(interaction: discord.Interaction, staff_member : discord.Memb
         finalmsg += f"\n\nPlease note that this user's current consecutive strike streak is now `{strike_streak}`, any actions that need to be taken based on this information are not automated."
 
     if striked:
-        await strikelogchannel.send(f"{staff_member.mention} [was striked]({logmsg.jump_url})\n\nQuota History:\n{await GetQuotaHistory(staff_member.id)}")
+        await strikelogchannel.send(f"{staff_member.mention} [was striked]({logmsgsent.jump_url})\n\nQuota History:\n{await GetQuotaHistory(staff_member.id)}")
 
     dm_msg = f"# <:MP:1173683497697808424> | Weekly Inspection Notice\n### {interaction.user.mention} has logged your quota for the week beginning {week_start}\n- Posts: {post_count}"
     
