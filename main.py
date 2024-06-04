@@ -425,7 +425,7 @@ async def inactivity_view(interaction: discord.Interaction):
     output = ""
     
     for row in results:
-        output += f"<@{row[0]}> - {row[1]}"
+        output += f"<@{row[0]}> - {row[1]}\n"
     
     await interaction.response.send_message(embed=discord.Embed(title = "Current inactivity notices", description=output, colour=maincolour), ephemeral=True)
     
