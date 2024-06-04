@@ -420,7 +420,7 @@ async def inactivity_add(interaction: discord.Interaction, staff_member : discor
 async def inactivity_view(interaction: discord.Interaction):
     async with aiosqlite.connect(database) as db:
         async with db.execute('SELECT StaffID, InspectionCount FROM Excused WHERE InspectionCount > 0') as cursor:
-            results = await cursor.fetchone()
+            results = await cursor.fetchall()
     
     output = ""
     
