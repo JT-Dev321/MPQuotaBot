@@ -495,7 +495,7 @@ async def logQuota(interaction: discord.Interaction, staff_member : discord.Memb
                 excused = True
                 await db.execute('UPDATE Excused SET InspectionCount = InspectionCount - 1 WHERE StaffID = ?', (staff_member.id,))
                 await db.commit()
-    else:
+    elif override_excused:
         excused = True
     
     # REWARDS
