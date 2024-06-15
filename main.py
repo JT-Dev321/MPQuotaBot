@@ -184,7 +184,7 @@ async def GetQuotaHistory(staff_member : int, limit : int = 20):
     
     if not await IsSenior(staff_member):
         async with aiosqlite.connect(database) as db:
-            async with db.execute("""SELECT WeekStart, Pass, PostsCompleted
+            async with db.execute("""SELECT WeekStart, Pass, PostsCompleted, InactivityExcused, RewardExcused
                                     FROM Inspections
                                     WHERE InspecteeID = ?
                                     ORDER BY printf("%04d-%02d-%02d", 
@@ -195,7 +195,7 @@ async def GetQuotaHistory(staff_member : int, limit : int = 20):
                 rows = await cursor.fetchall()
     else:
         async with aiosqlite.connect(database) as db:
-            async with db.execute("""SELECT WeekStart, Pass, PostsCompleted
+            async with db.execute("""SELECT WeekStart, Pass, PostsCompleted, InactivityExcused, RewardExcused
                                     FROM SeniorInspections
                                     WHERE InspecteeID = ?
                                     ORDER BY printf("%04d-%02d-%02d", 
@@ -208,12 +208,16 @@ async def GetQuotaHistory(staff_member : int, limit : int = 20):
     
     rows.reverse()
     
-    output = "```diff\n"
+    output = "```ansi\n"
     for row in rows:
-        if int(row[1]) == 1:
-            output += f"+ {row[0]} - Pass - {row[2]} posts\n"
+        if int(row[4]) == 1:
+            output += f"[0;34m{row[0]} - Reward Excused - {row[2]} posts\n"
+        elif int(row[3] == 1):
+            output += f"[0;33m{row[0]} - Inactivity Excused - {row[2]} posts\n"
+        elif int(row[1]) == 1:
+            output += f"[0;32m{row[0]} - Pass - {row[2]} posts\n"
         else:
-            output += f"- {row[0]} - Fail - {row[2]} posts\n"
+            output += f"[0;31m{row[0]} - Fail - {row[2]} posts\n"
     output += "```"
     if (len(rows) == 0):
         output = "No Results"
