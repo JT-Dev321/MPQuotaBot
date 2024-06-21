@@ -926,13 +926,13 @@ async def view_all_history(interaction: discord.Interaction):
     msg = ""
     counter = 0
     for id in [m.id for m in get(interaction.guild.roles, id = staff_role_id).members]:
-        msg += f"<@{id}>\n\n{GetQuotaHistory(id)}\n\n"
+        msg += f"<@{id}>\n\n{await GetQuotaHistory(id)}\n\n"
         counter += 1
         if counter % 3 == 0:
             await interaction.user.send(msg)
             msg = ""
     
-    await interaction.response.send_message(f"Sent you all {counter} quota histories!", ephemeral=True)
+    await interaction.followup.send(f"Sent you all {counter} quota histories!", ephemeral=True)
 
 def parse_timezone(name):
     timezone = name.split(" | GMT")[1]
