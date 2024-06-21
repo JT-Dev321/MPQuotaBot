@@ -926,12 +926,11 @@ async def view_all_history(interaction: discord.Interaction):
     msg = ""
     counter = 0
     for id in [m.id for m in get(interaction.guild.roles, id = staff_role_id).members]:
-        if not IsSenior(id):
-            msg += f"<@{id}>\n\n{await GetQuotaHistory(id)}\n\n"
-            counter += 1
-            if counter % 3 == 0:
-                await interaction.user.send(msg)
-                msg = ""
+        msg += f"<@{id}>\n\n{await GetQuotaHistory(id)}\n\n"
+        counter += 1
+        if counter % 3 == 0:
+            await interaction.user.send(msg)
+            msg = ""
     
     await interaction.followup.send(f"Sent you all {counter} quota histories!", ephemeral=True)
 
