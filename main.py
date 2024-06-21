@@ -919,6 +919,21 @@ async def make_intern_groups(interaction: discord.Interaction, copyable : bool =
         await interaction.response.send_message(embed=embed)
     # print(sort_interns(leaders, interns))
 
+@tree.command(guild = discord.Object(id=guild_id), name = "view_all_history", description='View everyones quota history')
+@app_commands.checks.has_role(management_role_id)
+async def view_all_history(interaction: discord.Interaction):
+    await interaction.response.defer(thinking=True, ephemeral=True)
+    msg = ""
+    counter = 0
+    for id in [m.id for m in get(interaction.guild.roles, id = staff_role_id)]:
+        msg += f"<@{id}>\n\n{GetQuotaHistory(id)}\n\n"
+        counter += 1
+        if counter % 3 == 0:
+            await interaction.user.send(msg)
+            msg = ""
+    
+    await interaction.response.send_message(f"Sent you all {counter} quota histories!", ephemeral=True)
+
 def parse_timezone(name):
     timezone = name.split(" | GMT")[1]
     return int(timezone)
