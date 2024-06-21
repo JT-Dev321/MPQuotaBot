@@ -925,7 +925,7 @@ async def view_all_history(interaction: discord.Interaction):
     await interaction.response.defer(thinking=True, ephemeral=True)
     msg = ""
     counter = 0
-    for id in [m.id for m in get(interaction.guild.roles, id = staff_role_id)]:
+    for id in [m.id for m in get(interaction.guild.roles, id = staff_role_id).members]:
         msg += f"<@{id}>\n\n{GetQuotaHistory(id)}\n\n"
         counter += 1
         if counter % 3 == 0:
