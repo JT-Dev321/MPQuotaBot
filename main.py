@@ -133,32 +133,25 @@ class client(discord.Client):
 aclient = client()
 tree = app_commands.CommandTree(aclient)
 
-async def IsManagement(staff_member):
+async def has_role_f(staff_member, role_id):
     if isinstance(staff_member, discord.Member):
-        return management_role_id in [r.id for r in staff_member.roles]
+        return role_id in [r.id for r in staff_member.roles]
     elif isinstance(staff_member, int):
-        if not staff_member in aclient.get_guild(guild_id).members:
+        guild = aclient.get_guild(guild_id)
+        try:
+            staff_member_obj = await guild.fetch_member(staff_member)
+            return role_id in [r.id for r in staff_member_obj.roles]
+        except discord.NotFound:
             return False
-        staff_member_obj = get((aclient.get_guild(guild_id)).members, id = staff_member)
-        return management_role_id in [r.id for r in staff_member_obj.roles]
+
+async def IsManagement(staff_member):
+    return await has_role_f(staff_member, management_role_id)
 
 async def IsSenior(staff_member):
-    if isinstance(staff_member, discord.Member):
-        return senior_role_id in [r.id for r in staff_member.roles]
-    elif isinstance(staff_member, int):
-        if not staff_member in aclient.get_guild(guild_id).members:
-            return False
-        staff_member_obj = get((aclient.get_guild(guild_id)).members, id = staff_member)
-        return senior_role_id in [r.id for r in staff_member_obj.roles]
-    
+    return await has_role_f(staff_member, senior_role_id)
+
 async def IsIntern(staff_member):
-    if isinstance(staff_member, discord.Member):
-        return intern_role_id in [r.id for r in staff_member.roles]
-    elif isinstance(staff_member, int):
-        if not staff_member in aclient.get_guild(guild_id).members:
-            return False
-        staff_member_obj = get((aclient.get_guild(guild_id)).members, id = staff_member)
-        return intern_role_id in [r.id for r in staff_member_obj.roles]
+    return await has_role_f(staff_member, intern_role_id)
 
 async def get_variable(key):
     async with aiosqlite.connect(database) as db:
