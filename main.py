@@ -311,27 +311,27 @@ async def distribute_rewards(interaction: discord.Interaction, week_start : str,
                         rewarded = []
                         
                         if PostSum >= 900:
-                            # await db.execute('INSERT INTO Rewards (RecipientID, SeniorID, DateGiven, Type, Charges) VALUES (?, ?, ?, ?, ?)', (UserId, interaction.user.id, week_start, "Quota Excused", 2))
-                            # await db.commit()
-                            # await MemberObj.send(messageStart + "\n\n- You will be excused for 2 of the next 4 inspections\n\n" + messageEnd)
+                            await db.execute('INSERT INTO Rewards (RecipientID, SeniorID, DateGiven, Type, Charges) VALUES (?, ?, ?, ?, ?)', (UserId, interaction.user.id, week_start, "Quota Excused", 2))
+                            await db.commit()
+                            await MemberObj.send(messageStart + "\n\n- You will be excused for 2 of the next 4 inspections\n\n" + messageEnd)
                             counter += 1
                             rewarded.append(f"<@{UserId}>")
                         elif PostSum >= 600:
-                            # await db.execute('INSERT INTO Rewards (RecipientID, SeniorID, DateGiven, Type, Charges) VALUES (?, ?, ?, ?, ?)', (UserId, interaction.user.id, week_start, "Quota Excused", 1))
-                            # await db.commit()
-                            # await MemberObj.send(messageStart + "\n\n- You will be excused for 1 of the next 4 inspections\n\n" + messageEnd)
+                            await db.execute('INSERT INTO Rewards (RecipientID, SeniorID, DateGiven, Type, Charges) VALUES (?, ?, ?, ?, ?)', (UserId, interaction.user.id, week_start, "Quota Excused", 1))
+                            await db.commit()
+                            await MemberObj.send(messageStart + "\n\n- You will be excused for 1 of the next 4 inspections\n\n" + messageEnd)
                             counter += 1
                             rewarded.append(f"<@{UserId}>")
                         elif PostSum >= 450:
-                            # await db.execute('INSERT INTO Rewards (RecipientID, SeniorID, DateGiven, Type, Charges) VALUES (?, ?, ?, ?, ?)', (UserId, interaction.user.id, week_start, "Quota Half", 2))
-                            # await db.commit()
-                            # await MemberObj.send(messageStart + "\n\n- Your post requirement will be halved for 2 of the next 4 inspections\n\n" + messageEnd)
+                            await db.execute('INSERT INTO Rewards (RecipientID, SeniorID, DateGiven, Type, Charges) VALUES (?, ?, ?, ?, ?)', (UserId, interaction.user.id, week_start, "Quota Half", 2))
+                            await db.commit()
+                            await MemberObj.send(messageStart + "\n\n- Your post requirement will be halved for 2 of the next 4 inspections\n\n" + messageEnd)
                             counter += 1
                             rewarded.append(f"<@{UserId}>")
                         elif PostSum >= 300:
-                            # await db.execute('INSERT INTO Rewards (RecipientID, SeniorID, DateGiven, Type, Charges) VALUES (?, ?, ?, ?, ?)', (UserId, interaction.user.id, week_start, "Quota Half", 1))
-                            # await db.commit()
-                            # await MemberObj.send(messageStart + "\n\n- Your post requirement will be halved for 1 of the next 4 inspections\n\n" + messageEnd)
+                            await db.execute('INSERT INTO Rewards (RecipientID, SeniorID, DateGiven, Type, Charges) VALUES (?, ?, ?, ?, ?)', (UserId, interaction.user.id, week_start, "Quota Half", 1))
+                            await db.commit()
+                            await MemberObj.send(messageStart + "\n\n- Your post requirement will be halved for 1 of the next 4 inspections\n\n" + messageEnd)
                             counter += 1
                             rewarded.append(f"<@{UserId}>")
                 await interaction.followup.send(f"Done! - Given {counter} rewards to: {', '.join(rewarded)}", ephemeral=True)
