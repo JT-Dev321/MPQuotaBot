@@ -977,7 +977,7 @@ async def autocomplete_callback(interaction: discord.Interaction, current: str):
 async def autocomplete_callback(interaction: discord.Interaction, current: str):
     choicelist = []   
     
-    for i in range(-62,0):
+    for i in range(-61,1):
         dt = datetime.now() + timedelta(days=i)
         if dt.weekday() == 0:
             choicelist.append(app_commands.Choice(name = f'{dt.year}-{dt.month}-{dt.day}', value = f'{dt.year}-{dt.month}-{dt.day}'))
