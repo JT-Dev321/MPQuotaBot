@@ -301,21 +301,30 @@ async def distribute_rewards(interaction: discord.Interaction, week_start : str,
                 for row in results:
                     UserId = row[0]
                     PostSum = row[1]
-                    if PostSum > 900:
+                    MemberObj = interaction.guild.get_member(UserId)
+                    
+                    messageStart = f"You have been given a reward for completing `{PostSum}` posts over the last 4 inspections."
+                    messageEnd = f"These rewards are only applied if you would have otherwise failed a given inspection week, and expire after 4 weeks."
+                    
+                    if PostSum >= 900:
                         await db.execute('INSERT INTO Rewards (RecipientID, SeniorID, DateGiven, Type, Charges) VALUES (?, ?, ?, ?, ?)', (UserId, interaction.user.id, week_start, "Quota Excused", 2))
                         await db.commit()
+                        await MemberObj.send(messageStart + "\n\n- You will be excused for 2 of the next 4 inspections\n\n" + messageEnd)
                         counter += 1
-                    elif PostSum > 600:
+                    elif PostSum >= 600:
                         await db.execute('INSERT INTO Rewards (RecipientID, SeniorID, DateGiven, Type, Charges) VALUES (?, ?, ?, ?, ?)', (UserId, interaction.user.id, week_start, "Quota Excused", 1))
                         await db.commit()
+                        await MemberObj.send(messageStart + "\n\n- You will be excused for 1 of the next 4 inspections\n\n" + messageEnd)
                         counter += 1
-                    elif PostSum > 450:
+                    elif PostSum >= 450:
                         await db.execute('INSERT INTO Rewards (RecipientID, SeniorID, DateGiven, Type, Charges) VALUES (?, ?, ?, ?, ?)', (UserId, interaction.user.id, week_start, "Quota Half", 2))
                         await db.commit()
+                        await MemberObj.send(messageStart + "\n\n- Your post requirement will be halved for 2 of the next 4 inspections\n\n" + messageEnd)
                         counter += 1
-                    elif PostSum > 300:
+                    elif PostSum >= 300:
                         await db.execute('INSERT INTO Rewards (RecipientID, SeniorID, DateGiven, Type, Charges) VALUES (?, ?, ?, ?, ?)', (UserId, interaction.user.id, week_start, "Quota Half", 1))
                         await db.commit()
+                        await MemberObj.send(messageStart + "\n\n- Your post requirement will be halved for 1 of the next 4 inspections\n\n" + messageEnd)
                         counter += 1
                 await interaction.followup.send(f"Done! - Given {counter} rewards.", ephemeral=True)
             else:
