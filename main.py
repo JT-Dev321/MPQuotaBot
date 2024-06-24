@@ -300,7 +300,7 @@ async def distribute_rewards(interaction: discord.Interaction, week_start : str,
                 counter = 0
                 for row in results:
                     UserId = row[0]
-                    if not IsSenior(UserId) and interaction.guild.get_member(UserId) is not None:
+                    if not await IsSenior(UserId) and interaction.guild.get_member(UserId) is not None:
                         PostSum = row[1]
                         MemberObj = interaction.guild.get_member(UserId)
                         
