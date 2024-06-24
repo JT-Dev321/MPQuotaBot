@@ -137,6 +137,8 @@ async def IsManagement(staff_member):
     if isinstance(staff_member, discord.Member):
         return management_role_id in [r.id for r in staff_member.roles]
     elif isinstance(staff_member, int):
+        if not staff_member in aclient.get_guild(guild_id).members:
+            return False
         staff_member_obj = get((aclient.get_guild(guild_id)).members, id = staff_member)
         return management_role_id in [r.id for r in staff_member_obj.roles]
 
@@ -144,6 +146,8 @@ async def IsSenior(staff_member):
     if isinstance(staff_member, discord.Member):
         return senior_role_id in [r.id for r in staff_member.roles]
     elif isinstance(staff_member, int):
+        if not staff_member in aclient.get_guild(guild_id).members:
+            return False
         staff_member_obj = get((aclient.get_guild(guild_id)).members, id = staff_member)
         return senior_role_id in [r.id for r in staff_member_obj.roles]
     
@@ -151,6 +155,8 @@ async def IsIntern(staff_member):
     if isinstance(staff_member, discord.Member):
         return intern_role_id in [r.id for r in staff_member.roles]
     elif isinstance(staff_member, int):
+        if not staff_member in aclient.get_guild(guild_id).members:
+            return False
         staff_member_obj = get((aclient.get_guild(guild_id)).members, id = staff_member)
         return intern_role_id in [r.id for r in staff_member_obj.roles]
 
