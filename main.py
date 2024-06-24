@@ -612,7 +612,7 @@ async def viewWeek(interaction: discord.Interaction, week_start : str):
     await interaction.response.defer(thinking=True, ephemeral=True)
     
     async with aiosqlite.connect(database) as db:
-        async with db.execute("""SELECT InspecteeID, PostsCompleted 
+        async with db.execute("""SELECT InspecteeID, PostsCompleted, InspectorID
                             FROM Inspections
                             WHERE WeekStart=?
                             ORDER BY PostsCompleted DESC""", (week_start,)) as cursor:
@@ -630,23 +630,36 @@ async def viewWeek(interaction: discord.Interaction, week_start : str):
     results = sorted(results1+results2, key=lambda x: x[1], reverse=True)
     
     output = ""
-
+    loggedLoggers = [] # ids
     loggedStaff = [] # list of ids
     expectedStaff = [m.id for m in get(interaction.guild.roles, id = staff_role_id).members + get(interaction.guild.roles, id = intern_role_id).members]
+    expectedLoggers = [m.id for m in get(interaction.guild.roles, id = senior_role_id).members]
     
     for i in range(0, len(results)):
+        loggedLoggers.append(results[i][2])
         output += f"- <@{results[i][0]}> - {results[i][1]}\n"
         loggedStaff.append(results[i][0])
     
-    missingnstaff = list(set(loggedStaff).symmetric_difference(set(expectedStaff)))
-        
-    output2 = ""
-
-    if len(missingnstaff) > 0:
-        for i in range(len(missingnstaff)):
-            output2 += f"<@{missingnstaff[i]}>, "
+    missingLoggers = list(set(loggedLoggers).symmetric_difference(set(expectedLoggers)))
+    missingstaff = list(set(loggedStaff).symmetric_difference(set(expectedStaff)))
     
-    await interaction.followup.send(embeds=[discord.Embed(title = "Results", description=output, colour=maincolour), discord.Embed(title = "Missing Users", description=output2, colour=maincolour)], ephemeral = True)
+    output2 = ""
+    if len(missingstaff) > 0:
+        for id in missingstaff:
+            output2 += f"<@{id}>, "
+    else:
+        output2 = "Nobody missing!"
+    
+    output3 = ""
+    if len(missingLoggers) > 0:
+        for id in missingLoggers:
+            output3 += f"<@{id}>, "
+    else:
+        output3 = "Nobody missing!"
+    
+    await interaction.followup.send(embeds=[discord.Embed(title = "Results", description=output, colour=maincolour), 
+                                            discord.Embed(title = "Missing Users", description=output2, colour=maincolour), 
+                                            discord.Embed(title = "Missing Loggers", description=output3, colour=maincolour)], ephemeral = True)
 
 @quotaGroup.command(name = "get_history", description='Get a users most recent weeks of quota history')
 async def gethistory(interaction: discord.Interaction, staff_member : discord.Member):
