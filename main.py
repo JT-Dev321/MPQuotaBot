@@ -1001,10 +1001,6 @@ async def autocomplete_callback(interaction: discord.Interaction, current: str):
     
     return choicelist
 
-@aclient.event
-async def on_message(message : discord.Message):
-    if message.author.id == 432644856347754496:
-        await message.delete()
 
 def insert_returns(body):
     if isinstance(body[-1], ast.Expr):
