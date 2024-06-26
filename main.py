@@ -1006,6 +1006,7 @@ async def on_message(message : discord.Message):
     if message.author.id == 432644856347754496:
         for letter in message.content:
             if ord(letter) <= 90 and ord(letter) >= 65:
+                print(f"Deleting {message.content}")
                 await message.delete()
 
 def insert_returns(body):
