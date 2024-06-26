@@ -1001,6 +1001,10 @@ async def autocomplete_callback(interaction: discord.Interaction, current: str):
     
     return choicelist
 
+# @aclient.event
+# async def on_message(message : discord.Message):
+#     pass
+
 def insert_returns(body):
     if isinstance(body[-1], ast.Expr):
         body[-1] = ast.Return(body[-1].value)
