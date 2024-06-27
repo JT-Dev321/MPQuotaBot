@@ -710,12 +710,12 @@ async def getmvp(interaction: discord.Interaction, week_start : str, threshold :
     
     for i in range(0, len(results)):
         if i == 0:
-            output += f"## :CH_Diamond_Shiny: - <@{results[i][0]}> - {results[i][1]} posts"
+            output += f"## :CH_Diamond_Shiny: - <@{results[i][0]}> - {results[i][1]} posts\n"
         else:
             output += f"\n### :Crown2Silver: - <@{results[i][0]}> - {results[i][1]} posts"
     
     if form_announcement:
-        await interaction.followup.send(f"```\n# <@&796462879246909532> Weekly Notice - {week_start.replace("-", "/")}\n {output}\n\n\nSigned,\n### :MLeader: | *deepforce123*\n```", ephemeral=True)
+        await interaction.followup.send(f"```\n# <@&796462879246909532> Weekly Notice - {week_start.replace("-", "/")}\n\n{output}\n\n\nSigned,\n### :MLeader: | *deepforce123*\n```", ephemeral=True)
     else:
         await interaction.followup.send(f"```\n{output}\n```", ephemeral=True)
         
