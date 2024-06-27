@@ -684,8 +684,8 @@ async def gethistory(interaction: discord.Interaction, staff_member : discord.Me
 
 @quotaGroup.command(name = "mvp", description='Get the mvp list for a week')
 @app_commands.describe(week_start="Format: YYYY-MM-DD | Must use Monday of week")
-async def getmvp(interaction: discord.Interaction, week_start : str, threshold : int):
-    await interaction.response.defer(thinking=True)
+async def getmvp(interaction: discord.Interaction, week_start : str, threshold : int, form_announcement : bool = False):
+    await interaction.response.defer(thinking=True, ephemeral=True)
     
     async with aiosqlite.connect(database) as db:
         async with db.execute("""SELECT InspecteeID, PostsCompleted 
@@ -716,7 +716,11 @@ async def getmvp(interaction: discord.Interaction, week_start : str, threshold :
             
     output += "\n```"
     
-    await interaction.followup.send(output)
+    if form_announcement:
+        await interaction.followup.send(f"```\n# <@&796462879246909532> Weekly Notice - {week_start.replace("-", "/")}\n {output}\n\n\nSigned,\n### :MLeader: | *deepforce123*\n```", ephemeral=True)
+    else:
+        await interaction.followup.send(output, ephemeral=True)
+        
     
 
 tree.add_command(quotaGroup)
