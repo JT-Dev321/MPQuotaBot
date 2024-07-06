@@ -25,6 +25,10 @@ guild_id_l = [guild_id]
 
 log_channel_id = 1208810891626151976
 strike_log_channel_id = 1208827574998933616
+
+senior_log_channel_id = 1259211052164583425
+senior_strike_log_channel_id = 1259211191650222130
+
 management_role_id = 768851165671850022
 senior_role_id = 768851165671850021
 intern_role_id = 1234584425547694081
@@ -587,6 +591,9 @@ async def logQuota(interaction: discord.Interaction, staff_member : discord.Memb
 
     logchannel = get(interaction.guild.channels, id=log_channel_id)
     strikelogchannel = get(interaction.guild.channels, id=strike_log_channel_id)
+    if Is_Senior:
+        logchannel = get(interaction.guild.channels, id=senior_log_channel_id)
+        strikelogchannel = get(interaction.guild.channels, id=senior_strike_log_channel_id)
     
     logmsg = f"### {interaction.user.mention} logged {staff_member.mention}'s quota.\n- Posts: {post_count}\n- Activity: {activity}"
     if reward_excused:
