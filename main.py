@@ -422,11 +422,19 @@ quotaGroup = Group(name = "quota", description = "Handle quotas", guild_ids=guil
 
 @quotaGroup.command(name = "get_date", description='Get the date of this inspection')
 async def get_date(interaction: discord.Interaction):
-    for i in range(-6,0):
+    mondays = []
+    for i in range(-9,0):
         dt = datetime.now() + timedelta(days=i)
         if dt.weekday() == 0:
-            await interaction.response.send_message(f"The date of the most recent monday is `{dt.month}/{dt.day}/{dt.year}` (MM/DD/YYYY)", ephemeral=True)
-            break
+            mondays.append(f"{dt.month}/{dt.day}/{dt.year}|{abs(i)}")
+        
+    output = ""
+    for m in mondays:
+        date = str(m).split("|")[0]
+        i = str(m).split("|")[1]
+        output += f"`{date}` was `{i}` days ago\n"
+    
+    await interaction.response.send_message(f"{output}", ephemeral=True)
 
 @quotaGroup.command(name = "parsedata", description='Parse data')
 async def parseData(interaction: discord.Interaction):
