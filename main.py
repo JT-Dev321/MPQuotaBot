@@ -426,6 +426,7 @@ async def get_date(interaction: discord.Interaction):
         dt = datetime.now() + timedelta(days=i)
         if dt.weekday() == 0:
             await interaction.response.send_message(f"The date of the most recent monday is `{dt.month}/{dt.day}/{dt.year}` (MM/DD/YYYY)", ephemeral=True)
+            break
 
 @quotaGroup.command(name = "parsedata", description='Parse data')
 async def parseData(interaction: discord.Interaction):
