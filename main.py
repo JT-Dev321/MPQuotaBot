@@ -275,8 +275,8 @@ async def Get_Consecutive_Strikes(staff_member : int): # only accurate if quota 
         
     return counter
 
-rewardGroup = Group(name = "reward", description= "Handle rewards", guild_ids=guild_id_l)
 
+rewardGroup = Group(name = "reward", description= "Handle rewards", guild_ids=guild_id_l)
 
 @rewardGroup.command(name = "distribute", description='Distribute rewards based on the previous 4 inspections.')
 @app_commands.checks.has_role(management_role_id)
@@ -419,6 +419,13 @@ class parse_data_modal(ui.Modal, title = 'Data parser'):
         await interaction.response.send_message(output, ephemeral=True)
 
 quotaGroup = Group(name = "quota", description = "Handle quotas", guild_ids=guild_id_l)
+
+@quotaGroup.command(name = "get_date", description='Get the date of this inspection')
+async def get_date(interaction: discord.Interaction):
+    for i in range(-9,0):
+        dt = datetime.now() + timedelta(days=i)
+        if dt.weekday() == 0:
+            await interaction.response.send_message(f"The date of the most recent monday is `{dt.month}/{dt.day}/{dt.year}` (MM/DD/YYYY)", ephemeral=True)
 
 @quotaGroup.command(name = "parsedata", description='Parse data')
 async def parseData(interaction: discord.Interaction):
