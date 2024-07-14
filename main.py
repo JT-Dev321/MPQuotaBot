@@ -423,7 +423,7 @@ quotaGroup = Group(name = "quota", description = "Handle quotas", guild_ids=guil
 @quotaGroup.command(name = "get_date", description='Get the date of this inspection')
 async def get_date(interaction: discord.Interaction):
     mondays = []
-    for i in range(-9,0):
+    for i in range(-40,0):
         dt = datetime.now() + timedelta(days=i)
         if dt.weekday() == 0:
             mondays.append(f"{dt.month}/{dt.day}/{dt.year}|{abs(i)}")
