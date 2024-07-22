@@ -307,6 +307,7 @@ async def distribute_rewards(interaction: discord.Interaction, week_start : str,
             
             if not just_show:
                 counter = 0
+                rewarded = []
                 for row in results:
                     UserId = row[0]
                     print(f"Checking {UserId}")
@@ -317,8 +318,6 @@ async def distribute_rewards(interaction: discord.Interaction, week_start : str,
                         
                         messageStart = f"You have been given a reward for completing `{PostSum}` posts over the last 4 inspections."
                         messageEnd = f"These rewards are only applied if you would have otherwise failed a given inspection week, and expire after 4 weeks."
-                        
-                        rewarded = []
                         
                         if PostSum >= 900:
                             await db.execute('INSERT INTO Rewards (RecipientID, SeniorID, DateGiven, Type, Charges) VALUES (?, ?, ?, ?, ?)', (UserId, interaction.user.id, week_start, "Quota Excused", 2))
