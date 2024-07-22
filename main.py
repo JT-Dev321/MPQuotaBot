@@ -345,10 +345,13 @@ async def distribute_rewards(interaction: discord.Interaction, week_start : str,
                             counter += 1
                             rewarded.append(f"<@{UserId}>")
                 await interaction.followup.send(f"Done! - Given {counter} rewards to: {', '.join(rewarded)}", ephemeral=True)
-            else:
+            elif just_show:
+                UserId = 0
                 output = ""
                 for row in results:
-                    output += f"<@{row[0]}> - {row[1]}\n"
+                    UserId = int(row[0])
+                    if not await IsSenior(UserId) and interaction.guild.get_member(UserId) is not None:
+                        output += f"<@{row[0]}> - {row[1]}\n"
                 await interaction.followup.send(output, ephemeral=True)
 
 @rewardGroup.command(name = "check_staff", description='Check a staff members rewards')
