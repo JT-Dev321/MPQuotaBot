@@ -289,7 +289,13 @@ async def distribute_rewards(interaction: discord.Interaction, week_start : str,
             SELECT InspecteeID, SUM(PostsCompleted) AS PostsCompletedSum
             FROM (
                 SELECT InspecteeID, PostsCompleted,
-                       ROW_NUMBER() OVER (PARTITION BY InspecteeID ORDER BY WeekStart DESC) AS RowNum
+                    ROW_NUMBER() OVER (
+                        PARTITION BY InspecteeID 
+                        ORDER BY 
+                            CAST(SUBSTR(WeekStart, 1, INSTR(WeekStart, '-') - 1) AS INT) DESC,
+                            CAST(SUBSTR(WeekStart, INSTR(WeekStart, '-') + 1, INSTR(SUBSTR(WeekStart, INSTR(WeekStart, '-') + 1), '-') - 1) AS INT) DESC,
+                            CAST(SUBSTR(WeekStart, INSTR(SUBSTR(WeekStart, INSTR(WeekStart, '-') + 1), '-') + INSTR(WeekStart, '-') + 1) AS INT) DESC
+                    ) AS RowNum
                 FROM Inspections
             ) sub
             WHERE RowNum <= 4
