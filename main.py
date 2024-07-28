@@ -168,15 +168,19 @@ async def set_variable(key, value):
         await db.execute('INSERT OR REPLACE INTO Quotas (key, value) VALUES (?, ?)', (key, value))
         await db.commit()
 
-async def getCurrentQuota():
+async def getQuota():
     result = await get_variable("normal")
     return int(result) if result is not None else None
 
-async def getCurrentSeniorQuota():
+async def getSeniorTicketQuota():
+    result = await get_variable("senior_tickets")
+    return int(result) if result is not None else None
+
+async def getSeniorQuota():
     result = await get_variable("senior")
     return int(result) if result is not None else None
 
-async def getCurrentInternQuota():
+async def getInternQuota():
     result = await get_variable("intern")
     return int(result) if result is not None else None
 
@@ -187,7 +191,7 @@ async def GetQuotaHistory(staff_member : int, limit : int = 20):
     
     if not await IsSenior(staff_member):
         async with aiosqlite.connect(database) as db:
-            async with db.execute("""SELECT WeekStart, Pass, PostsCompleted, InactivityExcused, RewardExcused
+            async with db.execute("""SELECT WeekStart, Pass, PostsCompleted, InactivityExcused, RewardExcused, TicketsCompleted
                                     FROM Inspections
                                     WHERE InspecteeID = ?
                                     ORDER BY printf("%04d-%02d-%02d", 
@@ -198,7 +202,7 @@ async def GetQuotaHistory(staff_member : int, limit : int = 20):
                 rows = await cursor.fetchall()
     else:
         async with aiosqlite.connect(database) as db:
-            async with db.execute("""SELECT WeekStart, Pass, PostsCompleted, InactivityExcused, RewardExcused
+            async with db.execute("""SELECT WeekStart, Pass, PostsCompleted, InactivityExcused, RewardExcused, TicketsCompleted
                                     FROM SeniorInspections
                                     WHERE InspecteeID = ?
                                     ORDER BY printf("%04d-%02d-%02d", 
@@ -218,9 +222,9 @@ async def GetQuotaHistory(staff_member : int, limit : int = 20):
         elif int(row[3] == 1):
             output += f"[0;33m{row[0]} - Inactivity Excused - {row[2]} posts\n"
         elif int(row[1]) == 1:
-            output += f"[0;32m{row[0]} - Pass - {row[2]} posts\n"
+            output += f"[0;32m{row[0]} - Pass - {row[2]} posts - {row[5]} tickets\n"
         else:
-            output += f"[0;31m{row[0]} - Fail - {row[2]} posts\n"
+            output += f"[0;31m{row[0]} - Fail - {row[2]} posts - {row[5]} tickets\n"
     output += "```"
     if (len(rows) == 0):
         output = "No Results"
@@ -416,13 +420,13 @@ class parse_data_modal(ui.Modal, title = 'Data parser'):
         
         quotaDict = {}
         
-        for i in range(0, len(splitData), 6):
-            quotaDict.update({f"{splitData[i]}" : int(splitData[i+4].split(': ')[1])})
+        for i in range(0, len(splitData), 7):
+            quotaDict.update({f"{splitData[i]}" : [int(splitData[i+4].split(': ')[1]), int(splitData[i+5].split(': ')[1])]})
         
         output = ""
         
         for name in quotaDict:
-            output += f"`/quota log staff_member:{name} post_count:{quotaDict[name]} week_start: `\n"
+            output += f"`/quota log staff_member:{name} post_count:{quotaDict[name][0]} ticket_count:{quotaDict[name][1]} week_start: `\n"
         
         await interaction.response.send_message(output, ephemeral=True)
 
@@ -480,7 +484,7 @@ async def inactivity_view(interaction: discord.Interaction):
     
 @quotaGroup.command(name = "log", description='Log a quota for an individual')
 @app_commands.describe(week_start="Format: YYYY-MM-DD | Must use Monday of week", activity="Senior Only", override_excused="Use to override excused", apply_rewards="Default: True", auto_strike="Default: True", override_existing="Default: False", dm_user="Default: True")
-async def logQuota(interaction: discord.Interaction, staff_member : discord.Member, post_count : int, week_start : str, activity : bool = None, override_excused : bool = False, apply_rewards : bool = True, auto_strike : bool = True, override_existing : bool = False, dm_user : bool = True):
+async def logQuota(interaction: discord.Interaction, staff_member : discord.Member, post_count : int, week_start : str, ticket_count : int, activity : bool = None, override_excused : bool = False, apply_rewards : bool = True, auto_strike : bool = True, override_existing : bool = False, dm_user : bool = True):
     await interaction.response.defer(thinking=True, ephemeral=True)
     # all wrong to do with senior quota (post count)
     reward_excused = False
@@ -489,12 +493,14 @@ async def logQuota(interaction: discord.Interaction, staff_member : discord.Memb
     
     # work out the target users quota requirement
     requirement = 0
+    ticketrequirement = 0
     if Is_Senior:
-        requirement = await getCurrentSeniorQuota()
+        requirement = await getSeniorQuota()
+        ticketrequirement = await getSeniorTicketQuota()
     elif await IsIntern(staff_member):
-        requirement = await getCurrentInternQuota()
+        requirement = await getInternQuota()
     else:
-        requirement = await getCurrentQuota()
+        requirement = await getQuota()
 
     # check if inspector is a senior
     if not await IsSenior(interaction.user):
@@ -600,15 +606,15 @@ async def logQuota(interaction: discord.Interaction, staff_member : discord.Memb
             existing_week = await cursor.fetchone()
         
         if existing_week is None:
-            await db.execute('INSERT INTO Weeks (StartDate, PostRequirement, SeniorPostRequirement, InternPostRequirement) VALUES (?, ?, ?, ?)', (week_start, await getCurrentQuota(), await getCurrentSeniorQuota(), await getCurrentInternQuota()))
+            await db.execute('INSERT INTO Weeks (StartDate, PostRequirement, SeniorPostRequirement, InternPostRequirement) VALUES (?, ?, ?, ?)', (week_start, await getQuota(), await getSeniorQuota(), await getInternQuota()))
             await db.commit()
         
         if not Is_Senior:
-            await db.execute('INSERT OR REPLACE INTO Inspections (InspecteeID, InspectorID, PostsCompleted, WeekStart, InactivityExcused, RewardExcused, Pass) VALUES (?, ?, ?, ?, ?, ?, ?)', 
-                                (staff_member.id, interaction.user.id, post_count, week_start, int(excused), int(reward_excused), int(post_count >= requirement or int(excused) or int(reward_excused))))
+            await db.execute('INSERT OR REPLACE INTO Inspections (InspecteeID, InspectorID, PostsCompleted, WeekStart, InactivityExcused, RewardExcused, Pass, TicketsCompleted) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', 
+                                (staff_member.id, interaction.user.id, post_count, week_start, int(excused), int(reward_excused), int(post_count >= requirement or int(excused) or int(reward_excused)), ticket_count))
         else:
-            await db.execute('INSERT OR REPLACE INTO SeniorInspections (InspecteeID, InspectorID, PostsCompleted, Activity, WeekStart, InactivityExcused, RewardExcused, Pass) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', 
-                                (staff_member.id, interaction.user.id, post_count, int(activity), week_start, int(excused), int(reward_excused), int(post_count >= requirement and activity or excused or reward_excused)))
+            await db.execute('INSERT OR REPLACE INTO SeniorInspections (InspecteeID, InspectorID, PostsCompleted, Activity, WeekStart, InactivityExcused, RewardExcused, Pass, TicketsCompleted) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', 
+                                (staff_member.id, interaction.user.id, post_count, int(activity), week_start, int(excused), int(reward_excused), int(post_count >= requirement and ticket_count >= ticketrequirement and activity or excused or reward_excused), ticket_count))
 
         await db.commit()
 
