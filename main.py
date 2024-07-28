@@ -625,7 +625,7 @@ async def logQuota(interaction: discord.Interaction, staff_member : discord.Memb
         logchannel = get(interaction.guild.channels, id=senior_log_channel_id)
         strikelogchannel = get(interaction.guild.channels, id=senior_strike_log_channel_id)
     
-    logmsg = f"### {interaction.user.mention} logged {staff_member.mention}'s quota.\n- Posts: {post_count}\n- Activity: {activity}"
+    logmsg = f"### {interaction.user.mention} logged {staff_member.mention}'s quota.\n- Posts: {post_count}\n- Tickets: {ticket_count}\n- Activity: {activity}"
     if reward_excused:
         logmsg += f"\n- A reward was consumed to excuse this user"
     logmsgsent = await logchannel.send(logmsg)
