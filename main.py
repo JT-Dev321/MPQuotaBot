@@ -768,9 +768,9 @@ async def getmvp(interaction: discord.Interaction, week_start : str, post_thresh
     
     for i in range(0, len(ticketresults)):
         if i == 0:
-            output += f"\n## :CH_Diamond_Shiny: - <@{ticketresults[i][0]}> - {ticketresults[i][1]} posts\n"
+            output += f"\n\n## :CH_Diamond_Shiny: - <@{ticketresults[i][0]}> - {ticketresults[i][1]} tickets\n"
         else:
-            output += f"\n### :Crown2Silver: - <@{ticketresults[i][0]}> - {ticketresults[i][1]} posts"
+            output += f"\n### :Crown2Silver: - <@{ticketresults[i][0]}> - {ticketresults[i][1]} tickets"
     
     if form_announcement:
         await interaction.followup.send(f"```\n# <@&796462879246909532> Weekly Notice - {week_start.replace("-", "/")}\n\n{output}\n\n\nSigned,\n### :MLeader: | *deepforce123*\n```", ephemeral=True)
