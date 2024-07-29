@@ -484,7 +484,7 @@ async def inactivity_view(interaction: discord.Interaction):
     
 @quotaGroup.command(name = "log", description='Log a quota for an individual')
 @app_commands.describe(week_start="Format: YYYY-MM-DD | Must use Monday of week", activity="Senior Only", override_excused="Use to override excused", apply_rewards="Default: True", auto_strike="Default: True", override_existing="Default: False", dm_user="Default: True")
-async def logQuota(interaction: discord.Interaction, staff_member : discord.Member, post_count : int, week_start : str, ticket_count : int, activity : bool = None, override_excused : bool = False, apply_rewards : bool = True, auto_strike : bool = True, override_existing : bool = False, dm_user : bool = True):
+async def logQuota(interaction: discord.Interaction, staff_member : discord.Member, post_count : int, ticket_count : int, week_start : str, activity : bool = None, override_excused : bool = False, apply_rewards : bool = True, auto_strike : bool = True, override_existing : bool = False, dm_user : bool = True):
     await interaction.response.defer(thinking=True, ephemeral=True)
     # all wrong to do with senior quota (post count)
     reward_excused = False
@@ -721,14 +721,14 @@ async def gethistory(interaction: discord.Interaction, staff_member : discord.Me
 
 @quotaGroup.command(name = "mvp", description='Get the mvp list for a week')
 @app_commands.describe(week_start="Format: YYYY-MM-DD | Must use Monday of week")
-async def getmvp(interaction: discord.Interaction, week_start : str, threshold : int, form_announcement : bool = False):
+async def getmvp(interaction: discord.Interaction, week_start : str, post_threshold : int, ticket_threshold : int, form_announcement : bool = False):
     await interaction.response.defer(thinking=True, ephemeral=True)
     
     async with aiosqlite.connect(database) as db:
         async with db.execute("""SELECT InspecteeID, PostsCompleted 
                             FROM Inspections
                             WHERE WeekStart=? AND PostsCompleted > ?
-                            ORDER BY PostsCompleted DESC""", (week_start, threshold)) as cursor:
+                            ORDER BY PostsCompleted DESC""", (week_start, post_threshold)) as cursor:
             results1 = await cursor.fetchall()
     
     
@@ -736,20 +736,41 @@ async def getmvp(interaction: discord.Interaction, week_start : str, threshold :
         async with db.execute("""SELECT InspecteeID, PostsCompleted 
                             FROM SeniorInspections
                             WHERE WeekStart=? AND PostsCompleted > ?
-                            ORDER BY PostsCompleted DESC""", (week_start, threshold)) as cursor:
+                            ORDER BY PostsCompleted DESC""", (week_start, post_threshold)) as cursor:
             results2 = await cursor.fetchall()
     
     
-    results = sorted(results1+results2, key=lambda x: x[1], reverse=True)
+    async with aiosqlite.connect(database) as db:
+        async with db.execute("""SELECT InspecteeID, TicketsCompleted 
+                            FROM Inspections
+                            WHERE WeekStart=? AND TicketsCompleted > ?
+                            ORDER BY TicketsCompleted DESC""", (week_start, ticket_threshold)) as cursor:
+            results3 = await cursor.fetchall()
+    
+    
+    async with aiosqlite.connect(database) as db:
+        async with db.execute("""SELECT InspecteeID, TicketsCompleted 
+                            FROM SeniorInspections
+                            WHERE WeekStart=? AND TicketsCompleted > ?
+                            ORDER BY TicketsCompleted DESC""", (week_start, ticket_threshold)) as cursor:
+            results4 = await cursor.fetchall()
+    
+    postresults = sorted(results1+results2, key=lambda x: x[1], reverse=True)
+    ticketresults = sorted(results3+results4, key=lambda x: x[1], reverse=True)
     
     output = ""
     
-    
-    for i in range(0, len(results)):
+    for i in range(0, len(postresults)):
         if i == 0:
-            output += f"## :CH_Diamond_Shiny: - <@{results[i][0]}> - {results[i][1]} posts\n"
+            output += f"## :CH_Diamond_Shiny: - <@{postresults[i][0]}> - {postresults[i][1]} posts\n"
         else:
-            output += f"\n### :Crown2Silver: - <@{results[i][0]}> - {results[i][1]} posts"
+            output += f"\n### :Crown2Silver: - <@{postresults[i][0]}> - {postresults[i][1]} posts"
+    
+    for i in range(0, len(ticketresults)):
+        if i == 0:
+            output += f"\n## :CH_Diamond_Shiny: - <@{ticketresults[i][0]}> - {ticketresults[i][1]} posts\n"
+        else:
+            output += f"\n### :Crown2Silver: - <@{ticketresults[i][0]}> - {ticketresults[i][1]} posts"
     
     if form_announcement:
         await interaction.followup.send(f"```\n# <@&796462879246909532> Weekly Notice - {week_start.replace("-", "/")}\n\n{output}\n\n\nSigned,\n### :MLeader: | *deepforce123*\n```", ephemeral=True)
