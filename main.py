@@ -432,7 +432,7 @@ class parse_data_modal(ui.Modal, title = 'Data parser'):
 
 quotaGroup = Group(name = "quota", description = "Handle quotas", guild_ids=guild_id_l)
 
-@quotaGroup.command(name = "get_date", description='Get the date of this inspection')
+@quotaGroup.command(name = "get_date", description='Get the dates of the next inspection period')
 async def get_date(interaction: discord.Interaction):
     mondays = []
     for i in range(-9,0):
@@ -1023,6 +1023,22 @@ async def view_all_history(interaction: discord.Interaction):
             msg = ""
     
     await interaction.followup.send(f"Sent you all {counter} quota histories!", ephemeral=True)
+
+@tree.command(guild = discord.Object(id=guild_id), name = "get_date", description='Get the dates of the next inspection period')
+async def get_date(interaction: discord.Interaction):
+    mondays = []
+    for i in range(-9,0):
+        dt = datetime.now() + timedelta(days=i)
+        if dt.weekday() == 0:
+            mondays.append(f"{dt.month}/{dt.day}/{dt.year}|{abs(i)}")
+        
+    output = ""
+    for m in mondays:
+        date = str(m).split("|")[0]
+        i = str(m).split("|")[1]
+        output += f"`{date}` was `{i}` days ago\n"
+    
+    await interaction.response.send_message(f"{output}", ephemeral=True)
 
 def parse_timezone(name):
     timezone = name.split(" | GMT")[1]
