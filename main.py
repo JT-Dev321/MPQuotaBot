@@ -134,6 +134,8 @@ class client(discord.Client):
         
         weekly_quota_reminder.start()
         
+        print(weekly_quota_reminder.next_iteration())
+        
         print_green(f"Logged in as {self.user}.")
         
 aclient = client()
