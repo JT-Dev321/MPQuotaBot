@@ -51,6 +51,7 @@ def print_red(text):
 def print_green(text):
     print(f"\033[1;32m{text}\033[0m")
 
+
 class client(discord.Client):
     def __init__(self):
         super().__init__(intents=discord.Intents.all())
@@ -58,6 +59,10 @@ class client(discord.Client):
         self.synced = False
     
     async def setup_hook(self) -> None:
+        
+        weekly_quota_reminder.start()
+        
+        print(weekly_quota_reminder.next_iteration())
         async with aiosqlite.connect(database) as db:
             #YYYY-MM-DD
             # changed all db architecture, will need to modify all code.
@@ -131,11 +136,7 @@ class client(discord.Client):
         if not self.synced:
             await tree.sync(guild = discord.Object(id=guild_id))
             self.synced = True
-        
-        weekly_quota_reminder.start()
-        
-        print(weekly_quota_reminder.next_iteration())
-        
+
         print_green(f"Logged in as {self.user}.")
         
 aclient = client()
