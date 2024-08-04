@@ -62,7 +62,6 @@ class client(discord.Client):
         
         weekly_quota_reminder.start()
         
-        print(weekly_quota_reminder.next_iteration())
         async with aiosqlite.connect(database) as db:
             #YYYY-MM-DD
             # changed all db architecture, will need to modify all code.
