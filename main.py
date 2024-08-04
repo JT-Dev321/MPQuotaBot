@@ -7,7 +7,7 @@ from discord.utils import get
 from discord.app_commands import AppCommandError, Group
 import aiosqlite
 import time
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 
 import asyncio
 
@@ -278,7 +278,7 @@ async def Get_Consecutive_Strikes(staff_member : int): # only accurate if quota 
         
     return counter
 
-weekly_reminder_time = datetime.time(hour=12)
+weekly_reminder_time = time(hour=12)
 
 @tasks.loop(time=weekly_reminder_time)
 async def weekly_quota_reminder():
