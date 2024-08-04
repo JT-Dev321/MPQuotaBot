@@ -131,6 +131,9 @@ class client(discord.Client):
         if not self.synced:
             await tree.sync(guild = discord.Object(id=guild_id))
             self.synced = True
+        
+        weekly_quota_reminder.start()
+        
         print_green(f"Logged in as {self.user}.")
         
 aclient = client()
