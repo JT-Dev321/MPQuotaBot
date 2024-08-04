@@ -59,7 +59,6 @@ class client(discord.Client):
     
     async def setup_hook(self) -> None:
         async with aiosqlite.connect(database) as db:
-            
             #YYYY-MM-DD
             # changed all db architecture, will need to modify all code.
             await db.execute("""CREATE TABLE IF NOT EXISTS Weeks(
@@ -279,6 +278,41 @@ async def Get_Consecutive_Strikes(staff_member : int): # only accurate if quota 
         
     return counter
 
+weekly_reminder_time = datetime.time(hour=12)
+
+@tasks.loop(time=weekly_reminder_time)
+async def weekly_quota_reminder():
+    if datetime.now().weekday() == 0:
+        guild = aclient.get_guild(guild_id)
+        reminder_channel = get(guild.channels, id = 1173680917374578718)
+        
+        dt = datetime.now(datetime.UTC) - timedelta(days=7)
+        week_start = f"{dt.year}-{dt.month}-{dt.day}"
+        
+        async with aiosqlite.connect(database) as db:
+            async with db.execute("""SELECT InspectorID
+                                FROM Inspections
+                                WHERE WeekStart=?
+                                ORDER BY PostsCompleted DESC""", (week_start,)) as cursor:
+                results1 = await cursor.fetchall()
+        
+        
+        async with aiosqlite.connect(database) as db:
+            async with db.execute("""SELECT InspectorID 
+                                FROM SeniorInspections
+                                WHERE WeekStart=?
+                                ORDER BY PostsCompleted DESC""", (week_start,)) as cursor:
+                results2 = await cursor.fetchall()
+        
+        
+        loggedLoggers = results1+results2
+
+        expectedLoggers = [m.id for m in get(guild.roles, id = senior_role_id).members]
+        
+        missingLoggers = list(set(loggedLoggers).symmetric_difference(set(expectedLoggers)))
+        
+        if len(missingLoggers) > 0:
+            await reminder_channel.send(f"{",".join([f'<@{ml}>' for ml in missingLoggers])}\n\nQuotas should all be in by now. Last call.")
 
 rewardGroup = Group(name = "reward", description= "Handle rewards", guild_ids=guild_id_l)
 
