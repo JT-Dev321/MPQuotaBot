@@ -141,10 +141,6 @@ class client(discord.Client):
             self.synced = True
         
         print_green(f"Logged in as {self.user}.")
-        
-        print(self.weekly_quota_reminder.next_iteration)
-        
-        await self.weekly_quota_reminder()
     
     weekly_reminder_time = time(hour=12)
 
@@ -152,7 +148,7 @@ class client(discord.Client):
     async def weekly_quota_reminder(self):
         if datetime.now().weekday() == 0:
             guild = aclient.get_guild(guild_id)
-            reminder_channel = get(guild.channels, id = 1208825014934310992)
+            reminder_channel = get(guild.channels, id = 1173680917374578718)
             
             dt = datetime.now() - timedelta(days=7)
             week_start = f"{dt.year}-{dt.month}-{dt.day}"
