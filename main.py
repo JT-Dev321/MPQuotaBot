@@ -1160,8 +1160,8 @@ async def eval_py(interaction : discord.Interaction, cmd : str, ephemeral : bool
         exec(compile(parsed, filename="<ast>", mode="exec"), env)
 
         result = (await eval(f"{fn_name}()", env))
-        if len(result) == 0:
-            result = "No return value"
+        # if len(result) == 0:
+        #     result = "No return value"
         await interaction.response.send_message(result, ephemeral=ephemeral)
     else:
         await interaction.response.send_message("YOU ARENT ME!!!", ephemeral=True)
