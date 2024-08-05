@@ -154,7 +154,7 @@ class client(discord.Client):
             guild = aclient.get_guild(guild_id)
             reminder_channel = get(guild.channels, id = 1173680917374578718)
             
-            dt = datetime.now(datetime.UTC) - timedelta(days=7)
+            dt = datetime.now() - timedelta(days=7)
             week_start = f"{dt.year}-{dt.month}-{dt.day}"
             
             async with aiosqlite.connect(database) as db:
