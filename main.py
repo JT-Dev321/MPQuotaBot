@@ -34,6 +34,7 @@ senior_role_id = 768851165671850021
 intern_role_id = 1234584425547694081
 staff_role_id = 796462879246909532
 candidate_role_id = 768851165671850017
+mvp_role_id = 1270033237049348116
 
 database = 'quotaDB.sqlite'
 
@@ -673,8 +674,6 @@ async def logQuota(interaction: discord.Interaction, staff_member : discord.Memb
         strikelogchannel = get(interaction.guild.channels, id=senior_strike_log_channel_id)
     
     logmsg = f"### {interaction.user.mention} logged {staff_member.mention}'s quota.\n{GetQuotaHistory(staff_member.id, 1)}"
-    if reward_excused:
-        logmsg += f"\n- A reward was consumed to excuse this user"
     logmsgsent = await logchannel.send(logmsg)
     
     finalmsg = f"Done! - Quota for {staff_member.mention} has been logged successfully."
@@ -768,7 +767,7 @@ async def gethistory(interaction: discord.Interaction, staff_member : discord.Me
 
 @quotaGroup.command(name = "mvp", description='Get the mvp list for a week')
 @app_commands.describe(week_start="Format: YYYY-MM-DD | Must use Monday of week")
-async def getmvp(interaction: discord.Interaction, week_start : str, post_threshold : int, ticket_threshold : int, form_announcement : bool = False):
+async def getmvp(interaction: discord.Interaction, week_start : str, post_threshold : int, ticket_threshold : int, form_announcement : bool = False, give_role : bool = False):
     await interaction.response.defer(thinking=True, ephemeral=True)
     
     async with aiosqlite.connect(database) as db:
@@ -818,6 +817,12 @@ async def getmvp(interaction: discord.Interaction, week_start : str, post_thresh
             output += f"\n\n## :CH_Diamond_Shiny: - <@{ticketresults[i][0]}> - {ticketresults[i][1]} tickets\n"
         else:
             output += f"\n### :Crown2Silver: - <@{ticketresults[i][0]}> - {ticketresults[i][1]} tickets"
+    
+    if give_role:
+        if not has_role_f(int(postresults[0][0]), mvp_role_id):
+            get(interaction.guild.members, id = int(postresults[0][0])).add_roles(get(interaction.guild.roles, id=mvp_role_id))
+        if not has_role_f(int(ticketresults[0][0]), mvp_role_id):
+            get(interaction.guild.members, id = int(ticketresults[0][0])).add_roles(get(interaction.guild.roles, id=mvp_role_id))
     
     if form_announcement:
         await interaction.followup.send(f"```\n# <@&796462879246909532> Weekly Notice - {week_start.replace("-", "/")}\n\n{output}\n\n\nSigned,\n### :MLeader: | *deepforce123*\n```", ephemeral=True)
