@@ -836,6 +836,8 @@ async def getmvp(interaction: discord.Interaction, week_start : str, post_thresh
 @app_commands.checks.has_role(mvp_role_id)
 async def mvpcolour(interaction: discord.Interaction, hex_code : str):
     await get(interaction.guild.roles, id = mvp_role_id).edit(colour=discord.Colour.from_str(f"0x{hex_code}"))
+    
+    await interaction.response.send_message("Success!")
 
 tree.add_command(quotaGroup)
 
