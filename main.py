@@ -142,7 +142,7 @@ class client(discord.Client):
         
         print_green(f"Logged in as {self.user}.")
         
-        self.weekly_quota_reminder.next_iteration()
+        print(self.weekly_quota_reminder.next_iteration())
     
     weekly_reminder_time = time(hour=12)
 
