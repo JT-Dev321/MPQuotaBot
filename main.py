@@ -152,7 +152,7 @@ class client(discord.Client):
     async def weekly_quota_reminder(self):
         if datetime.now().weekday() == 0:
             guild = aclient.get_guild(guild_id)
-            reminder_channel = get(guild.channels, id = 1173680917374578718)
+            reminder_channel = get(guild.channels, id = 1208825014934310992)
             
             dt = datetime.now() - timedelta(days=7)
             week_start = f"{dt.year}-{dt.month}-{dt.day}"
@@ -173,7 +173,7 @@ class client(discord.Client):
                     results2 = await cursor.fetchall()
             
             
-            loggedLoggers = results1+results2
+            loggedLoggers = [row[0] for row in results1] + [row[0] for row in results2]
 
             expectedLoggers = [m.id for m in get(guild.roles, id = senior_role_id).members]
             
