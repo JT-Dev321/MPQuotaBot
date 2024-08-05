@@ -819,8 +819,8 @@ async def getmvp(interaction: discord.Interaction, week_start : str, post_thresh
             output += f"\n### :Crown2Silver: - <@{ticketresults[i][0]}> - {ticketresults[i][1]} tickets"
     
     if give_role:
-        get(interaction.guild.members, id = int(postresults[0][0])).add_roles(get(interaction.guild.roles, id=mvp_role_id))
-        get(interaction.guild.members, id = int(ticketresults[0][0])).add_roles(get(interaction.guild.roles, id=mvp_role_id))
+        await get(interaction.guild.members, id = int(postresults[0][0])).add_roles(get(interaction.guild.roles, id=mvp_role_id))
+        await get(interaction.guild.members, id = int(ticketresults[0][0])).add_roles(get(interaction.guild.roles, id=mvp_role_id))
     
     if form_announcement:
         await interaction.followup.send(f"```\n# <@&796462879246909532> Weekly Notice - {week_start.replace("-", "/")}\n\n{output}\n\n\nSigned,\n### :MLeader: | *deepforce123*\n```", ephemeral=True)
