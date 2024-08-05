@@ -144,7 +144,7 @@ class client(discord.Client):
         
         print(self.weekly_quota_reminder.next_iteration)
         
-        self.weekly_quota_reminder()
+        await self.weekly_quota_reminder()
     
     weekly_reminder_time = time(hour=12)
 
