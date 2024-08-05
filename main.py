@@ -61,7 +61,6 @@ class client(discord.Client):
     async def setup_hook(self) -> None:
         
         self.weekly_quota_reminder.start()
-        print(self.weekly_quota_reminder.next_iteration())
         
         async with aiosqlite.connect(database) as db:
             #YYYY-MM-DD
