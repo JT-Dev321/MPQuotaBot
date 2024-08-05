@@ -52,6 +52,10 @@ def print_green(text):
     print(f"\033[1;32m{text}\033[0m")
 
 
+
+
+
+
 class client(discord.Client):
     def __init__(self):
         super().__init__(intents=discord.Intents.all())
@@ -135,13 +139,15 @@ class client(discord.Client):
         if not self.synced:
             await tree.sync(guild = discord.Object(id=guild_id))
             self.synced = True
-
+        
         print_green(f"Logged in as {self.user}.")
+        
+        self.weekly_quota_reminder.next_iteration()
     
     weekly_reminder_time = time(hour=12)
 
     @tasks.loop(time=weekly_reminder_time)
-    async def weekly_quota_reminder():
+    async def weekly_quota_reminder(self):
         if datetime.now().weekday() == 0:
             guild = aclient.get_guild(guild_id)
             reminder_channel = get(guild.channels, id = 1173680917374578718)
