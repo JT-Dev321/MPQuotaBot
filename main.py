@@ -64,7 +64,8 @@ class client(discord.Client):
     
     async def setup_hook(self) -> None:
         
-        self.weekly_quota_reminder.start()
+        if not self.weekly_quota_reminder.is_running():
+            self.weekly_quota_reminder.start()
         
         async with aiosqlite.connect(database) as db:
             #YYYY-MM-DD
@@ -671,7 +672,7 @@ async def logQuota(interaction: discord.Interaction, staff_member : discord.Memb
         logchannel = get(interaction.guild.channels, id=senior_log_channel_id)
         strikelogchannel = get(interaction.guild.channels, id=senior_strike_log_channel_id)
     
-    logmsg = f"### {interaction.user.mention} logged {staff_member.mention}'s quota.\n- Posts: {post_count}\n- Tickets: {ticket_count}\n- Activity: {activity}"
+    logmsg = f"### {interaction.user.mention} logged {staff_member.mention}'s quota.\n{GetQuotaHistory(staff_member.id, 1)}"
     if reward_excused:
         logmsg += f"\n- A reward was consumed to excuse this user"
     logmsgsent = await logchannel.send(logmsg)
