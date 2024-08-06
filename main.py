@@ -2,7 +2,7 @@ import os
 
 import discord
 from discord import ButtonStyle, app_commands, ui
-from discord.ext import tasks
+from discord.ext import tasks, commands
 from discord.utils import get
 from discord.app_commands import AppCommandError, Group
 import aiosqlite
@@ -57,7 +57,7 @@ def print_green(text):
 
 
 
-class client(discord.Bot):
+class bot(commands.Bot):
     def __init__(self):
         super().__init__(intents=discord.Intents.all())
         
@@ -181,7 +181,7 @@ class client(discord.Bot):
                 await reminder_channel.send(f"{",".join([f'<@{ml}>' for ml in missingLoggers])}\n\nQuotas should all be in by now. Last call.")
     
         
-aclient = client()
+aclient = bot()
 tree = app_commands.CommandTree(aclient)
 
 async def has_role_f(staff_member, role_id):
