@@ -182,7 +182,7 @@ class bot(commands.Bot):
     
         
 aclient = bot()
-tree = app_commands.CommandTree(aclient)
+tree = aclient.tree
 
 async def has_role_f(staff_member, role_id):
     if isinstance(staff_member, discord.Member):
