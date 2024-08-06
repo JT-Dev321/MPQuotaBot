@@ -59,7 +59,7 @@ def print_green(text):
 
 class bot(commands.Bot):
     def __init__(self):
-        super().__init__(intents=discord.Intents.all())
+        super().__init__(command_prefix="! ?", intents=discord.Intents.all(), help_command=None)
         
         self.synced = False
     
