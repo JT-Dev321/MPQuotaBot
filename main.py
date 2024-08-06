@@ -57,7 +57,7 @@ def print_green(text):
 
 
 
-class client(discord.Client):
+class client(discord.Bot):
     def __init__(self):
         super().__init__(intents=discord.Intents.all())
         
