@@ -139,5 +139,4 @@ class rewards(commands.GroupCog, group_name='reward'):
 
 
 async def setup(bot):
-    # finally, adding the cog to the bot
     await bot.add_cog(rewards(bot))
