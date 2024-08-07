@@ -1,4 +1,4 @@
-from imports import *
+from ..imports import *
 
 class parse_data_modal(ui.Modal, title = 'Data parser'):
 
