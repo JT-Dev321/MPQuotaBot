@@ -208,6 +208,7 @@ async def sync(ctx: commands.Context, guilds: commands.Greedy[discord.Object], s
     if not guilds:
         if spec == "~":
             synced = await ctx.bot.tree.sync(guild=ctx.guild)
+            print(synced)
         elif spec == "*":
             ctx.bot.tree.copy_global_to(guild=ctx.guild)
             synced = await ctx.bot.tree.sync(guild=ctx.guild)
