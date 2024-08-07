@@ -117,13 +117,13 @@ class rewards(commands.GroupCog, group_name='reward'):
         
         await interaction.followup.send("Success!", ephemeral=True)
 
-    @giveReward.autocomplete('reward_type')
-    async def autocomplete_callback(interaction: discord.Interaction, current: str):
-        choicelist = [
-        app_commands.Choice(name = 'Quota Half', value = "Quota Half"),
-        app_commands.Choice(name = 'Quota Excused', value = "Quota Excused"),
-        ]
-        return choicelist
+@rewards.giveReward.autocomplete('reward_type')
+async def autocomplete_callback(interaction: discord.Interaction, current: str):
+    choicelist = [
+    app_commands.Choice(name = 'Quota Half', value = "Quota Half"),
+    app_commands.Choice(name = 'Quota Excused', value = "Quota Excused"),
+    ]
+    return choicelist
 
 
 async def setup(bot):
