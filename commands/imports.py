@@ -12,4 +12,4 @@ import re
 import math
 import itertools
 import ast
-from main import roles,has_role_f,IsManagement,IsSenior,IsIntern,get_variable,set_variable,getQuota,getSeniorTicketQuota,getSeniorQuota,getInternQuota,CheckValidDate,GetQuotaHistory,Get_Consecutive_Strikes,aclient
+from main import roles,has_role_f,IsManagement,IsSenior,IsIntern,get_variable,set_variable,getQuota,getSeniorTicketQuota,getSeniorQuota,getInternQuota,CheckValidDate,GetQuotaHistory,Get_Consecutive_Strikes
