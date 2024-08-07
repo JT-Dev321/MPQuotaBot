@@ -21,14 +21,6 @@ guild_id = 768851165671850015
 
 database = 'quotaDB.sqlite'
 
-redcolour = 0xFF0000
-darkredcolour = 0x8b0000
-orangecolour = 0xFFA500
-greencolour = 0x00FF00
-darkorangecolour = 0xDC582A
-stafftagcolour = 0xc21808
-maincolour = 0xA46FFF
-
 def print_red(text):
     print(f"\033[1;31m{text}\033[0m")
 
@@ -37,18 +29,16 @@ def print_green(text):
 
 
 class colours():
-    redcolour = 0xFF0000
-    darkredcolour = 0x8b0000
-    orangecolour = 0xFFA500
-    greencolour = 0x00FF00
-    darkorangecolour = 0xDC582A
-    stafftagcolour = 0xc21808
-    maincolour = 0xA46FFF
+    red = 0xFF0000
+    darkred = 0x8b0000
+    orange = 0xFFA500
+    green = 0x00FF00
+    darkorange = 0xDC582A
+    mp_purple = 0xA46FFF
 
 class channel_ids():
     quota_logs = 1208810891626151976
-    strike_log = 1208827574998933616
-
+    strike_logs = 1208827574998933616
     senior_quota_log = 1259211052164583425
     senior_strike_logs = 1259211191650222130
 
@@ -555,7 +545,7 @@ async def make_intern_groups(interaction: discord.Interaction, copyable : bool =
         await interaction.response.send_message(output)
     else:
         embed = discord.Embed(
-            color = maincolour,
+            color = colours.mp_purple,
             description = output,
             title = "Intern groupings"
         )

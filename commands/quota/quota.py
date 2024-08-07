@@ -74,7 +74,7 @@ class quota(commands.GroupCog, group_name='quota'):
         for row in results:
             output += f"- <@{row[0]}> - `{row[1]}`\n"
         
-        await interaction.response.send_message(embed=discord.Embed(title = f"Current Inactivity Notices", description=output, colour=colours.maincolour), ephemeral=True)
+        await interaction.response.send_message(embed=discord.Embed(title = f"Current Inactivity Notices", description=output, colour=colours.mp_purple), ephemeral=True)
         
     @app_commands.command(name = "log", description='Log a quota for an individual')
     @app_commands.describe(week_start="Format: YYYY-MM-DD | Must use Monday of week", activity="Senior Only", override_excused="Use to override excused", apply_rewards="Default: True", auto_strike="Default: True", override_existing="Default: False", dm_user="Default: True")
@@ -214,10 +214,10 @@ class quota(commands.GroupCog, group_name='quota'):
 
 
         logchannel = get(interaction.guild.channels, id=channel_ids.quota_logs)
-        strikelogchannel = get(interaction.guild.channels, id=channel_ids.strike_log)
+        strikelogchannel = get(interaction.guild.channels, id=channel_ids.strike_logs)
         if Is_Senior:
             logchannel = get(interaction.guild.channels, id=channel_ids.senior_quota_log)
-            strikelogchannel = get(interaction.guild.channels, id=channel_ids.senior_strike_logs)
+            strikelogchannel = get(interaction.guild.channels, id=channel_ids.senior_strike_logss)
         
         logmsg = f"### {interaction.user.mention} logged {staff_member.mention}'s quota.\n{GetQuotaHistory(staff_member.id, 1)}"
         logmsgsent = await logchannel.send(logmsg)
@@ -303,9 +303,9 @@ class quota(commands.GroupCog, group_name='quota'):
         else:
             output3 = "Nobody missing!"
         
-        await interaction.followup.send(embeds=[discord.Embed(title = "Results", description=output, colour=colours.maincolour), 
-                                                discord.Embed(title = "Missing Users", description=output2, colour=colours.maincolour), 
-                                                discord.Embed(title = "Missing Loggers", description=output3, colour=colours.maincolour)], ephemeral = True)
+        await interaction.followup.send(embeds=[discord.Embed(title = "Results", description=output, colour=colours.mp_purple), 
+                                                discord.Embed(title = "Missing Users", description=output2, colour=colours.mp_purple), 
+                                                discord.Embed(title = "Missing Loggers", description=output3, colour=colours.mp_purple)], ephemeral = True)
 
     @app_commands.command(name = "get_history", description='Get a users most recent weeks of quota history')
     async def gethistory(self, interaction: discord.Interaction, staff_member : discord.Member):
