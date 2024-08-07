@@ -1,20 +1,13 @@
-import discord
-from discord import app_commands
-from discord.ext import commands
-from discord.utils import get
-from datetime import datetime, timedelta
-import aiosqlite
-database = 'quotaDB.sqlite'
-from main import roles,IsSenior,CheckValidDate
+from imports import *
 
 class rewards(commands.GroupCog, group_name='reward'):
     def __init__(self, bot):
         self.bot = bot
     
     @app_commands.command(name='distribute_rewards')
-    @app_commands.checks.has_role(roles.management_role_id)
+    @app_commands.checks.has_role(role_ids.management)
     async def distribute_rewards(self, interaction: discord.Interaction, week_start : str, just_show : bool = False):
-        ids_to_check = [m.id for m in get(interaction.guild.roles, id = roles.staff_role_id).members]
+        ids_to_check = [m.id for m in get(interaction.guild.roles, id = role_ids.staff).members]
         await interaction.response.defer(thinking=True, ephemeral=True)
         
         async with aiosqlite.connect(database) as db:

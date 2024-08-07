@@ -25,19 +25,6 @@ load_dotenv()
 guild_id = 768851165671850015
 guild_id_l = [guild_id]
 
-log_channel_id = 1208810891626151976
-strike_log_channel_id = 1208827574998933616
-
-senior_log_channel_id = 1259211052164583425
-senior_strike_log_channel_id = 1259211191650222130
-
-management_role_id = 768851165671850022
-senior_role_id = 768851165671850021
-intern_role_id = 1234584425547694081
-staff_role_id = 796462879246909532
-candidate_role_id = 768851165671850017
-mvp_role_id = 1270033237049348116
-
 database = 'quotaDB.sqlite'
 
 redcolour = 0xFF0000
@@ -55,21 +42,29 @@ def print_green(text):
     print(f"\033[1;32m{text}\033[0m")
 
 
+class colours():
+    redcolour = 0xFF0000
+    darkredcolour = 0x8b0000
+    orangecolour = 0xFFA500
+    greencolour = 0x00FF00
+    darkorangecolour = 0xDC582A
+    stafftagcolour = 0xc21808
+    maincolour = 0xA46FFF
 
+class channel_ids():
+    quota_logs = 1208810891626151976
+    strike_log = 1208827574998933616
 
-class roles():
-    log_channel_id = 1208810891626151976
-    strike_log_channel_id = 1208827574998933616
+    senior_quota_log = 1259211052164583425
+    senior_strike_logs = 1259211191650222130
 
-    senior_log_channel_id = 1259211052164583425
-    senior_strike_log_channel_id = 1259211191650222130
-
-    management_role_id = 768851165671850022
-    senior_role_id = 768851165671850021
-    intern_role_id = 1234584425547694081
-    staff_role_id = 796462879246909532
-    candidate_role_id = 768851165671850017
-    mvp_role_id = 1270033237049348116
+class role_ids():
+    management = 768851165671850022
+    senior = 768851165671850021
+    intern = 1234584425547694081
+    staff = 796462879246909532
+    candidate = 768851165671850017
+    mvp = 1270033237049348116
 
 class bot(commands.Bot):
     def __init__(self):
@@ -80,7 +75,6 @@ class bot(commands.Bot):
     async def setup_hook(self) -> None:
         
         await self.load_extension("commands.rewards.rewards")
-        
         
         if not self.weekly_quota_reminder.is_running():
             self.weekly_quota_reminder.start()
@@ -190,7 +184,7 @@ class bot(commands.Bot):
             
             loggedLoggers = [row[0] for row in results1] + [row[0] for row in results2]
 
-            expectedLoggers = [m.id for m in get(guild.roles, id = senior_role_id).members]
+            expectedLoggers = [m.id for m in get(guild.roles, id = role_ids.senior).members]
             
             missingLoggers = list(set(loggedLoggers).symmetric_difference(set(expectedLoggers)))
             
@@ -247,13 +241,13 @@ async def has_role_f(staff_member, role_id):
             return False
 
 async def IsManagement(staff_member):
-    return await has_role_f(staff_member, management_role_id)
+    return await has_role_f(staff_member, role_ids.management)
 
 async def IsSenior(staff_member):
-    return await has_role_f(staff_member, senior_role_id)
+    return await has_role_f(staff_member, role_ids.senior)
 
 async def IsIntern(staff_member):
-    return await has_role_f(staff_member, intern_role_id)
+    return await has_role_f(staff_member, role_ids.intern)
 
 async def get_variable(key):
     async with aiosqlite.connect(database) as db:
@@ -379,438 +373,17 @@ async def Get_Consecutive_Strikes(staff_member : int): # only accurate if quota 
     return counter
 
 
-class parse_data_modal(ui.Modal, title = 'Data parser'):
-
-    def __init__(self):
-        super().__init__()
-
-    data = ui.TextInput(label = 'Data', style = discord.TextStyle.paragraph, required = True)
-    
-    async def on_submit(self, interaction: discord.Interaction) -> None:
-        splitData = self.data.value.split('\n')
-        
-        quotaDict = {}
-        
-        for i in range(0, len(splitData), 7):
-            quotaDict.update({f"{splitData[i]}" : [int(splitData[i+4].split(': ')[1]), int(splitData[i+5].split(': ')[1])]})
-        
-        output = ""
-        
-        for name in quotaDict:
-            output += f"`/quota log staff_member:{name} post_count:{quotaDict[name][0]} ticket_count:{quotaDict[name][1]} week_start: `\n"
-        
-        await interaction.response.send_message(output, ephemeral=True)
-
-quotaGroup = Group(name = "quota", description = "Handle quotas", guild_ids=guild_id_l)
-
-@quotaGroup.command(name = "get_date", description='Get the dates of the next inspection period')
-async def get_date(interaction: discord.Interaction):
-    mondays = []
-    for i in range(-9,0):
-        dt = datetime.now() + timedelta(days=i)
-        if dt.weekday() == 0:
-            mondays.append(f"{dt.month}/{dt.day}/{dt.year}|{abs(i)}")
-        
-    output = ""
-    for m in mondays:
-        date = str(m).split("|")[0]
-        i = str(m).split("|")[1]
-        output += f"`{date}` was `{i}` days ago\n"
-    
-    await interaction.response.send_message(f"{output}", ephemeral=True)
-
-@quotaGroup.command(name = "parsedata", description='Parse data')
-async def parseData(interaction: discord.Interaction):
-    await interaction.response.send_modal(parse_data_modal())
-    
-@quotaGroup.command(name = "set", description='Set a quota')
-@app_commands.checks.has_role(management_role_id)
-async def set_quota(interaction: discord.Interaction, role : str, value : int):
-    prev = await get_variable(role)
-    await set_variable(role, value)
-    
-    await interaction.response.send_message(f"Changed quota for `{role}` from `{prev}` to `{value}`", ephemeral=True)
-
-@quotaGroup.command(name = "inactivity_add", description='Add a user to inactivity')
-@app_commands.checks.has_role(management_role_id)
-async def inactivity_add(interaction: discord.Interaction, staff_member : discord.Member, inspection_count : int):
-    async with aiosqlite.connect(database) as db:
-        await db.execute('INSERT OR REPLACE INTO Excused (StaffID, InspectionCount) VALUES (?, ?)', (staff_member.id, inspection_count))
-        await db.commit()
-        await interaction.response.send_message("Successfully added user!", ephemeral=True)
-    
-@quotaGroup.command(name = "inactivity_view", description='View all active inactivity notices.')
-@app_commands.checks.has_role(management_role_id)
-async def inactivity_view(interaction: discord.Interaction):
-    async with aiosqlite.connect(database) as db:
-        async with db.execute('SELECT StaffID, InspectionCount FROM Excused WHERE InspectionCount > 0') as cursor:
-            results = await cursor.fetchall()
-    
-    output = f"Total: `{len(results)}`\n\n"
-    
-    for row in results:
-        output += f"- <@{row[0]}> - `{row[1]}`\n"
-    
-    await interaction.response.send_message(embed=discord.Embed(title = f"Current Inactivity Notices", description=output, colour=maincolour), ephemeral=True)
-    
-@quotaGroup.command(name = "log", description='Log a quota for an individual')
-@app_commands.describe(week_start="Format: YYYY-MM-DD | Must use Monday of week", activity="Senior Only", override_excused="Use to override excused", apply_rewards="Default: True", auto_strike="Default: True", override_existing="Default: False", dm_user="Default: True")
-async def logQuota(interaction: discord.Interaction, staff_member : discord.Member, post_count : int, ticket_count : int, week_start : str, activity : bool = None, override_excused : bool = False, apply_rewards : bool = True, auto_strike : bool = True, override_existing : bool = False, dm_user : bool = True):
-    await interaction.response.defer(thinking=True, ephemeral=True)
-    # all wrong to do with senior quota (post count)
-    reward_excused = False
-    striked = False
-    Is_Senior = await IsSenior(staff_member)
-    
-    # work out the target users quota requirement
-    requirement = 0
-    ticketrequirement = 0
-    if Is_Senior:
-        requirement = await getSeniorQuota()
-        ticketrequirement = await getSeniorTicketQuota()
-    elif await IsIntern(staff_member):
-        requirement = await getInternQuota()
-    else:
-        requirement = await getQuota()
-
-    # check if inspector is a senior
-    if not await IsSenior(interaction.user):
-        await interaction.followup.send("Only seniors can do this >:(", ephemeral=True)
-        return
-
-    #ensure valid date
-    if not await CheckValidDate(week_start):
-        await interaction.followup.send("Please enter a valid date", ephemeral=True)
-        return
-
-    # checks if theyre a senior but the activity param is empty (somethings wrong)
-    if Is_Senior and activity == None: 
-        await interaction.followup.send("The user you are logging is a senior - You need to fill in the activity parameter", ephemeral=True)
-        return
-
-    # checks if someone is trying to record activity for a non-senior
-    if not Is_Senior and activity != None:
-        await interaction.followup.send("Do not log activity for a non-senior!", ephemeral=True)
-        return
-
-    # ensure users quota hasnt already been recorded for that week
-    existing_quota = None
-    if not Is_Senior:
-        async with aiosqlite.connect(database) as db:
-            async with db.execute('SELECT InspecteeID FROM Inspections WHERE WeekStart=? AND InspecteeID=?', (week_start,staff_member.id)) as cursor:
-                existing_quota = await cursor.fetchone()
-    else:
-        async with aiosqlite.connect(database) as db:
-            async with db.execute('SELECT InspecteeID FROM SeniorInspections WHERE WeekStart=? AND InspecteeID=?', (week_start,staff_member.id)) as cursor:
-                existing_quota = await cursor.fetchone()
-    if existing_quota != None and not override_existing:
-        await interaction.followup.send(f"This user already has a quota recorded for this week (`{week_start}`)", ephemeral=True)
-        return
-
-    # Excused
-    excused = False
-    if not override_excused and post_count < requirement:
-        async with aiosqlite.connect(database) as db:
-            async with db.execute('SELECT StaffID FROM Excused WHERE InspectionCount > 0 AND StaffID = ?', (staff_member.id,)) as cursor:
-                row = await cursor.fetchone()
-            if row is not None:
-                excused = True
-                await db.execute('UPDATE Excused SET InspectionCount = InspectionCount - 1 WHERE StaffID = ?', (staff_member.id,))
-                await db.commit()
-    elif override_excused:
-        excused = True
-    
-    # REWARDS
-    if apply_rewards and not excused and post_count < requirement and not Is_Senior:
-        async with aiosqlite.connect(database) as db: # get rewards
-            async with db.execute('SELECT ID, Type, DateGiven, Charges FROM Rewards WHERE RecipientID=? AND Charges > 0', (staff_member.id,)) as cursor:
-                results = await cursor.fetchall()
-        
-        valid_rewards = []
-        
-        for r in results:
-            date = str(r[2]).split("-")
-            dt = datetime(int(date[0]), int(date[1]), int(date[2]))
-            if dt > datetime.now() - timedelta(days=31):
-                valid_rewards.append(r)
-        
-        if len(valid_rewards) > 0: # consume reward if applicable
-            for i in range(2):
-                for reward in valid_rewards:
-                    # 2 ifs so if half doesnt make them pass and they have an excused, then the excused will activate
-                    if i == 0: # check all the halfs first (less valuable)
-                        if "Half" in reward[1]:
-                            if post_count >= (requirement * 0.5):
-                                async with aiosqlite.connect(database) as db:
-                                    await db.execute('UPDATE Rewards SET Charges=? WHERE RecipientID=? AND Charges > 0 AND ID=? AND Type=?', (reward[3] - 1, staff_member.id, r[0], "Quota Half"))
-                                    await db.commit()
-                                reward_excused = True
-                                break
-                    if i == 1:
-                        if "Excused" in reward[1]:
-                            async with aiosqlite.connect(database) as db:
-                                await db.execute('UPDATE Rewards SET Charges=? WHERE RecipientID=? AND Charges > 0 AND ID=? AND Type=?', (reward[3] - 1, staff_member.id, r[0], "Quota Excused"))
-                                await db.commit()
-                            reward_excused = True
-                            break
-
-
-    # STRIKES
-    if auto_strike and not excused and not reward_excused:
-        if not Is_Senior:
-            if post_count < requirement:
-                striked = True
-                async with aiosqlite.connect(database) as db:
-                    await db.execute('INSERT INTO Strikes (RecipientID, SeniorID, DateGiven) VALUES (?, ?, ?)', (staff_member.id, interaction.user.id, week_start))
-                    await db.commit()
-        else:
-            if post_count < requirement and not activity:
-                striked = True
-                async with aiosqlite.connect(database) as db:
-                    await db.execute('INSERT INTO Strikes (RecipientID, SeniorID, DateGiven) VALUES (?, ?, ?)', (staff_member.id, interaction.user.id, week_start))
-                    await db.commit()
-
-
-    # FINAL SQL
-    async with aiosqlite.connect(database) as db:
-        async with db.execute('SELECT StartDate FROM Weeks WHERE StartDate=?', (week_start,)) as cursor:
-            existing_week = await cursor.fetchone()
-        
-        if existing_week is None:
-            await db.execute('INSERT INTO Weeks (StartDate, PostRequirement, SeniorPostRequirement, InternPostRequirement) VALUES (?, ?, ?, ?)', (week_start, await getQuota(), await getSeniorQuota(), await getInternQuota()))
-            await db.commit()
-        
-        if not Is_Senior:
-            await db.execute('INSERT OR REPLACE INTO Inspections (InspecteeID, InspectorID, PostsCompleted, WeekStart, InactivityExcused, RewardExcused, Pass, TicketsCompleted) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', 
-                                (staff_member.id, interaction.user.id, post_count, week_start, int(excused), int(reward_excused), int(post_count >= requirement or int(excused) or int(reward_excused)), ticket_count))
-        else:
-            await db.execute('INSERT OR REPLACE INTO SeniorInspections (InspecteeID, InspectorID, PostsCompleted, Activity, WeekStart, InactivityExcused, RewardExcused, Pass, TicketsCompleted) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', 
-                                (staff_member.id, interaction.user.id, post_count, int(activity), week_start, int(excused), int(reward_excused), int(post_count >= requirement and ticket_count >= ticketrequirement and activity or excused or reward_excused), ticket_count))
-
-        await db.commit()
-
-
-    logchannel = get(interaction.guild.channels, id=log_channel_id)
-    strikelogchannel = get(interaction.guild.channels, id=strike_log_channel_id)
-    if Is_Senior:
-        logchannel = get(interaction.guild.channels, id=senior_log_channel_id)
-        strikelogchannel = get(interaction.guild.channels, id=senior_strike_log_channel_id)
-    
-    logmsg = f"### {interaction.user.mention} logged {staff_member.mention}'s quota.\n{GetQuotaHistory(staff_member.id, 1)}"
-    logmsgsent = await logchannel.send(logmsg)
-    
-    finalmsg = f"Done! - Quota for {staff_member.mention} has been logged successfully."
-
-    if override_existing:
-        finalmsg += f"\nIf this user already had a quota recorded, it has been overridden!\n**Please do the following:**\n- Delete the old log in <#{log_channel_id}>\n- Remove any old strikes the user may have gotten (if the old quota recorded as a fail)\n- Replenish any rewards mistakenly consumed by this action"
-
-    if striked:
-        finalmsg += "\n- The user was striked"
-    if reward_excused:
-        finalmsg += "\n- The user was excused by an active reward"
-
-    # STRIKE CHECK
-    strike_streak = await Get_Consecutive_Strikes(staff_member.id)
-    if strike_streak > 0:
-        finalmsg += f"\n\nPlease note that this user's current consecutive strike streak is now `{strike_streak}`, any actions that need to be taken based on this information are not automated."
-
-    if striked:
-        await strikelogchannel.send(f"{staff_member.mention} [was striked]({logmsgsent.jump_url})\n\nQuota History:\n{await GetQuotaHistory(staff_member.id)}")
-
-    dm_msg = f"# <:MP:1173683497697808424> | Weekly Inspection Notice\n### {interaction.user.mention} has logged your quota for the week beginning {week_start}\n- Posts: {post_count}"
-    
-    if Is_Senior:
-        dm_msg += f"\n- Activity: {activity}"
-        
-    dm_msg += f"\n\nYour recent quota history:\n{await GetQuotaHistory(staff_member.id, 5)}"
-    
-    if dm_user:
-        await staff_member.send(dm_msg)
-    
-    await interaction.followup.send(finalmsg)
-    
-@quotaGroup.command(name = "check_week", description='View information about a specific week')
-@app_commands.describe(week_start="Format: YYYY-MM-DD | Must use Monday of week")
-async def viewWeek(interaction: discord.Interaction, week_start : str):
-    await interaction.response.defer(thinking=True, ephemeral=True)
-    
-    async with aiosqlite.connect(database) as db:
-        async with db.execute("""SELECT InspecteeID, PostsCompleted, InspectorID
-                            FROM Inspections
-                            WHERE WeekStart=?
-                            ORDER BY PostsCompleted DESC""", (week_start,)) as cursor:
-            results1 = await cursor.fetchall()
-    
-    
-    async with aiosqlite.connect(database) as db:
-        async with db.execute("""SELECT InspecteeID, PostsCompleted, InspectorID 
-                            FROM SeniorInspections
-                            WHERE WeekStart=?
-                            ORDER BY PostsCompleted DESC""", (week_start,)) as cursor:
-            results2 = await cursor.fetchall()
-    
-    
-    results = sorted(results1+results2, key=lambda x: x[1], reverse=True)
-    
-    output = ""
-    loggedLoggers = [] # ids
-    loggedStaff = [] # list of ids
-    expectedStaff = [m.id for m in get(interaction.guild.roles, id = staff_role_id).members + get(interaction.guild.roles, id = intern_role_id).members]
-    expectedLoggers = [m.id for m in get(interaction.guild.roles, id = senior_role_id).members]
-    
-    for i in range(0, len(results)):
-        loggedLoggers.append(results[i][2])
-        output += f"- <@{results[i][0]}> - {results[i][1]}\n"
-        loggedStaff.append(results[i][0])
-    
-    missingLoggers = list(set(loggedLoggers).symmetric_difference(set(expectedLoggers)))
-    missingstaff = list(set(loggedStaff).symmetric_difference(set(expectedStaff)))
-    
-    output2 = ""
-    if len(missingstaff) > 0:
-        for id in missingstaff:
-            output2 += f"<@{id}>, "
-    else:
-        output2 = "Nobody missing!"
-    
-    output3 = ""
-    if len(missingLoggers) > 0:
-        for id in missingLoggers:
-            output3 += f"<@{id}>, "
-    else:
-        output3 = "Nobody missing!"
-    
-    await interaction.followup.send(embeds=[discord.Embed(title = "Results", description=output, colour=maincolour), 
-                                            discord.Embed(title = "Missing Users", description=output2, colour=maincolour), 
-                                            discord.Embed(title = "Missing Loggers", description=output3, colour=maincolour)], ephemeral = True)
-
-@quotaGroup.command(name = "get_history", description='Get a users most recent weeks of quota history')
-async def gethistory(interaction: discord.Interaction, staff_member : discord.Member):
-    await interaction.response.send_message(await GetQuotaHistory(staff_member.id), ephemeral=True)
-
-@quotaGroup.command(name = "mvp", description='Get the mvp list for a week')
-@app_commands.describe(week_start="Format: YYYY-MM-DD | Must use Monday of week")
-async def getmvp(interaction: discord.Interaction, week_start : str, post_threshold : int, ticket_threshold : int, form_announcement : bool = False, give_role : bool = False):
-    await interaction.response.defer(thinking=True, ephemeral=True)
-    
-    async with aiosqlite.connect(database) as db:
-        async with db.execute("""SELECT InspecteeID, PostsCompleted 
-                            FROM Inspections
-                            WHERE WeekStart=? AND PostsCompleted > ?
-                            ORDER BY PostsCompleted DESC""", (week_start, post_threshold)) as cursor:
-            results1 = await cursor.fetchall()
-    
-    
-    async with aiosqlite.connect(database) as db:
-        async with db.execute("""SELECT InspecteeID, PostsCompleted 
-                            FROM SeniorInspections
-                            WHERE WeekStart=? AND PostsCompleted > ?
-                            ORDER BY PostsCompleted DESC""", (week_start, post_threshold)) as cursor:
-            results2 = await cursor.fetchall()
-    
-    
-    async with aiosqlite.connect(database) as db:
-        async with db.execute("""SELECT InspecteeID, TicketsCompleted 
-                            FROM Inspections
-                            WHERE WeekStart=? AND TicketsCompleted > ?
-                            ORDER BY TicketsCompleted DESC""", (week_start, ticket_threshold)) as cursor:
-            results3 = await cursor.fetchall()
-    
-    
-    async with aiosqlite.connect(database) as db:
-        async with db.execute("""SELECT InspecteeID, TicketsCompleted 
-                            FROM SeniorInspections
-                            WHERE WeekStart=? AND TicketsCompleted > ?
-                            ORDER BY TicketsCompleted DESC""", (week_start, ticket_threshold)) as cursor:
-            results4 = await cursor.fetchall()
-    
-    postresults = sorted(results1+results2, key=lambda x: x[1], reverse=True)
-    ticketresults = sorted(results3+results4, key=lambda x: x[1], reverse=True)
-    
-    output = ""
-    
-    for i in range(0, len(postresults)):
-        if i == 0:
-            output += f"## :CH_Diamond_Shiny: - <@{postresults[i][0]}> - {postresults[i][1]} posts\n"
-        else:
-            output += f"\n### :Crown2Silver: - <@{postresults[i][0]}> - {postresults[i][1]} posts"
-    
-    for i in range(0, len(ticketresults)):
-        if i == 0:
-            output += f"\n\n## :CH_Diamond_Shiny: - <@{ticketresults[i][0]}> - {ticketresults[i][1]} tickets\n"
-        else:
-            output += f"\n### :Crown2Silver: - <@{ticketresults[i][0]}> - {ticketresults[i][1]} tickets"
-    
-    if give_role:
-        mvp_role = get(interaction.guild.roles, id=mvp_role_id)
-        
-        for user in mvp_role.members:
-            await user.remove_roles(mvp_role)
-        
-        await get(interaction.guild.members, id = int(postresults[0][0])).add_roles(mvp_role)
-        await get(interaction.guild.members, id = int(ticketresults[0][0])).add_roles(mvp_role)
-    
-    if form_announcement:
-        await interaction.followup.send(f"```\n# <@&796462879246909532> Weekly Notice - {week_start.replace("-", "/")}\n\n{output}\n\n\nSigned,\n### :MLeader: | *deepforce123*\n```", ephemeral=True)
-    else:
-        await interaction.followup.send(f"```\n{output}\n```", ephemeral=True)
-        
 @tree.command(guild = discord.Object(id=guild_id), name = "mvp_colour", description='Choose the MVP role colour')
 @app_commands.describe(hex_code="Expects 6 characters representing a colour. E.g: FF13A5")
-@app_commands.checks.has_role(mvp_role_id)
+@app_commands.checks.has_role(role_ids.mvp)
 async def mvpcolour(interaction: discord.Interaction, hex_code : str):
-    await get(interaction.guild.roles, id = mvp_role_id).edit(colour=discord.Colour.from_str(f"0x{hex_code}"))
+    await get(interaction.guild.roles, id = role_ids.mvp).edit(colour=discord.Colour.from_str(f"0x{hex_code}"))
     
     await interaction.response.send_message("Success!", ephemeral=True)
-
-tree.add_command(quotaGroup)
-
-
-internGroup = Group(name = "intern", description = "Handle intern", guild_ids=guild_id_l)
-
-@internGroup.command(name = "register", description='Register interns from a role')
-async def register_from_role(interaction: discord.Interaction, role : discord.Role = None, id_csv : str = None):
-    
-    if (role == None and id_csv == None) or (role != None and id_csv != None):
-        await interaction.response.send_message("Choose one source to get them from!", ephemeral=True)
-    
-    async with aiosqlite.connect(database) as db:
-        async with db.execute("SELECT InternID FROM Interns") as cursor:
-            existing_interns = list(itertools.chain.from_iterable(await cursor.fetchall()))
-    
-    counter = 0
-    for id in map(int, [m.id for m in role.members] if role != None else id_csv.split(",")):
-        if id not in existing_interns:
-            async with aiosqlite.connect(database) as db:
-                await db.execute("INSERT INTO Interns (InternID, DateJoined) VALUES (?, ?)", (id, datetime.now().strftime('%Y-%m-%d')))
-                await db.commit()
-                counter += 1
-                
-    await interaction.response.send_message(f"Enrolled {counter} people", ephemeral=True)
-                
-@internGroup.command(name = "remove", description='Remove an intern')
-async def remove_intern(interaction: discord.Interaction, intern : discord.User, reason : str):
-    
-    async with aiosqlite.connect(database) as db:
-        async with db.execute("SELECT InternID FROM Interns") as cursor:
-            existing_interns = list(itertools.chain.from_iterable(await cursor.fetchall()))
-            
-    if intern.id in existing_interns:
-        async with aiosqlite.connect(database) as db:
-            await db.execute("UPDATE Interns SET RemovalReason = ? WHERE InternID = ?", (reason, intern.id))
-            await db.commit()
-    else:
-        await interaction.response.send_message("Not in DB", ephemeral=True)
-    
-    await interaction.response.send_message("Dont forget to kick them!", ephemeral=True)
-
-tree.add_command(internGroup)
-
 
 @tree.command(guild = discord.Object(id=guild_id), name = "check_history", description='Check your own quota history!')
 async def getownhistory(interaction: discord.Interaction):
     await interaction.response.send_message(await GetQuotaHistory(interaction.user.id), ephemeral=True)
-
 
 @tree.command(guild = discord.Object(id=guild_id), name = "csv_role", description='Get a csv of a role')
 async def csv_role(interaction: discord.Interaction, role : discord.Role, splitby : int = -1):
@@ -859,13 +432,13 @@ async def run_sql(interaction: discord.Interaction, sql : str):
         await interaction.response.send_message("not for you go away!", ephemeral=True)
 
 @tree.command(guild = discord.Object(id=guild_id), name = "make_groups", description='Sorts interns into sr timezone groups')
-@app_commands.checks.has_role(management_role_id)
+@app_commands.checks.has_role(role_ids.management)
 async def make_intern_groups(interaction: discord.Interaction, copyable : bool = False, csv_groups : bool = False):
     
     interns = []
     leaders = []
     
-    candidate_role = get(interaction.guild.roles, id = candidate_role_id)
+    candidate_role = get(interaction.guild.roles, id = role_ids.candidate)
 
     for m in candidate_role.members:
         if m.nick != None:
@@ -994,7 +567,7 @@ async def make_intern_groups(interaction: discord.Interaction, copyable : bool =
     # print(sort_interns(leaders, interns))
 
 @tree.command(guild = discord.Object(id=guild_id), name = "view_all_history", description='View everyones quota history')
-@app_commands.checks.has_role(management_role_id)
+@app_commands.checks.has_role(role_ids.management)
 async def view_all_history(interaction: discord.Interaction):
     await interaction.response.defer(thinking=True, ephemeral=True)
     msg = ""
@@ -1027,38 +600,6 @@ async def get_date(interaction: discord.Interaction):
 def parse_timezone(name):
     timezone = name.split(" | GMT")[1]
     return int(timezone)
-
-@logQuota.autocomplete('week_start')
-async def autocomplete_callback(interaction: discord.Interaction, current: str):
-    choicelist = []   
-    
-    for i in range(-9,0):
-        dt = datetime.now() + timedelta(days=i)
-        if dt.weekday() == 0:
-            choicelist.append(app_commands.Choice(name = f'{dt.year}-{dt.month}-{dt.day}', value = f'{dt.year}-{dt.month}-{dt.day}'))
-    
-    return choicelist
-
-@set_quota.autocomplete('role')
-async def autocomplete_callback(interaction: discord.Interaction, current: str):
-    choicelist = [app_commands.Choice(name = 'intern', value = 'intern'),
-                  app_commands.Choice(name = 'normal', value = 'normal'),
-                  app_commands.Choice(name = 'senior', value = 'senior')]
-    
-    return choicelist
-
-@viewWeek.autocomplete('week_start')
-@getmvp.autocomplete('week_start')
-async def autocomplete_callback(interaction: discord.Interaction, current: str):
-    choicelist = []   
-    
-    for i in range(-61,1):
-        dt = datetime.now() + timedelta(days=i)
-        if dt.weekday() == 0:
-            choicelist.append(app_commands.Choice(name = f'{dt.year}-{dt.month}-{dt.day}', value = f'{dt.year}-{dt.month}-{dt.day}'))
-    
-    return choicelist
-
 
 def insert_returns(body):
     if isinstance(body[-1], ast.Expr):
