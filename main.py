@@ -39,7 +39,7 @@ class colours():
 class channel_ids():
     quota_logs = 1208810891626151976
     strike_logs = 1208827574998933616
-    senior_quota_log = 1259211052164583425
+    senior_quota_logs = 1259211052164583425
     senior_strike_logs = 1259211191650222130
 
 class role_ids():
