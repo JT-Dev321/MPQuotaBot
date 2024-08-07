@@ -1079,4 +1079,4 @@ async def on_app_command_error(interaction : discord.Interaction, error : AppCom
     elif isinstance(error, app_commands.MissingPermissions):
         await interaction.response.send_message("You're missing a permission!", ephemeral=True)
 
-bot().run(f"{os.getenv('token')}")
+aclient.run(f"{os.getenv('token')}")
