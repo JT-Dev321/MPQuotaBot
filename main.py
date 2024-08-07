@@ -81,6 +81,7 @@ class bot(commands.Bot):
         
         await self.load_extension("commands.rewards.rewards")
         
+        
         if not self.weekly_quota_reminder.is_running():
             self.weekly_quota_reminder.start()
         
@@ -154,9 +155,9 @@ class bot(commands.Bot):
             
     async def on_ready(self):
         await self.wait_until_ready()
-        if not self.synced:
-            await tree.sync(guild = discord.Object(id=guild_id))
-            self.synced = True
+        # if not self.synced:
+        #     await tree.sync(guild = discord.Object(id=guild_id))
+        #     self.synced = True
         
         print_green(f"Logged in as {self.user}.")
     
