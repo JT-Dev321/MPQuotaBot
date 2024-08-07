@@ -122,7 +122,7 @@ class rewards(commands.GroupCog, group_name='reward'):
         await interaction.followup.send("Success!", ephemeral=True)
 
     @giveReward.autocomplete('reward_type')
-    async def autocomplete_callback(self, interaction: discord.Interaction, current: str):
+    async def reward_type_autocomplete(self, interaction: discord.Interaction, current: str):
         choicelist = [
         app_commands.Choice(name = 'Quota Half', value = "Quota Half"),
         app_commands.Choice(name = 'Quota Excused', value = "Quota Excused"),
@@ -131,7 +131,7 @@ class rewards(commands.GroupCog, group_name='reward'):
     
     @giveReward.autocomplete('week_start')
     @distribute_rewards.autocomplete('week_start')
-    async def autocomplete_callback(self, interaction: discord.Interaction, current: str):
+    async def week_start_autocomplete(self, interaction: discord.Interaction, current: str):
         choicelist = []   
         
         for i in range(-61,1):
