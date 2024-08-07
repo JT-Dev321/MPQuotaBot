@@ -4,7 +4,7 @@ from discord.ext import commands
 from discord.utils import get
 from datetime import datetime, timedelta
 #import aiosqlite
-database = 'quotaDB.sqlite'
+#database = 'quotaDB.sqlite'
 from main import roles,IsSenior,CheckValidDate
 
 class rewards(commands.GroupCog, group_name='reward'):
