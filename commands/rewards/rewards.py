@@ -5,7 +5,7 @@ from discord.utils import get
 from datetime import datetime, timedelta
 #import aiosqlite
 #database = 'quotaDB.sqlite'
-from main import roles,IsSenior,CheckValidDate
+#from main import roles,IsSenior,CheckValidDate
 
 class rewards(commands.GroupCog, group_name='reward'):
     def __init__(self, bot):
