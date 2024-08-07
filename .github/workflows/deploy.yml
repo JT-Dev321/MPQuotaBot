@@ -25,6 +25,9 @@ jobs:
       - name: Send other files to VPS
         run: rsync -avs -r --delete --include="requirements.txt" --include="currentquota.txt" --exclude="*" . ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:${{ secrets.SSH_DIRECTORY_PATH }}
 
+      - name: Hi ahmood
+        run: rsync -avs -r --delete --include="commands/" --include="commands/**" --exclude="*" . ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:${{ secrets.SSH_DIRECTORY_PATH }}/build
+
       - name: Restart PM2 Process
         uses: appleboy/ssh-action@master
         with:
