@@ -1009,8 +1009,6 @@ async def autocomplete_callback(interaction: discord.Interaction, current: str):
     return choicelist
 
 @viewWeek.autocomplete('week_start')
-@giveReward.autocomplete('week_start')
-@distribute_rewards.autocomplete('week_start')
 @getmvp.autocomplete('week_start')
 async def autocomplete_callback(interaction: discord.Interaction, current: str):
     choicelist = []   

@@ -117,13 +117,25 @@ class rewards(commands.GroupCog, group_name='reward'):
         
         await interaction.followup.send("Success!", ephemeral=True)
 
-@rewards.giveReward.autocomplete('reward_type')
-async def autocomplete_callback(interaction: discord.Interaction, current: str):
-    choicelist = [
-    app_commands.Choice(name = 'Quota Half', value = "Quota Half"),
-    app_commands.Choice(name = 'Quota Excused', value = "Quota Excused"),
-    ]
-    return choicelist
+    @giveReward.autocomplete('reward_type')
+    async def autocomplete_callback(interaction: discord.Interaction, current: str):
+        choicelist = [
+        app_commands.Choice(name = 'Quota Half', value = "Quota Half"),
+        app_commands.Choice(name = 'Quota Excused', value = "Quota Excused"),
+        ]
+        return choicelist
+    
+    @giveReward.autocomplete('week_start')
+    @distribute_rewards.autocomplete('week_start')
+    async def autocomplete_callback(interaction: discord.Interaction, current: str):
+        choicelist = []   
+        
+        for i in range(-61,1):
+            dt = datetime.now() + timedelta(days=i)
+            if dt.weekday() == 0:
+                choicelist.append(app_commands.Choice(name = f'{dt.year}-{dt.month}-{dt.day}', value = f'{dt.year}-{dt.month}-{dt.day}'))
+        
+        return choicelist
 
 
 async def setup(bot):
