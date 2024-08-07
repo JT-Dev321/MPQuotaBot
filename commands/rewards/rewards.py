@@ -1,10 +1,14 @@
-from commands.imports import *
+import discord
+from discord import app_commands
+from discord.ext import commands
+from discord.utils import get
+from datetime import datetime, timedelta
 
 class rewards(commands.GroupCog, group_name='reward'):
     def __init__(self, bot):
         self.bot = bot
     
-    @app_commands.checks.has_role(roles.management_role_id)
+    @app_commands.checks.has_role(768851165671850022)
     async def distribute_rewards(interaction: discord.Interaction, week_start : str, just_show : bool = False):
         ids_to_check = [m.id for m in get(interaction.guild.roles, id = roles.staff_role_id).members]
         await interaction.response.defer(thinking=True, ephemeral=True)
