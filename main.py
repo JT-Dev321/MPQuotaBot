@@ -19,6 +19,10 @@ import ast
 
 from commands.rewards import rewards
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 guild_id = 768851165671850015
 guild_id_l = [guild_id]
 
