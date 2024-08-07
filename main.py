@@ -1,5 +1,4 @@
 import os
-
 import discord
 from discord import ButtonStyle, app_commands, ui
 from discord.ext import tasks, commands
@@ -8,22 +7,17 @@ from discord.app_commands import AppCommandError, Group
 import aiosqlite
 import time
 from datetime import datetime, timedelta, time
-
 import asyncio
 from typing import Literal, Optional
 import re
-
 import math
 import itertools
 import ast
-
-
 from dotenv import load_dotenv
 
 load_dotenv()
 
 guild_id = 768851165671850015
-guild_id_l = [guild_id]
 
 database = 'quotaDB.sqlite'
 
@@ -574,7 +568,7 @@ async def view_all_history(interaction: discord.Interaction):
     await interaction.response.defer(thinking=True, ephemeral=True)
     msg = ""
     counter = 0
-    for id in [m.id for m in get(interaction.guild.roles, id = staff_role_id).members]:
+    for id in [m.id for m in get(interaction.guild.roles, id = role_ids.staff).members]:
         msg += f"<@{id}>\n\n{await GetQuotaHistory(id, 10)}\n\n"
         counter += 1
         if counter % 3 == 0:
