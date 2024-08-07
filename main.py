@@ -275,6 +275,7 @@ async def GetQuotaHistory(staff_member : int, limit : int = 20):
     
     rows.reverse()
     
+    
     output = "```ansi\n"
     for row in rows:
         if int(row[4]) == 1:
