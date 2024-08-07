@@ -200,7 +200,7 @@ class bot(commands.Bot):
 aclient = bot()
 tree = aclient.tree
 
-@bot.command()
+@aclient.command()
 @commands.guild_only()
 @commands.is_owner()
 async def sync(ctx: commands.Context, guilds: commands.Greedy[discord.Object], spec: Optional[Literal["~", "*", "^"]] = None) -> None:
