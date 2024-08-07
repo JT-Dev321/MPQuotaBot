@@ -79,7 +79,7 @@ class bot(commands.Bot):
     
     async def setup_hook(self) -> None:
         
-        await self.load_extension("commands/rewards/rewards.py")
+        await self.load_extension("commands.rewards.rewards")
         
         if not self.weekly_quota_reminder.is_running():
             self.weekly_quota_reminder.start()
