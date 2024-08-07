@@ -17,7 +17,7 @@ import math
 import itertools
 import ast
 
-from commands.rewards import rewards
+from commands.rewards.rewards import *
 
 from dotenv import load_dotenv
 
