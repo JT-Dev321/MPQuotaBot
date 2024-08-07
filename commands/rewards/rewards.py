@@ -9,7 +9,7 @@ class rewards(commands.GroupCog, group_name='reward'):
         self.bot = bot
     
     @app_commands.checks.has_role(768851165671850022)
-    async def distribute_rewards(interaction: discord.Interaction, week_start : str, just_show : bool = False):
+    async def distribute_rewards(self, interaction: discord.Interaction, week_start : str, just_show : bool = False):
         ids_to_check = [m.id for m in get(interaction.guild.roles, id = roles.staff_role_id).members]
         await interaction.response.defer(thinking=True, ephemeral=True)
         
@@ -82,7 +82,7 @@ class rewards(commands.GroupCog, group_name='reward'):
                             output += f"<@{row[0]}> - {row[1]}\n"
                     await interaction.followup.send(output, ephemeral=True)
 
-    async def checkRewards(interaction: discord.Interaction, staff_member : discord.Member):
+    async def checkRewards(self, interaction: discord.Interaction, staff_member : discord.Member):
         await interaction.response.defer(thinking=True, ephemeral=True)
         
         async with aiosqlite.connect(database) as db:
@@ -108,7 +108,7 @@ class rewards(commands.GroupCog, group_name='reward'):
         await interaction.followup.send(message, ephemeral=True)
                 
     @app_commands.describe(week_start="Format: YYYY-MM-DD | Must use Monday of week",charges="Number of weeks this reward is useable for")
-    async def giveReward(interaction: discord.Interaction, staff_member : discord.Member, week_start : str, reward_type : str, charges : int):
+    async def giveReward(self, interaction: discord.Interaction, staff_member : discord.Member, week_start : str, reward_type : str, charges : int):
         await interaction.response.defer(thinking=True, ephemeral=True)
         
         if not await CheckValidDate(week_start):
@@ -122,7 +122,7 @@ class rewards(commands.GroupCog, group_name='reward'):
         await interaction.followup.send("Success!", ephemeral=True)
 
     @giveReward.autocomplete('reward_type')
-    async def autocomplete_callback(interaction: discord.Interaction, current: str):
+    async def autocomplete_callback(self, interaction: discord.Interaction, current: str):
         choicelist = [
         app_commands.Choice(name = 'Quota Half', value = "Quota Half"),
         app_commands.Choice(name = 'Quota Excused', value = "Quota Excused"),
@@ -131,7 +131,7 @@ class rewards(commands.GroupCog, group_name='reward'):
     
     @giveReward.autocomplete('week_start')
     @distribute_rewards.autocomplete('week_start')
-    async def autocomplete_callback(interaction: discord.Interaction, current: str):
+    async def autocomplete_callback(self, interaction: discord.Interaction, current: str):
         choicelist = []   
         
         for i in range(-61,1):
