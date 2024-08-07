@@ -4,7 +4,7 @@ class rewards(commands.GroupCog, group_name='reward'):
     def __init__(self, bot):
         self.bot = bot
     
-    @app_commands.command(name='distribute_rewards')
+    @app_commands.command(name='distribute_rewards', description="Distribute rewards based on the past 4 weeks")
     @app_commands.checks.has_role(role_ids.management)
     async def distribute_rewards(self, interaction: discord.Interaction, week_start : str, just_show : bool = False):
         ids_to_check = [m.id for m in get(interaction.guild.roles, id = role_ids.staff).members]
@@ -79,7 +79,7 @@ class rewards(commands.GroupCog, group_name='reward'):
                             output += f"<@{row[0]}> - {row[1]}\n"
                     await interaction.followup.send(output, ephemeral=True)
 
-    @app_commands.command(name='check_rewards')
+    @app_commands.command(name='check_rewards', description="Check a users rewards")
     async def checkRewards(self, interaction: discord.Interaction, staff_member : discord.Member):
         await interaction.response.defer(thinking=True, ephemeral=True)
         
@@ -105,7 +105,7 @@ class rewards(commands.GroupCog, group_name='reward'):
         
         await interaction.followup.send(message, ephemeral=True)
     
-    @app_commands.command(name='give_reward')
+    @app_commands.command(name='give_reward', description="Give a reward out")
     @app_commands.describe(week_start="Format: YYYY-MM-DD | Must use Monday of week",charges="Number of weeks this reward is useable for")
     async def giveReward(self, interaction: discord.Interaction, staff_member : discord.Member, week_start : str, reward_type : str, charges : int):
         await interaction.response.defer(thinking=True, ephemeral=True)
