@@ -5,7 +5,7 @@ class intern(commands.GroupCog, group_name='intern'):
         self.bot = bot
     
     @app_commands.command(name = "register", description='Register interns from a role')
-    async def register_from_role(interaction: discord.Interaction, role : discord.Role = None, id_csv : str = None):
+    async def register_from_role(self, interaction: discord.Interaction, role : discord.Role = None, id_csv : str = None):
         
         if (role == None and id_csv == None) or (role != None and id_csv != None):
             await interaction.response.send_message("Choose one source to get them from!", ephemeral=True)
@@ -25,7 +25,7 @@ class intern(commands.GroupCog, group_name='intern'):
         await interaction.response.send_message(f"Enrolled {counter} people", ephemeral=True)
                     
     @app_commands.command(name = "remove", description='Remove an intern')
-    async def remove_intern(interaction: discord.Interaction, intern : discord.User, reason : str):
+    async def remove_intern(self, interaction: discord.Interaction, intern : discord.User, reason : str):
         
         async with aiosqlite.connect(database) as db:
             async with db.execute("SELECT InternID FROM Interns") as cursor:

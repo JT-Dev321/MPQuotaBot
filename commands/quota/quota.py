@@ -27,7 +27,7 @@ class quota(commands.GroupCog, group_name='quota'):
         self.bot = bot
     
     @app_commands.command(name = "get_date", description='Get the dates of the next inspection period')
-    async def get_date(interaction: discord.Interaction):
+    async def get_date(self, interaction: discord.Interaction):
         mondays = []
         for i in range(-9,0):
             dt = datetime.now() + timedelta(days=i)
@@ -43,12 +43,12 @@ class quota(commands.GroupCog, group_name='quota'):
         await interaction.response.send_message(f"{output}", ephemeral=True)
 
     @app_commands.command(name = "parsedata", description='Parse data')
-    async def parseData(interaction: discord.Interaction):
+    async def parseData(self, interaction: discord.Interaction):
         await interaction.response.send_modal(parse_data_modal())
         
     @app_commands.command(name = "set", description='Set a quota')
     @app_commands.checks.has_role(role_ids.management)
-    async def set_quota(interaction: discord.Interaction, role : str, value : int):
+    async def set_quota(self, interaction: discord.Interaction, role : str, value : int):
         prev = await get_variable(role)
         await set_variable(role, value)
         
@@ -56,7 +56,7 @@ class quota(commands.GroupCog, group_name='quota'):
 
     @app_commands.command(name = "inactivity_add", description='Add a user to inactivity')
     @app_commands.checks.has_role(role_ids.management)
-    async def inactivity_add(interaction: discord.Interaction, staff_member : discord.Member, inspection_count : int):
+    async def inactivity_add(self, interaction: discord.Interaction, staff_member : discord.Member, inspection_count : int):
         async with aiosqlite.connect(database) as db:
             await db.execute('INSERT OR REPLACE INTO Excused (StaffID, InspectionCount) VALUES (?, ?)', (staff_member.id, inspection_count))
             await db.commit()
@@ -64,7 +64,7 @@ class quota(commands.GroupCog, group_name='quota'):
         
     @app_commands.command(name = "inactivity_view", description='View all active inactivity notices.')
     @app_commands.checks.has_role(role_ids.management)
-    async def inactivity_view(interaction: discord.Interaction):
+    async def inactivity_view(self, interaction: discord.Interaction):
         async with aiosqlite.connect(database) as db:
             async with db.execute('SELECT StaffID, InspectionCount FROM Excused WHERE InspectionCount > 0') as cursor:
                 results = await cursor.fetchall()
@@ -78,7 +78,7 @@ class quota(commands.GroupCog, group_name='quota'):
         
     @app_commands.command(name = "log", description='Log a quota for an individual')
     @app_commands.describe(week_start="Format: YYYY-MM-DD | Must use Monday of week", activity="Senior Only", override_excused="Use to override excused", apply_rewards="Default: True", auto_strike="Default: True", override_existing="Default: False", dm_user="Default: True")
-    async def logQuota(interaction: discord.Interaction, staff_member : discord.Member, post_count : int, ticket_count : int, week_start : str, activity : bool = None, override_excused : bool = False, apply_rewards : bool = True, auto_strike : bool = True, override_existing : bool = False, dm_user : bool = True):
+    async def logQuota(self, interaction: discord.Interaction, staff_member : discord.Member, post_count : int, ticket_count : int, week_start : str, activity : bool = None, override_excused : bool = False, apply_rewards : bool = True, auto_strike : bool = True, override_existing : bool = False, dm_user : bool = True):
         await interaction.response.defer(thinking=True, ephemeral=True)
         # all wrong to do with senior quota (post count)
         reward_excused = False
@@ -254,7 +254,7 @@ class quota(commands.GroupCog, group_name='quota'):
         
     @app_commands.command(name = "check_week", description='View information about a specific week')
     @app_commands.describe(week_start="Format: YYYY-MM-DD | Must use Monday of week")
-    async def viewWeek(interaction: discord.Interaction, week_start : str):
+    async def viewWeek(self, interaction: discord.Interaction, week_start : str):
         await interaction.response.defer(thinking=True, ephemeral=True)
         
         async with aiosqlite.connect(database) as db:
@@ -308,12 +308,12 @@ class quota(commands.GroupCog, group_name='quota'):
                                                 discord.Embed(title = "Missing Loggers", description=output3, colour=colours.maincolour)], ephemeral = True)
 
     @app_commands.command(name = "get_history", description='Get a users most recent weeks of quota history')
-    async def gethistory(interaction: discord.Interaction, staff_member : discord.Member):
+    async def gethistory(self, interaction: discord.Interaction, staff_member : discord.Member):
         await interaction.response.send_message(await GetQuotaHistory(staff_member.id), ephemeral=True)
 
     @app_commands.command(name = "mvp", description='Get the mvp list for a week')
     @app_commands.describe(week_start="Format: YYYY-MM-DD | Must use Monday of week")
-    async def getmvp(interaction: discord.Interaction, week_start : str, post_threshold : int, ticket_threshold : int, form_announcement : bool = False, give_role : bool = False):
+    async def getmvp(self, interaction: discord.Interaction, week_start : str, post_threshold : int, ticket_threshold : int, form_announcement : bool = False, give_role : bool = False):
         await interaction.response.defer(thinking=True, ephemeral=True)
         
         async with aiosqlite.connect(database) as db:
@@ -379,7 +379,7 @@ class quota(commands.GroupCog, group_name='quota'):
             await interaction.followup.send(f"```\n{output}\n```", ephemeral=True)
             
     @logQuota.autocomplete('week_start')
-    async def autocomplete_callback(interaction: discord.Interaction, current: str):
+    async def autocomplete_callback(self, interaction: discord.Interaction, current: str):
         choicelist = []   
         
         for i in range(-9,0):
@@ -390,7 +390,7 @@ class quota(commands.GroupCog, group_name='quota'):
         return choicelist
 
     @set_quota.autocomplete('role')
-    async def autocomplete_callback(interaction: discord.Interaction, current: str):
+    async def autocomplete_callback(self, interaction: discord.Interaction, current: str):
         choicelist = [app_commands.Choice(name = 'intern', value = 'intern'),
                     app_commands.Choice(name = 'normal', value = 'normal'),
                     app_commands.Choice(name = 'senior', value = 'senior')]
@@ -399,7 +399,7 @@ class quota(commands.GroupCog, group_name='quota'):
 
     @viewWeek.autocomplete('week_start')
     @getmvp.autocomplete('week_start')
-    async def autocomplete_callback(interaction: discord.Interaction, current: str):
+    async def autocomplete_callback(self, interaction: discord.Interaction, current: str):
         choicelist = []   
         
         for i in range(-61,1):
