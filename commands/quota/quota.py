@@ -295,7 +295,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
             loggedLoggers.append(inspectorID)
             loggedStaff.append(inspecteeID)
             
-            output += f"- <@{inspecteeID}> - {postsCompleted} - {ticketsCompleted}\n"
+            output += f"- <@{inspecteeID}>: {postsCompleted} | {ticketsCompleted}\n"
         
         missingLoggers = list(set(loggedLoggers).symmetric_difference(set(expectedLoggers)))
         missingstaff = list(set(loggedStaff).symmetric_difference(set(expectedStaff)))
@@ -314,7 +314,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
         else:
             output3 = "Nobody missing!"
         
-        await interaction.followup.send(embeds=[discord.Embed(title = "Results", description=f"Total Posts: {totalPosts}\nTotal Tickets:{totalTickets}\n\n{output}", colour=colours.mp_purple), 
+        await interaction.followup.send(embeds=[discord.Embed(title = "Results", description=f"Total Posts: `{totalPosts}`\nTotal Tickets: `{totalTickets}`\n\n{output}", colour=colours.mp_purple), 
                                                 discord.Embed(title = "Missing Users", description=output2, colour=colours.mp_purple), 
                                                 discord.Embed(title = "Missing Loggers", description=output3, colour=colours.mp_purple)], ephemeral = True)
 
