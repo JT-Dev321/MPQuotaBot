@@ -107,7 +107,7 @@ class rewards(commands.GroupCog, group_name='reward'):
     
     @app_commands.command(name='give_reward', description="Give a reward out")
     @app_commands.describe(week_start="Format: YYYY-MM-DD | Must use Monday of week",charges="Number of weeks this reward is useable for")
-    async def giveReward(self, interaction: discord.Interaction, staff_member : discord.Member, week_start : str, reward_type : str, charges : int):
+    async def giveReward(self, interaction: discord.Interaction, staff_member : discord.Member, week_start : str, reward_type : Literal["Quota Half", "Quota Excused"], charges : int):
         await interaction.response.defer(thinking=True, ephemeral=True)
         
         if not await CheckValidDate(week_start):
@@ -119,14 +119,6 @@ class rewards(commands.GroupCog, group_name='reward'):
             await db.commit()
         
         await interaction.followup.send("Success!", ephemeral=True)
-
-    @giveReward.autocomplete('reward_type')
-    async def reward_type_autocomplete(self, interaction: discord.Interaction, current: str):
-        choicelist = [
-        app_commands.Choice(name = 'Quota Half', value = "Quota Half"),
-        app_commands.Choice(name = 'Quota Excused', value = "Quota Excused"),
-        ]
-        return choicelist
     
     @giveReward.autocomplete('week_start')
     @distribute_rewards.autocomplete('week_start')

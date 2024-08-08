@@ -48,7 +48,7 @@ class quota(commands.GroupCog, group_name='quota'):
         
     @app_commands.command(name = "set", description='Set a quota')
     @app_commands.checks.has_role(role_ids.management)
-    async def set_quota(self, interaction: discord.Interaction, role : str, value : int):
+    async def set_quota(self, interaction: discord.Interaction, role : Literal["intern", "normal", "senior"], value : int):
         prev = await get_variable(role)
         await set_variable(role, value)
         
@@ -388,15 +388,7 @@ class quota(commands.GroupCog, group_name='quota'):
                 choicelist.append(app_commands.Choice(name = f'{dt.year}-{dt.month}-{dt.day}', value = f'{dt.year}-{dt.month}-{dt.day}'))
         
         return choicelist
-
-    @set_quota.autocomplete('role')
-    async def autocomplete_callback(self, interaction: discord.Interaction, current: str):
-        choicelist = [app_commands.Choice(name = 'intern', value = 'intern'),
-                    app_commands.Choice(name = 'normal', value = 'normal'),
-                    app_commands.Choice(name = 'senior', value = 'senior')]
-        
-        return choicelist
-
+    
     @viewWeek.autocomplete('week_start')
     @getmvp.autocomplete('week_start')
     async def autocomplete_callback(self, interaction: discord.Interaction, current: str):

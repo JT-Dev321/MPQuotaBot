@@ -7,6 +7,7 @@ from discord.app_commands import AppCommandError, Group
 import aiosqlite
 import time
 from datetime import datetime, timedelta, time
+from typing import Literal, Optional
 import asyncio
 import re
 import math

@@ -60,7 +60,7 @@ class bot(commands.Bot):
         
         await self.load_extension("commands.rewards.rewards")
         await self.load_extension("commands.quota.quota")
-        await self.load_extension("commands.intern.intern")
+        # await self.load_extension("commands.intern.intern")
         
         if not self.weekly_quota_reminder.is_running():
             self.weekly_quota_reminder.start()
