@@ -22,7 +22,7 @@ class parse_data_modal(ui.Modal, title = 'Data parser'):
         
         await interaction.response.send_message(output, ephemeral=True)
         
-class quota(commands.GroupCog, group_name='quota'):
+class quota(commands.GroupCog, group_name='quota', group_description='Manage quotas'):
     def __init__(self, bot):
         self.bot = bot
     

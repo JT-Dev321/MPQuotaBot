@@ -1,6 +1,6 @@
 from ..imports import *
 
-class rewards(commands.GroupCog, group_name='reward'):
+class rewards(commands.GroupCog, group_name='reward', group_description='Manage rewards'):
     def __init__(self, bot):
         self.bot = bot
     
