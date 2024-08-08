@@ -314,7 +314,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
         else:
             output3 = "Nobody missing!"
         
-        await interaction.followup.send(embeds=[discord.Embed(title = "Results", description=f"Total Posts: `{totalPosts}`\nTotal Tickets: `{totalTickets}`\n\nUSERNAME: POSTS | TICKETS\n{output}", colour=colours.mp_purple), 
+        await interaction.followup.send(embeds=[discord.Embed(title = "Results", description=f"Total Posts: `{totalPosts}`\nTotal Tickets: `{totalTickets}`\n\n**USERNAME: POSTS | TICKETS**\n{output}", colour=colours.mp_purple), 
                                                 discord.Embed(title = "Missing Users", description=output2, colour=colours.mp_purple), 
                                                 discord.Embed(title = "Missing Loggers", description=output3, colour=colours.mp_purple)], ephemeral = True)
 
