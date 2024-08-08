@@ -258,7 +258,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
         await interaction.response.defer(thinking=True, ephemeral=True)
         
         async with aiosqlite.connect(database) as db:
-            async with db.execute("""SELECT InspecteeID, PostsCompleted, InspectorID
+            async with db.execute("""SELECT InspecteeID, PostsCompleted, InspectorID, TicketsCompleted
                                 FROM Inspections
                                 WHERE WeekStart=?
                                 ORDER BY PostsCompleted DESC""", (week_start,)) as cursor:
@@ -266,7 +266,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
         
         
         async with aiosqlite.connect(database) as db:
-            async with db.execute("""SELECT InspecteeID, PostsCompleted, InspectorID 
+            async with db.execute("""SELECT InspecteeID, PostsCompleted, InspectorID, TicketsCompleted
                                 FROM SeniorInspections
                                 WHERE WeekStart=?
                                 ORDER BY PostsCompleted DESC""", (week_start,)) as cursor:
@@ -281,10 +281,21 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
         expectedStaff = [m.id for m in get(interaction.guild.roles, id = role_ids.staff).members + get(interaction.guild.roles, id = role_ids.intern).members]
         expectedLoggers = [m.id for m in get(interaction.guild.roles, id = role_ids.senior).members]
         
+        totalPosts = 0
+        totalTickets = 0
         for i in range(0, len(results)):
-            loggedLoggers.append(results[i][2])
-            output += f"- <@{results[i][0]}> - {results[i][1]}\n"
-            loggedStaff.append(results[i][0])
+            postsCompleted = results[i][1]
+            ticketsCompleted = results[i][3]
+            inspectorID = results[i][2]
+            inspecteeID = results[i][0]
+            
+            totalPosts += postsCompleted
+            totalTickets += ticketsCompleted
+            
+            loggedLoggers.append(inspectorID)
+            loggedStaff.append(inspecteeID)
+            
+            output += f"- <@{inspecteeID}> - {postsCompleted} - {ticketsCompleted}\n"
         
         missingLoggers = list(set(loggedLoggers).symmetric_difference(set(expectedLoggers)))
         missingstaff = list(set(loggedStaff).symmetric_difference(set(expectedStaff)))
@@ -303,7 +314,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
         else:
             output3 = "Nobody missing!"
         
-        await interaction.followup.send(embeds=[discord.Embed(title = "Results", description=output, colour=colours.mp_purple), 
+        await interaction.followup.send(embeds=[discord.Embed(title = "Results", description=f"Total Posts: {totalPosts}\nTotal Tickets:{totalTickets}\n\n{output}", colour=colours.mp_purple), 
                                                 discord.Embed(title = "Missing Users", description=output2, colour=colours.mp_purple), 
                                                 discord.Embed(title = "Missing Loggers", description=output3, colour=colours.mp_purple)], ephemeral = True)
 
