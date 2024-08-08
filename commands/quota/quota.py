@@ -295,7 +295,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
             loggedLoggers.append(inspectorID)
             loggedStaff.append(inspecteeID)
             
-            output += f"- <@{inspecteeID}>: {postsCompleted} | {ticketsCompleted}\n"
+            output += f"- <@{inspecteeID}>: `{postsCompleted}` | `{ticketsCompleted}`\n"
         
         missingLoggers = list(set(loggedLoggers).symmetric_difference(set(expectedLoggers)))
         missingstaff = list(set(loggedStaff).symmetric_difference(set(expectedStaff)))
