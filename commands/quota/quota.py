@@ -405,13 +405,11 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
         choicelist = []
         
         async with aiosqlite.connect(database) as db:
-            async with await db.execute("SELECT key FROM Quotas") as cursor:
+            async with await db.execute("SELECT key, value FROM Quotas") as cursor:
                 results = await cursor.fetchall()
-            
-        flat_results = [result[0] for result in results]
         
-        for r in flat_results:
-            choicelist.append(app_commands.Choice(name=r, value=r))
+        for r in results:
+            choicelist.append(app_commands.Choice(name=f"{r[0]} ({r[1]})", value=r[0]))
             
         return choicelist
     
