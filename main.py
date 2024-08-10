@@ -138,7 +138,7 @@ class bot(commands.Bot):
         # if not self.synced:
         #     await tree.sync(guild = discord.Object(id=guild_id))
         #     self.synced = True
-        
+        print_green(self.guilds)
         print_green(f"Logged in as {self.user}.")
     
     weekly_reminder_time = time(hour=12)
