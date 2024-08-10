@@ -65,7 +65,7 @@ class bot(commands.Bot):
             guild = aclient.get_guild(guild_id)
             print(guild)
             try:
-                staff_member_obj = await guild.get_member(staff_member)
+                staff_member_obj = guild.get_member(staff_member)
                 return role_id in [r.id for r in staff_member_obj.roles]
             except discord.NotFound:
                 return False
