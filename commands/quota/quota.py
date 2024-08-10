@@ -48,7 +48,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
         
     @app_commands.command(name = "set", description='Set a quota')
     @app_commands.checks.has_role(role_ids.management)
-    async def set_quota(self, interaction: discord.Interaction, role : Literal["intern", "normal", "senior"], value : int):
+    async def set_quota(self, interaction: discord.Interaction, role : str, value : int):
         prev = await self.bot.get_variable(role)
         await self.bot.set_variable(role, value)
         
@@ -398,6 +398,20 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
             if dt.weekday() == 0:
                 choicelist.append(app_commands.Choice(name = f'{dt.year}-{dt.month}-{dt.day}', value = f'{dt.year}-{dt.month}-{dt.day}'))
         
+        return choicelist
+    
+    @set_quota.autocomplete('role')
+    async def autocomplete_callback(self, interaction: discord.Interaction, current: str):
+        choicelist = []
+        
+        async with aiosqlite.connect(database) as curr:
+            results = await curr.execute("SELECT key FROM Quotas")
+        
+        flat_results = [result[0] for result in results]
+        
+        for r in flat_results:
+            choicelist.append(app_commands.Choice(name=r, value=r))
+            
         return choicelist
     
     @viewWeek.autocomplete('week_start')

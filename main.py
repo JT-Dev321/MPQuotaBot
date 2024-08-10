@@ -60,10 +60,7 @@ class bot(commands.Bot):
         if isinstance(staff_member, discord.Member):
             return role_id in [r.id for r in staff_member.roles]
         elif isinstance(staff_member, int):
-            print(guild_id)
-            print(len(aclient.guilds))
             guild = aclient.get_guild(guild_id)
-            print(guild)
             try:
                 staff_member_obj = guild.get_member(staff_member)
                 return role_id in [r.id for r in staff_member_obj.roles]
