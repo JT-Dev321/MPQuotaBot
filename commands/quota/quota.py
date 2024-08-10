@@ -219,7 +219,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
             logchannel = get(interaction.guild.channels, id=channel_ids.senior_quota_logs)
             strikelogchannel = get(interaction.guild.channels, id=channel_ids.senior_strike_logss)
         
-        logmsg = f"### {interaction.user.mention} logged {staff_member.mention}'s quota.\n{self.bot.getQuotaHistory(staff_member.id, 1)}"
+        logmsg = f"### {interaction.user.mention} logged {staff_member.mention}'s quota.\n{self.bot.GetQuotaHistory(staff_member.id, 1)}"
         logmsgsent = await logchannel.send(logmsg)
         
         finalmsg = f"Done! - Quota for {staff_member.mention} has been logged successfully."
@@ -238,14 +238,14 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
             finalmsg += f"\n\nPlease note that this user's current consecutive strike streak is now `{strike_streak}`, any actions that need to be taken based on this information are not automated."
 
         if striked:
-            await strikelogchannel.send(f"{staff_member.mention} [was striked]({logmsgsent.jump_url})\n\nQuota History:\n{await self.bot.getQuotaHistory(staff_member.id)}")
+            await strikelogchannel.send(f"{staff_member.mention} [was striked]({logmsgsent.jump_url})\n\nQuota History:\n{await self.bot.GetQuotaHistory(staff_member.id)}")
 
         dm_msg = f"# <:MP:1173683497697808424> | Weekly Inspection Notice\n### {interaction.user.mention} has logged your quota for the week beginning {week_start}\n- Posts: {post_count}"
         
         if Is_Senior:
             dm_msg += f"\n- Activity: {activity}"
             
-        dm_msg += f"\n\nYour recent quota history:\n{await self.bot.getQuotaHistory(staff_member.id, 5)}"
+        dm_msg += f"\n\nYour recent quota history:\n{await self.bot.GetQuotaHistory(staff_member.id, 5)}"
         
         if dm_user:
             await staff_member.send(dm_msg)
@@ -320,7 +320,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
 
     @app_commands.command(name = "get_history", description='Get a users most recent weeks of quota history')
     async def gethistory(self, interaction: discord.Interaction, staff_member : discord.Member):
-        await interaction.response.send_message(await self.bot.getQuotaHistory(staff_member.id), ephemeral=True)
+        await interaction.response.send_message(await self.bot.GetQuotaHistory(staff_member.id), ephemeral=True)
 
     @app_commands.command(name = "mvp", description='Get the mvp list for a week')
     @app_commands.describe(week_start="Format: YYYY-MM-DD | Must use Monday of week")
