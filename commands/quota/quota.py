@@ -320,7 +320,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
 
     @app_commands.command(name = "get_history", description='Get a users most recent weeks of quota history')
     async def gethistory(self, interaction: discord.Interaction, staff_member : discord.Member):
-        await interaction.response.send_message(await self.bot.self.bot.getQuotaHistory(staff_member.id), ephemeral=True)
+        await interaction.response.send_message(await self.bot.getQuotaHistory(staff_member.id), ephemeral=True)
 
     @app_commands.command(name = "mvp", description='Get the mvp list for a week')
     @app_commands.describe(week_start="Format: YYYY-MM-DD | Must use Monday of week")
