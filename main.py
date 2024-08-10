@@ -219,10 +219,10 @@ async def has_role_f(staff_member, role_id):
     if isinstance(staff_member, discord.Member):
         return role_id in [r.id for r in staff_member.roles]
     elif isinstance(staff_member, int):
-        guild = aclient.get_guild(guild_id)
+        guild = bot.get_guild(guild_id)
         print(guild)
         try:
-            staff_member_obj = await guild.fetch_member(staff_member)
+            staff_member_obj = await guild.get_member(staff_member)
             return role_id in [r.id for r in staff_member_obj.roles]
         except discord.NotFound:
             return False
