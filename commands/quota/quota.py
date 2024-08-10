@@ -284,8 +284,8 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
         totalPosts = 0
         totalTickets = 0
         for i in range(0, len(results)):
-            postsCompleted = results[i][1]
-            ticketsCompleted = results[i][3]
+            postsCompleted = results[i][1] if results[i][1] is not None else 0
+            ticketsCompleted = results[i][3] if results[i][3] is not None else 0
             inspectorID = results[i][2]
             inspecteeID = results[i][0]
             

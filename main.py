@@ -396,7 +396,7 @@ async def csv_role(interaction: discord.Interaction, role : discord.Role, splitb
 @tree.command(guild = discord.Object(id=guild_id), name = "sql", description='Run SQL')
 async def run_sql(interaction: discord.Interaction, sql : str):
     if interaction.user.id == 378963670589505557:
-        if "SELECT" in sql:
+        if "SELECT" == sql.split(" ")[0]:
             async with aiosqlite.connect(database) as db:
                 async with db.execute(sql) as cursor:
                     rows = await cursor.fetchall()
@@ -409,10 +409,11 @@ async def run_sql(interaction: discord.Interaction, sql : str):
                         await interaction.response.send_message("Fetch result was none", ephemeral=True)
             return
         else:
-            async with aiosqlite.connect(database) as db:
-                await db.execute(sql)
-                await db.commit()
-            await interaction.response.send_message("Done!", ephemeral=True)
+            async with aiosqlite.connect(database).cursor() as cursor:
+                await cursor.execute(sql)
+                affectedNo = cursor.rowcount
+                await cursor.commit()
+            await interaction.response.send_message(f"Done! - Change impacted `{affectedNo}` rows", ephemeral=True)
             return
     else:
         await interaction.response.send_message("not for you go away!", ephemeral=True)
