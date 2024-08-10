@@ -56,127 +56,6 @@ class bot(commands.Bot):
         
         self.synced = False
     
-    async def setup_hook(self) -> None:
-        
-        await self.load_extension("commands.rewards.rewards")
-        await self.load_extension("commands.quota.quota")
-        # await self.load_extension("commands.intern.intern")
-        
-        if not self.weekly_quota_reminder.is_running():
-            self.weekly_quota_reminder.start()
-        
-        async with aiosqlite.connect(database) as db:
-            #YYYY-MM-DD
-            # changed all db architecture, will need to modify all code.
-            await db.execute("""CREATE TABLE IF NOT EXISTS Weeks(
-                                StartDate TEXT PRIMARY KEY, 
-                                PostRequirement INTEGER,
-                                SeniorPostRequirement INTEGER,
-                                InternPostRequirement INTEGER
-                                )""")
-            
-            await db.execute("""CREATE TABLE IF NOT EXISTS Inspections(
-                                ID INTEGER PRIMARY KEY, 
-                                InspecteeID INTEGER, 
-                                InspectorID INTEGER, 
-                                PostsCompleted INTEGER,
-                                InactivityExcused INTEGER,
-                                RewardExcused INTEGER,
-                                WeekStart TEXT,
-                                Pass INTEGER,
-                                FOREIGN KEY(WeekStart) REFERENCES Weeks(StartDate)
-                                )""")
-            
-            await db.execute("""CREATE TABLE IF NOT EXISTS SeniorInspections(
-                                ID INTEGER PRIMARY KEY, 
-                                InspecteeID INTEGER, 
-                                InspectorID INTEGER, 
-                                PostsCompleted INTEGER,
-                                Activity INTEGER,
-                                InactivityExcused INTEGER,
-                                RewardExcused INTEGER,
-                                WeekStart TEXT,
-                                Pass INTEGER,
-                                FOREIGN KEY(WeekStart) REFERENCES Weeks(StartDate)
-                                )""")
-            
-            await db.execute("""CREATE TABLE IF NOT EXISTS Strikes(
-                                ID INTEGER PRIMARY KEY, 
-                                RecipientID INTEGER, 
-                                SeniorID INTEGER,
-                                DateGiven TEXT
-                                )""")
-            
-            await db.execute("""CREATE TABLE IF NOT EXISTS Rewards(
-                                ID INTEGER PRIMARY KEY, 
-                                RecipientID INTEGER, 
-                                SeniorID INTEGER,
-                                DateGiven TEXT,
-                                Type TEXT,
-                                Charges INTEGER
-                                )""")
-            
-            await db.execute("""CREATE TABLE IF NOT EXISTS Interns(
-                                ID INTEGER PRIMARY KEY, 
-                                InternID INTEGER, 
-                                DateJoined TEXT,
-                                RemovalReason TEXT
-                                )""")
-            
-            await db.execute("""CREATE TABLE IF NOT EXISTS Quotas(
-                                key TEXT PRIMARY KEY,
-                                value TEXT
-                                )""")
-            
-            await db.execute("""CREATE TABLE IF NOT EXISTS Excused(
-                                StaffID INTEGER PRIMARY KEY,
-                                InspectionCount INTEGER
-                                )""")
-            
-    async def on_ready(self):
-        await self.wait_until_ready()
-        # if not self.synced:
-        #     await tree.sync(guild = discord.Object(id=guild_id))
-        #     self.synced = True
-        print_green(self.guilds)
-        print_green(f"Logged in as {self.user}.")
-    
-    weekly_reminder_time = time(hour=12)
-
-    @tasks.loop(time=weekly_reminder_time)
-    async def weekly_quota_reminder(self):
-        if datetime.now().weekday() == 0:
-            guild = aclient.get_guild(guild_id)
-            reminder_channel = get(guild.channels, id = 1173680917374578718)
-            
-            dt = datetime.now() - timedelta(days=7)
-            week_start = f"{dt.year}-{dt.month}-{dt.day}"
-            
-            async with aiosqlite.connect(database) as db:
-                async with db.execute("""SELECT InspectorID
-                                    FROM Inspections
-                                    WHERE WeekStart=?
-                                    ORDER BY PostsCompleted DESC""", (week_start,)) as cursor:
-                    results1 = await cursor.fetchall()
-            
-            
-            async with aiosqlite.connect(database) as db:
-                async with db.execute("""SELECT InspectorID 
-                                    FROM SeniorInspections
-                                    WHERE WeekStart=?
-                                    ORDER BY PostsCompleted DESC""", (week_start,)) as cursor:
-                    results2 = await cursor.fetchall()
-            
-            
-            loggedLoggers = [row[0] for row in results1] + [row[0] for row in results2]
-
-            expectedLoggers = [m.id for m in get(guild.roles, id = role_ids.senior).members]
-            
-            missingLoggers = list(set(loggedLoggers).symmetric_difference(set(expectedLoggers)))
-            
-            if len(missingLoggers) > 0:
-                await reminder_channel.send(f"{",".join([f'<@{ml}>' for ml in missingLoggers])}\n\nQuotas should all be in by now. Last call.")
-                
     async def has_role_f(self, staff_member, role_id):
         if isinstance(staff_member, discord.Member):
             return role_id in [r.id for r in staff_member.roles]
@@ -322,6 +201,128 @@ class bot(commands.Bot):
                 break
             
         return counter
+    
+    async def setup_hook(self) -> None:
+        
+        await self.load_extension("commands.rewards.rewards")
+        await self.load_extension("commands.quota.quota")
+        # await self.load_extension("commands.intern.intern")
+        
+        if not self.weekly_quota_reminder.is_running():
+            self.weekly_quota_reminder.start()
+        
+        async with aiosqlite.connect(database) as db:
+            #YYYY-MM-DD
+            # changed all db architecture, will need to modify all code.
+            await db.execute("""CREATE TABLE IF NOT EXISTS Weeks(
+                                StartDate TEXT PRIMARY KEY, 
+                                PostRequirement INTEGER,
+                                SeniorPostRequirement INTEGER,
+                                InternPostRequirement INTEGER
+                                )""")
+            
+            await db.execute("""CREATE TABLE IF NOT EXISTS Inspections(
+                                ID INTEGER PRIMARY KEY, 
+                                InspecteeID INTEGER, 
+                                InspectorID INTEGER, 
+                                PostsCompleted INTEGER,
+                                InactivityExcused INTEGER,
+                                RewardExcused INTEGER,
+                                WeekStart TEXT,
+                                Pass INTEGER,
+                                FOREIGN KEY(WeekStart) REFERENCES Weeks(StartDate)
+                                )""")
+            
+            await db.execute("""CREATE TABLE IF NOT EXISTS SeniorInspections(
+                                ID INTEGER PRIMARY KEY, 
+                                InspecteeID INTEGER, 
+                                InspectorID INTEGER, 
+                                PostsCompleted INTEGER,
+                                Activity INTEGER,
+                                InactivityExcused INTEGER,
+                                RewardExcused INTEGER,
+                                WeekStart TEXT,
+                                Pass INTEGER,
+                                FOREIGN KEY(WeekStart) REFERENCES Weeks(StartDate)
+                                )""")
+            
+            await db.execute("""CREATE TABLE IF NOT EXISTS Strikes(
+                                ID INTEGER PRIMARY KEY, 
+                                RecipientID INTEGER, 
+                                SeniorID INTEGER,
+                                DateGiven TEXT
+                                )""")
+            
+            await db.execute("""CREATE TABLE IF NOT EXISTS Rewards(
+                                ID INTEGER PRIMARY KEY, 
+                                RecipientID INTEGER, 
+                                SeniorID INTEGER,
+                                DateGiven TEXT,
+                                Type TEXT,
+                                Charges INTEGER
+                                )""")
+            
+            await db.execute("""CREATE TABLE IF NOT EXISTS Interns(
+                                ID INTEGER PRIMARY KEY, 
+                                InternID INTEGER, 
+                                DateJoined TEXT,
+                                RemovalReason TEXT
+                                )""")
+            
+            await db.execute("""CREATE TABLE IF NOT EXISTS Quotas(
+                                key TEXT PRIMARY KEY,
+                                value TEXT
+                                )""")
+            
+            await db.execute("""CREATE TABLE IF NOT EXISTS Excused(
+                                StaffID INTEGER PRIMARY KEY,
+                                InspectionCount INTEGER
+                                )""")
+            
+    async def on_ready(self):
+        await self.wait_until_ready()
+        # if not self.synced:
+        #     await tree.sync(guild = discord.Object(id=guild_id))
+        #     self.synced = True
+        print_green(self.guilds)
+        print_green(f"Logged in as {self.user}.")
+    
+    weekly_reminder_time = time(hour=12)
+
+    @tasks.loop(time=weekly_reminder_time)
+    async def weekly_quota_reminder(self):
+        if datetime.now().weekday() == 0:
+            guild = aclient.get_guild(guild_id)
+            reminder_channel = get(guild.channels, id = 1173680917374578718)
+            
+            dt = datetime.now() - timedelta(days=7)
+            week_start = f"{dt.year}-{dt.month}-{dt.day}"
+            
+            async with aiosqlite.connect(database) as db:
+                async with db.execute("""SELECT InspectorID
+                                    FROM Inspections
+                                    WHERE WeekStart=?
+                                    ORDER BY PostsCompleted DESC""", (week_start,)) as cursor:
+                    results1 = await cursor.fetchall()
+            
+            
+            async with aiosqlite.connect(database) as db:
+                async with db.execute("""SELECT InspectorID 
+                                    FROM SeniorInspections
+                                    WHERE WeekStart=?
+                                    ORDER BY PostsCompleted DESC""", (week_start,)) as cursor:
+                    results2 = await cursor.fetchall()
+            
+            
+            loggedLoggers = [row[0] for row in results1] + [row[0] for row in results2]
+
+            expectedLoggers = [m.id for m in get(guild.roles, id = role_ids.senior).members]
+            
+            missingLoggers = list(set(loggedLoggers).symmetric_difference(set(expectedLoggers)))
+            
+            if len(missingLoggers) > 0:
+                await reminder_channel.send(f"{",".join([f'<@{ml}>' for ml in missingLoggers])}\n\nQuotas should all be in by now. Last call.")
+                
 
     
         
