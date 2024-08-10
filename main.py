@@ -220,6 +220,7 @@ async def has_role_f(staff_member, role_id):
         return role_id in [r.id for r in staff_member.roles]
     elif isinstance(staff_member, int):
         print(guild_id)
+        print(len(aclient.guilds))
         guild = aclient.guilds[0]
         print(guild)
         try:
