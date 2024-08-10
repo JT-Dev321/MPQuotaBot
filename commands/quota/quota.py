@@ -319,7 +319,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
                                                 discord.Embed(title = "Missing Loggers", description=output3, colour=colours.mp_purple)], ephemeral = True)
 
     @app_commands.command(name = "get_history", description='Get a users most recent weeks of quota history')
-    async def gethistory(self, interaction: discord.Interaction, staff_member : discord.Member):
+    async def gethistory(self, interaction: discord.Interaction, staff_member : discord.User):
         await interaction.response.send_message(await GetQuotaHistory(staff_member.id), ephemeral=True)
 
     @app_commands.command(name = "mvp", description='Get the mvp list for a week')
