@@ -404,9 +404,10 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
     async def autocomplete_callback(self, interaction: discord.Interaction, current: str):
         choicelist = []
         
-        async with aiosqlite.connect(database) as curr:
-            results = await curr.execute("SELECT key FROM Quotas")
-        
+        async with aiosqlite.connect(database) as db:
+            async with await db.execute("SELECT key FROM Quotas") as cursor:
+                results = await cursor.fetchall()
+            
         flat_results = [result[0] for result in results]
         
         for r in flat_results:
