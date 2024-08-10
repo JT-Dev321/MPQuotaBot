@@ -49,8 +49,8 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
     @app_commands.command(name = "set", description='Set a quota')
     @app_commands.checks.has_role(role_ids.management)
     async def set_quota(self, interaction: discord.Interaction, role : Literal["intern", "normal", "senior"], value : int):
-        prev = await get_variable(role)
-        await set_variable(role, value)
+        prev = await self.bot.get_variable(role)
+        await self.bot.set_variable(role, value)
         
         await interaction.response.send_message(f"Changed quota for `{role}` from `{prev}` to `{value}`", ephemeral=True)
 
@@ -83,26 +83,26 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
         # all wrong to do with senior quota (post count)
         reward_excused = False
         striked = False
-        Is_Senior = await IsSenior(staff_member)
+        Is_Senior = await self.bot.IsSenior(staff_member)
         
         # work out the target users quota requirement
         requirement = 0
         ticketrequirement = 0
         if Is_Senior:
-            requirement = await getSeniorQuota()
-            ticketrequirement = await getSeniorTicketQuota()
-        elif await IsIntern(staff_member):
-            requirement = await getInternQuota()
+            requirement = await self.bot.getSeniorQuota()
+            ticketrequirement = await self.bot.getSeniorTicketQuota()
+        elif await self.bot.IsIntern(staff_member):
+            requirement = await self.bot.getInternQuota()
         else:
-            requirement = await getQuota()
+            requirement = await self.bot.getQuota()
 
         # check if inspector is a senior
-        if not await IsSenior(interaction.user):
+        if not await self.bot.IsSenior(interaction.user):
             await interaction.followup.send("Only seniors can do this >:(", ephemeral=True)
             return
 
         #ensure valid date
-        if not await CheckValidDate(week_start):
+        if not await self.bot.CheckValidDate(week_start):
             await interaction.followup.send("Please enter a valid date", ephemeral=True)
             return
 
@@ -200,7 +200,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
                 existing_week = await cursor.fetchone()
             
             if existing_week is None:
-                await db.execute('INSERT INTO Weeks (StartDate, PostRequirement, SeniorPostRequirement, InternPostRequirement) VALUES (?, ?, ?, ?)', (week_start, await getQuota(), await getSeniorQuota(), await getInternQuota()))
+                await db.execute('INSERT INTO Weeks (StartDate, PostRequirement, SeniorPostRequirement, InternPostRequirement) VALUES (?, ?, ?, ?)', (week_start, await self.bot.getQuota(), await self.bot.getSeniorQuota(), await self.bot.getInternQuota()))
                 await db.commit()
             
             if not Is_Senior:
@@ -219,7 +219,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
             logchannel = get(interaction.guild.channels, id=channel_ids.senior_quota_logs)
             strikelogchannel = get(interaction.guild.channels, id=channel_ids.senior_strike_logss)
         
-        logmsg = f"### {interaction.user.mention} logged {staff_member.mention}'s quota.\n{GetQuotaHistory(staff_member.id, 1)}"
+        logmsg = f"### {interaction.user.mention} logged {staff_member.mention}'s quota.\n{self.bot.getQuotaHistory(staff_member.id, 1)}"
         logmsgsent = await logchannel.send(logmsg)
         
         finalmsg = f"Done! - Quota for {staff_member.mention} has been logged successfully."
@@ -233,19 +233,19 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
             finalmsg += "\n- The user was excused by an active reward"
 
         # STRIKE CHECK
-        strike_streak = await Get_Consecutive_Strikes(staff_member.id)
+        strike_streak = await self.bot.Get_Consecutive_Strikes(staff_member.id)
         if strike_streak > 0:
             finalmsg += f"\n\nPlease note that this user's current consecutive strike streak is now `{strike_streak}`, any actions that need to be taken based on this information are not automated."
 
         if striked:
-            await strikelogchannel.send(f"{staff_member.mention} [was striked]({logmsgsent.jump_url})\n\nQuota History:\n{await GetQuotaHistory(staff_member.id)}")
+            await strikelogchannel.send(f"{staff_member.mention} [was striked]({logmsgsent.jump_url})\n\nQuota History:\n{await self.bot.getQuotaHistory(staff_member.id)}")
 
         dm_msg = f"# <:MP:1173683497697808424> | Weekly Inspection Notice\n### {interaction.user.mention} has logged your quota for the week beginning {week_start}\n- Posts: {post_count}"
         
         if Is_Senior:
             dm_msg += f"\n- Activity: {activity}"
             
-        dm_msg += f"\n\nYour recent quota history:\n{await GetQuotaHistory(staff_member.id, 5)}"
+        dm_msg += f"\n\nYour recent quota history:\n{await self.bot.getQuotaHistory(staff_member.id, 5)}"
         
         if dm_user:
             await staff_member.send(dm_msg)
@@ -320,7 +320,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
 
     @app_commands.command(name = "get_history", description='Get a users most recent weeks of quota history')
     async def gethistory(self, interaction: discord.Interaction, staff_member : discord.Member):
-        await interaction.response.send_message(await GetQuotaHistory(staff_member.id), ephemeral=True)
+        await interaction.response.send_message(await self.bot.self.bot.getQuotaHistory(staff_member.id), ephemeral=True)
 
     @app_commands.command(name = "mvp", description='Get the mvp list for a week')
     @app_commands.describe(week_start="Format: YYYY-MM-DD | Must use Monday of week")

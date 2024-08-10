@@ -176,6 +176,153 @@ class bot(commands.Bot):
             
             if len(missingLoggers) > 0:
                 await reminder_channel.send(f"{",".join([f'<@{ml}>' for ml in missingLoggers])}\n\nQuotas should all be in by now. Last call.")
+                
+    async def has_role_f(self, staff_member, role_id):
+        if isinstance(staff_member, discord.Member):
+            return role_id in [r.id for r in staff_member.roles]
+        elif isinstance(staff_member, int):
+            print(guild_id)
+            print(len(aclient.guilds))
+            guild = aclient.get_guild(guild_id)
+            print(guild)
+            try:
+                staff_member_obj = await guild.get_member(staff_member)
+                return role_id in [r.id for r in staff_member_obj.roles]
+            except discord.NotFound:
+                return False
+
+    async def IsManagement(self, staff_member):
+        return await self.has_role_f(staff_member, role_ids.management)
+
+    async def IsSenior(self, staff_member):
+        return await self.has_role_f(staff_member, role_ids.senior)
+
+    async def IsIntern(self, staff_member):
+        return await self.has_role_f(staff_member, role_ids.intern)
+
+    async def get_variable(self, key):
+        async with aiosqlite.connect(database) as db:
+            async with db.execute('SELECT value FROM Quotas WHERE key=?', (key,)) as cursor:
+                result = await cursor.fetchone()
+                return result[0] if result else None
+
+    async def set_variable(self, key, value):
+        async with aiosqlite.connect(database) as db:
+            await db.execute('INSERT OR REPLACE INTO Quotas (key, value) VALUES (?, ?)', (key, value))
+            await db.commit()
+
+    async def getQuota(self, ):
+        result = await self.get_variable("normal")
+        return int(result) if result is not None else None
+
+    async def getSeniorTicketQuota(self, ):
+        result = await self.get_variable("senior_tickets")
+        return int(result) if result is not None else None
+
+    async def getSeniorQuota(self, ):
+        result = await self.get_variable("senior")
+        return int(result) if result is not None else None
+
+    async def getInternQuota(self, ):
+        result = await self.get_variable("intern")
+        return int(result) if result is not None else None
+
+    async def CheckValidDate(self, date : str):
+        return re.match(r"^20[0-9]{2}-([1-9]|1[0-2])-([1-9]|[12][0-9]|3[01])$", date) is not None
+
+    async def GetQuotaHistory(self, staff_member : int, limit : int = 20):
+        
+        if not await self.IsSenior(staff_member):
+            async with aiosqlite.connect(database) as db:
+                async with db.execute("""SELECT WeekStart, Pass, PostsCompleted, InactivityExcused, RewardExcused, TicketsCompleted
+                                        FROM Inspections
+                                        WHERE InspecteeID = ?
+                                        ORDER BY printf("%04d-%02d-%02d", 
+                                        substr(WeekStart, 1, instr(WeekStart, '-') - 1), 
+                                        substr(WeekStart, instr(WeekStart, '-') + 1, 2), 
+                                        substr(WeekStart, -2)) DESC
+                                        LIMIT ?""", (staff_member, str(limit))) as cursor:
+                    rows = await cursor.fetchall()
+        else:
+            async with aiosqlite.connect(database) as db:
+                async with db.execute("""SELECT WeekStart, Pass, PostsCompleted, InactivityExcused, RewardExcused, TicketsCompleted
+                                        FROM SeniorInspections
+                                        WHERE InspecteeID = ?
+                                        ORDER BY printf("%04d-%02d-%02d", 
+                                        substr(WeekStart, 1, instr(WeekStart, '-') - 1), 
+                                        substr(WeekStart, instr(WeekStart, '-') + 1, 2), 
+                                        substr(WeekStart, -2)) DESC
+                                        LIMIT ?""", (staff_member, str(limit))) as cursor:
+                    rows = await cursor.fetchall()
+        
+        
+        rows.reverse()
+        
+        
+        output = "```ansi\n"
+        for row in rows:
+            if int(row[4]) == 1:
+                output += f"[0;34m{row[0]} - Reward Excused - {row[2]} posts\n"
+            elif int(row[3] == 1):
+                output += f"[0;33m{row[0]} - Inactivity Excused - {row[2]} posts\n"
+            elif int(row[1]) == 1:
+                output += f"[0;32m{row[0]} - Pass - {row[2]} posts - {row[5]} tickets\n"
+            else:
+                output += f"[0;31m{row[0]} - Fail - {row[2]} posts - {row[5]} tickets\n"
+        output += "```"
+        if (len(rows) == 0):
+            output = "No Results"
+        return output
+        # maybe done idk
+
+    async def Get_Consecutive_Strikes(self, staff_member : int): # only accurate if quota logs are fully up to date
+        flat_list = []
+        
+        
+        # as of 27-1-24, this seems to work
+        async with aiosqlite.connect(database) as db:
+            async with db.execute("""SELECT DateGiven
+                                    FROM Strikes
+                                    WHERE RecipientID = ?
+                                    ORDER BY printf("%04d-%02d-%02d", 
+                                        substr(DateGiven, 1, instr(DateGiven, '-') - 1), 
+                                        substr(DateGiven, instr(DateGiven, '-') + 1, 2), 
+                                        substr(DateGiven, -2)) DESC
+                                    LIMIT 10""", (staff_member,)) as cursor:
+                rows = await cursor.fetchall()
+        
+        counter = 0
+        for row in rows:
+            for val in row:
+                flat_list.append(val)
+        
+        for i in range(-12,-5): # checks the last complete week's monday
+            dt = datetime.now() + timedelta(days=i)
+            if dt.weekday() == 0:
+                last_monday = dt        
+                
+        for i in range(len(flat_list)):
+            date = str(flat_list[i]).split("-")
+            dt = datetime(int(date[0]), int(date[1]), int(date[2]))
+            if i == 0 and dt.date() != last_monday.date():
+                print("Not last monday")
+                break
+            try:
+                next_date = datetime(int(flat_list[i + 1].split("-")[0]), int(flat_list[i + 1].split("-")[1]), int(flat_list[i + 1].split("-")[2]))
+                    
+                if dt <= next_date + timedelta(days=7):
+                    print("Counted")
+                    counter += 1
+                    if i == len(flat_list) - 2 and len(flat_list) != 1:
+                        counter += 1
+                else:
+                    break
+            except IndexError:
+                print("Except")
+                break
+            
+        return counter
+
     
         
 aclient = bot()
@@ -215,153 +362,6 @@ async def sync(ctx: commands.Context, guilds: commands.Greedy[discord.Object], s
 
     await ctx.send(f"Synced the tree to {ret}/{len(guilds)}.")
 
-async def has_role_f(staff_member, role_id):
-    if isinstance(staff_member, discord.Member):
-        return role_id in [r.id for r in staff_member.roles]
-    elif isinstance(staff_member, int):
-        print(guild_id)
-        print(len(aclient.guilds))
-        guild = aclient.get_guild(guild_id)
-        print(guild)
-        try:
-            staff_member_obj = await guild.get_member(staff_member)
-            return role_id in [r.id for r in staff_member_obj.roles]
-        except discord.NotFound:
-            return False
-
-async def IsManagement(staff_member):
-    return await has_role_f(staff_member, role_ids.management)
-
-async def IsSenior(staff_member):
-    return await has_role_f(staff_member, role_ids.senior)
-
-async def IsIntern(staff_member):
-    return await has_role_f(staff_member, role_ids.intern)
-
-async def get_variable(key):
-    async with aiosqlite.connect(database) as db:
-        async with db.execute('SELECT value FROM Quotas WHERE key=?', (key,)) as cursor:
-            result = await cursor.fetchone()
-            return result[0] if result else None
-
-async def set_variable(key, value):
-    async with aiosqlite.connect(database) as db:
-        await db.execute('INSERT OR REPLACE INTO Quotas (key, value) VALUES (?, ?)', (key, value))
-        await db.commit()
-
-async def getQuota():
-    result = await get_variable("normal")
-    return int(result) if result is not None else None
-
-async def getSeniorTicketQuota():
-    result = await get_variable("senior_tickets")
-    return int(result) if result is not None else None
-
-async def getSeniorQuota():
-    result = await get_variable("senior")
-    return int(result) if result is not None else None
-
-async def getInternQuota():
-    result = await get_variable("intern")
-    return int(result) if result is not None else None
-
-async def CheckValidDate(date : str):
-    return re.match(r"^20[0-9]{2}-([1-9]|1[0-2])-([1-9]|[12][0-9]|3[01])$", date) is not None
-
-async def GetQuotaHistory(staff_member : int, limit : int = 20):
-    
-    if not await IsSenior(staff_member):
-        async with aiosqlite.connect(database) as db:
-            async with db.execute("""SELECT WeekStart, Pass, PostsCompleted, InactivityExcused, RewardExcused, TicketsCompleted
-                                    FROM Inspections
-                                    WHERE InspecteeID = ?
-                                    ORDER BY printf("%04d-%02d-%02d", 
-                                    substr(WeekStart, 1, instr(WeekStart, '-') - 1), 
-                                    substr(WeekStart, instr(WeekStart, '-') + 1, 2), 
-                                    substr(WeekStart, -2)) DESC
-                                    LIMIT ?""", (staff_member, str(limit))) as cursor:
-                rows = await cursor.fetchall()
-    else:
-        async with aiosqlite.connect(database) as db:
-            async with db.execute("""SELECT WeekStart, Pass, PostsCompleted, InactivityExcused, RewardExcused, TicketsCompleted
-                                    FROM SeniorInspections
-                                    WHERE InspecteeID = ?
-                                    ORDER BY printf("%04d-%02d-%02d", 
-                                    substr(WeekStart, 1, instr(WeekStart, '-') - 1), 
-                                    substr(WeekStart, instr(WeekStart, '-') + 1, 2), 
-                                    substr(WeekStart, -2)) DESC
-                                    LIMIT ?""", (staff_member, str(limit))) as cursor:
-                rows = await cursor.fetchall()
-    
-    
-    rows.reverse()
-    
-    
-    output = "```ansi\n"
-    for row in rows:
-        if int(row[4]) == 1:
-            output += f"[0;34m{row[0]} - Reward Excused - {row[2]} posts\n"
-        elif int(row[3] == 1):
-            output += f"[0;33m{row[0]} - Inactivity Excused - {row[2]} posts\n"
-        elif int(row[1]) == 1:
-            output += f"[0;32m{row[0]} - Pass - {row[2]} posts - {row[5]} tickets\n"
-        else:
-            output += f"[0;31m{row[0]} - Fail - {row[2]} posts - {row[5]} tickets\n"
-    output += "```"
-    if (len(rows) == 0):
-        output = "No Results"
-    return output
-    # maybe done idk
-
-async def Get_Consecutive_Strikes(staff_member : int): # only accurate if quota logs are fully up to date
-    flat_list = []
-    
-    
-    # as of 27-1-24, this seems to work
-    async with aiosqlite.connect(database) as db:
-        async with db.execute("""SELECT DateGiven
-                                FROM Strikes
-                                WHERE RecipientID = ?
-                                ORDER BY printf("%04d-%02d-%02d", 
-                                    substr(DateGiven, 1, instr(DateGiven, '-') - 1), 
-                                    substr(DateGiven, instr(DateGiven, '-') + 1, 2), 
-                                    substr(DateGiven, -2)) DESC
-                                LIMIT 10""", (staff_member,)) as cursor:
-            rows = await cursor.fetchall()
-    
-    counter = 0
-    for row in rows:
-        for val in row:
-            flat_list.append(val)
-    
-    for i in range(-12,-5): # checks the last complete week's monday
-        dt = datetime.now() + timedelta(days=i)
-        if dt.weekday() == 0:
-            last_monday = dt        
-            
-    for i in range(len(flat_list)):
-        date = str(flat_list[i]).split("-")
-        dt = datetime(int(date[0]), int(date[1]), int(date[2]))
-        if i == 0 and dt.date() != last_monday.date():
-            print("Not last monday")
-            break
-        try:
-            next_date = datetime(int(flat_list[i + 1].split("-")[0]), int(flat_list[i + 1].split("-")[1]), int(flat_list[i + 1].split("-")[2]))
-                
-            if dt <= next_date + timedelta(days=7):
-                print("Counted")
-                counter += 1
-                if i == len(flat_list) - 2 and len(flat_list) != 1:
-                    counter += 1
-            else:
-                break
-        except IndexError:
-            print("Except")
-            break
-        
-    return counter
-
-
 @tree.command(guild = discord.Object(id=guild_id), name = "mvp_colour", description='Choose the MVP role colour')
 @app_commands.describe(hex_code="Expects 6 characters representing a colour. E.g: FF13A5")
 @app_commands.checks.has_role(role_ids.mvp)
@@ -372,7 +372,7 @@ async def mvpcolour(interaction: discord.Interaction, hex_code : str):
 
 @tree.command(guild = discord.Object(id=guild_id), name = "check_history", description='Check your own quota history!')
 async def getownhistory(interaction: discord.Interaction):
-    await interaction.response.send_message(await GetQuotaHistory(interaction.user.id), ephemeral=True)
+    await interaction.response.send_message(await aclient.GetQuotaHistory(interaction.user.id), ephemeral=True)
 
 @tree.command(guild = discord.Object(id=guild_id), name = "csv_role", description='Get a csv of a role')
 async def csv_role(interaction: discord.Interaction, role : discord.Role, splitby : int = -1):
@@ -563,7 +563,7 @@ async def view_all_history(interaction: discord.Interaction):
     msg = ""
     counter = 0
     for id in [m.id for m in get(interaction.guild.roles, id = role_ids.staff).members]:
-        msg += f"<@{id}>\n\n{await GetQuotaHistory(id, 10)}\n\n"
+        msg += f"<@{id}>\n\n{await aclient.GetQuotaHistory(id, 10)}\n\n"
         counter += 1
         if counter % 3 == 0:
             await interaction.user.send(msg)

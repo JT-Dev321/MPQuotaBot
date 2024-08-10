@@ -13,4 +13,4 @@ import re
 import math
 import itertools
 import ast
-from main import role_ids,channel_ids,colours,IsManagement,IsSenior,IsIntern,get_variable,set_variable,getQuota,getSeniorTicketQuota,getSeniorQuota,getInternQuota,CheckValidDate,GetQuotaHistory,Get_Consecutive_Strikes
+from main import role_ids,channel_ids,colours

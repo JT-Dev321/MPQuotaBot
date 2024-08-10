@@ -37,7 +37,7 @@ class rewards(commands.GroupCog, group_name='reward', group_description='Manage 
                     for row in results:
                         UserId = row[0]
                         print(f"Checking {UserId}")
-                        if not await IsSenior(UserId) and interaction.guild.get_member(UserId) is not None:
+                        if not await self.bot.IsSenior(UserId) and interaction.guild.get_member(UserId) is not None:
                             print(f"{UserId} is not a senior")
                             PostSum = row[1]
                             MemberObj = interaction.guild.get_member(UserId)
@@ -75,7 +75,7 @@ class rewards(commands.GroupCog, group_name='reward', group_description='Manage 
                     output = ""
                     for row in results:
                         UserId = int(row[0])
-                        if not await IsSenior(UserId) and interaction.guild.get_member(UserId) is not None:
+                        if not await self.bot.IsSenior(UserId) and interaction.guild.get_member(UserId) is not None:
                             output += f"<@{row[0]}> - {row[1]}\n"
                     await interaction.followup.send(output, ephemeral=True)
 
@@ -110,7 +110,7 @@ class rewards(commands.GroupCog, group_name='reward', group_description='Manage 
     async def giveReward(self, interaction: discord.Interaction, staff_member : discord.Member, week_start : str, reward_type : Literal["Quota Half", "Quota Excused"], charges : int):
         await interaction.response.defer(thinking=True, ephemeral=True)
         
-        if not await CheckValidDate(week_start):
+        if not await self.bot.CheckValidDate(week_start):
             await interaction.followup.send("Please enter a valid date", ephemeral=True)
             return
         
