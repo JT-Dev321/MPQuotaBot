@@ -410,11 +410,10 @@ async def run_sql(interaction: discord.Interaction, sql : str):
                         await interaction.response.send_message("Fetch result was none", ephemeral=True)
             return
         else:
-            async with aiosqlite.connect(database).cursor() as cursor:
-                await cursor.execute(sql)
-                affectedNo = cursor.rowcount
-                await cursor.commit()
-            await interaction.response.send_message(f"Done! - Change impacted `{affectedNo}` rows", ephemeral=True)
+            async with aiosqlite.connect(database) as db:
+                await db.execute(sql)
+                await db.commit()
+            await interaction.response.send_message(f"Done!", ephemeral=True)
             return
     else:
         await interaction.response.send_message("not for you go away!", ephemeral=True)
