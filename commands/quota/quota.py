@@ -219,7 +219,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
             logchannel = get(interaction.guild.channels, id=channel_ids.senior_quota_logs)
             strikelogchannel = get(interaction.guild.channels, id=channel_ids.senior_strike_logss)
         
-        logmsg = f"### {interaction.user.mention} logged {staff_member.mention}'s quota.\n{self.bot.GetQuotaHistory(staff_member.id, 1)}"
+        logmsg = f"### {interaction.user.mention} logged {staff_member.mention}'s quota.\n{await self.bot.GetQuotaHistory(staff_member.id, 1)}"
         logmsgsent = await logchannel.send(logmsg)
         
         finalmsg = f"Done! - Quota for {staff_member.mention} has been logged successfully."
