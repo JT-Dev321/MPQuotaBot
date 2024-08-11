@@ -217,7 +217,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
         strikelogchannel = get(interaction.guild.channels, id=channel_ids.strike_logs)
         if Is_Senior:
             logchannel = get(interaction.guild.channels, id=channel_ids.senior_quota_logs)
-            strikelogchannel = get(interaction.guild.channels, id=channel_ids.senior_strike_logss)
+            strikelogchannel = get(interaction.guild.channels, id=channel_ids.senior_strike_logs)
         
         logmsg = f"### {interaction.user.mention} logged {staff_member.mention}'s quota.\n{await self.bot.GetQuotaHistory(staff_member.id, 1)}"
         logmsgsent = await logchannel.send(logmsg)
