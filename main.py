@@ -579,7 +579,7 @@ async def get_date(interaction: discord.Interaction, id_csv : str = ""):
     for m in mondays:
         date = str(m).split("|")[0]
         i = str(m).split("|")[1]
-        output += f"`/quota department:Marketplace quota_start:{date} user_ids:{id_csv} | `{i}` days ago\n"
+        output += f"`/quota department:Marketplace quota_start:{date} user_ids:{id_csv}` | `{i}` days ago\n"
         # /quota department:Marketplace quota_start: user_ids:
     await interaction.response.send_message(f"{output}", ephemeral=True)
 
