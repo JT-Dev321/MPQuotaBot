@@ -181,7 +181,6 @@ class bot(commands.Bot):
             date = str(flat_list[i]).split("-")
             dt = datetime(int(date[0]), int(date[1]), int(date[2]))
             if i == 0 and dt.date() != last_monday.date():
-                print("Not last monday")
                 break
             try:
                 next_date = datetime(int(flat_list[i + 1].split("-")[0]), int(flat_list[i + 1].split("-")[1]), int(flat_list[i + 1].split("-")[2]))
@@ -569,7 +568,7 @@ async def view_all_history(interaction: discord.Interaction):
     await interaction.followup.send(f"Sent you all {counter} quota histories!", ephemeral=True)
 
 @tree.command(guild = discord.Object(id=guild_id), name = "get_date", description='Get the dates of the next inspection period')
-async def get_date(interaction: discord.Interaction):
+async def get_date(interaction: discord.Interaction, id_csv : str = ""):
     mondays = []
     for i in range(-9,0):
         dt = datetime.now() + timedelta(days=i)
@@ -580,8 +579,8 @@ async def get_date(interaction: discord.Interaction):
     for m in mondays:
         date = str(m).split("|")[0]
         i = str(m).split("|")[1]
-        output += f"`{date}` was `{i}` days ago\n"
-    
+        output += f"`/quota department:Marketplace quota_start:{date} user_ids:{id_csv} | `{i}` days ago\n"
+        # /quota department:Marketplace quota_start: user_ids:
     await interaction.response.send_message(f"{output}", ephemeral=True)
 
 def parse_timezone(name):
