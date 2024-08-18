@@ -12,13 +12,23 @@ class parse_data_modal(ui.Modal, title = 'Data parser'):
         
         quotaDict = {}
         
-        for i in range(0, len(splitData), 7):
-            quotaDict.update({f"{splitData[i]}" : [int(splitData[i+4].split(': ')[1]), int(splitData[i+5].split(': ')[1])]})
         
-        output = ""
+        if "Marketplace Tickets :" in str(self.data.value):
+            for i in range(0, len(splitData), 7):
+                quotaDict.update({f"{splitData[i]}" : [int(splitData[i+4].split(': ')[1]), int(splitData[i+5].split(': ')[1])]})
+            
+            output = ""
+            
+            for name in quotaDict:
+                output += f"`/quota log staff_member:{name} post_count:{quotaDict[name][0]} ticket_count:{quotaDict[name][1]} week_start: `\n"
+        else:
+            for i in range(0, len(splitData), 6):
+                quotaDict.update({f"{splitData[i]}" : int(splitData[i+4].split(': ')[1])})
         
-        for name in quotaDict:
-            output += f"`/quota log staff_member:{name} post_count:{quotaDict[name][0]} ticket_count:{quotaDict[name][1]} week_start: `\n"
+            output = ""
+            
+            for name in quotaDict:
+                output += f"`/quota log staff_member:{name} post_count:{quotaDict[name]} week_start: `\n"
         
         await interaction.response.send_message(output, ephemeral=True)
         
