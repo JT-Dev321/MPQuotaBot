@@ -13,7 +13,7 @@ class parse_data_modal(ui.Modal, title = 'Data parser'):
         quotaDict = {}
         
         
-        if "Marketplace Tickets :" in str(self.data.value):
+        if "Marketplace Tickets:" in str(self.data.value):
             for i in range(0, len(splitData), 7):
                 quotaDict.update({f"{splitData[i]}" : [int(splitData[i+4].split(': ')[1]), int(splitData[i+5].split(': ')[1])]})
             
