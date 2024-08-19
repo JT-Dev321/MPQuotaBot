@@ -283,7 +283,7 @@ class bot(commands.Bot):
         print_green(self.guilds)
         print_green(f"Logged in as {self.user}.")
     
-    weekly_reminder_time_before = time(hour=18, timezone=timezone.utc)
+    weekly_reminder_time_before = time(hour=18, tzinfo=timezone.utc)
     
     @tasks.loop(time=weekly_reminder_time_before)
     async def weekly_quota_reminder(self):
@@ -293,7 +293,7 @@ class bot(commands.Bot):
         
             await reminder_channel.send("# <@&768851165671850021> Inspections can be submitted now.")
     
-    weekly_reminder_time_after = time(hour=12, timezone=timezone.utc)
+    weekly_reminder_time_after = time(hour=12, tzinfo=timezone.utc)
 
     @tasks.loop(time=weekly_reminder_time_after)
     async def weekly_quota_reminder(self):
