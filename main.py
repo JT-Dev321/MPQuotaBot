@@ -6,7 +6,7 @@ from discord.utils import get
 from discord.app_commands import AppCommandError, Group
 import aiosqlite
 import time
-from datetime import datetime, timedelta, time
+from datetime import datetime, timedelta, time, timezone
 import asyncio
 from typing import Literal, Optional
 import re
@@ -283,11 +283,21 @@ class bot(commands.Bot):
         print_green(self.guilds)
         print_green(f"Logged in as {self.user}.")
     
-    weekly_reminder_time = time(hour=12)
-
-    @tasks.loop(time=weekly_reminder_time)
+    weekly_reminder_time_before = time(hour=18)
+    
+    @tasks.loop(time=weekly_reminder_time_before)
     async def weekly_quota_reminder(self):
-        if datetime.now().weekday() == 0:
+        if datetime.now(timezone.utc).weekday() == 6:
+            guild = aclient.get_guild(guild_id)
+            reminder_channel = get(guild.channels, id = 1173680917374578718)
+        
+            await reminder_channel.send("# <@&768851165671850021> Inspections can be submitted now.")
+    
+    weekly_reminder_time_after = time(hour=12)
+
+    @tasks.loop(time=weekly_reminder_time_after)
+    async def weekly_quota_reminder(self):
+        if datetime.now(timezone.utc).weekday() == 0:
             guild = aclient.get_guild(guild_id)
             reminder_channel = get(guild.channels, id = 1173680917374578718)
             
@@ -621,6 +631,7 @@ async def eval_py(interaction : discord.Interaction, cmd : str, ephemeral : bool
             'bot': aclient,
             'discord': discord,
             'interaction': interaction,
+            'datetime' : datetime,
             '__import__': __import__
         }
         exec(compile(parsed, filename="<ast>", mode="exec"), env)
