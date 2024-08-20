@@ -382,26 +382,26 @@ async def getownhistory(interaction: discord.Interaction):
     await interaction.response.send_message(await aclient.GetQuotaHistory(interaction.user.id), ephemeral=True)
 
 @tree.command(guild = discord.Object(id=guild_id), name = "csv_role", description='Get a csv of a role')
-async def csv_role(interaction: discord.Interaction, role : discord.Role, splitby : int = -1):
-    if splitby == -1:
-        await interaction.response.send_message(",".join([str(m.id) for m in role.members]), ephemeral=True)
-    elif splitby > 5:
-        ids = [str(m.id) for m in role.members]
-        
-        output = ""
-        temp = ""
+async def csv_role(interaction: discord.Interaction, role : discord.Role, splitby : int = 999, pingable : bool = False):
+    if pingable:
+        ids = [f"<@{m.id}>" for m in role.members]
+    else:
+        ids = [f"{m.id}" for m in role.members]
+    
+    output = ""
+    temp = ""
 
-        for id in ids:
-            temp += f"{id},"
-            if len(temp.split(",")) > splitby:
-                output += temp
-                output += "\n\n"
-                temp = ""
+    for id in ids:
+        temp += f"{id},"
+        if len(temp.split(",")) > splitby:
+            output += temp[:-1]
+            output += "\n\n"
+            temp = ""
+    
+    if temp != "":
+        output += temp[:-1]
         
-        if temp != "":
-            output += temp
-            
-        await interaction.response.send_message(output, ephemeral=True)  
+    await interaction.response.send_message(output, ephemeral=True)  
 
 @tree.command(guild = discord.Object(id=guild_id), name = "sql", description='Run SQL')
 async def run_sql(interaction: discord.Interaction, sql : str):
