@@ -384,7 +384,7 @@ async def getownhistory(interaction: discord.Interaction):
 @tree.command(guild = discord.Object(id=guild_id), name = "csv_role", description='Get a csv of a role')
 async def csv_role(interaction: discord.Interaction, role : discord.Role, splitby : int = 999, pingable : bool = False):
     if pingable:
-        ids = [f"<@{m.id}>" for m in role.members]
+        ids = [f"`<@{m.id}>`" for m in role.members]
     else:
         ids = [f"{m.id}" for m in role.members]
     
