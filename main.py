@@ -204,8 +204,11 @@ class bot(commands.Bot):
         await self.load_extension("commands.quota.quota")
         # await self.load_extension("commands.intern.intern")
         
-        if not self.weekly_quota_reminder.is_running():
-            self.weekly_quota_reminder.start()
+        if not self.weekly_quota_reminder_before.is_running():
+            self.weekly_quota_reminder_before.start()
+        
+        if not self.weekly_quota_reminder_after.is_running():
+            self.weekly_quota_reminder_after.start()
         
         async with aiosqlite.connect(database) as db:
             #YYYY-MM-DD
@@ -286,7 +289,7 @@ class bot(commands.Bot):
     weekly_reminder_time_before = time(hour=18, tzinfo=timezone.utc)
     
     @tasks.loop(time=weekly_reminder_time_before)
-    async def weekly_quota_reminder(self):
+    async def weekly_quota_reminder_before(self):
         if datetime.now(timezone.utc).weekday() == 6:
             guild = aclient.get_guild(guild_id)
             reminder_channel = get(guild.channels, id = 1173680917374578718)
@@ -296,7 +299,7 @@ class bot(commands.Bot):
     weekly_reminder_time_after = time(hour=12, tzinfo=timezone.utc)
 
     @tasks.loop(time=weekly_reminder_time_after)
-    async def weekly_quota_reminder(self):
+    async def weekly_quota_reminder_after(self):
         if datetime.now(timezone.utc).weekday() == 0:
             guild = aclient.get_guild(guild_id)
             reminder_channel = get(guild.channels, id = 1173680917374578718)
