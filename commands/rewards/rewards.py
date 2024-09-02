@@ -34,7 +34,7 @@ class rewards(commands.GroupCog, group_name='reward', group_description='Manage 
                     counter = 0
                     rewarded = []
                     for row in results:
-                        UserId = row[0]
+                        UserId = int(row[0])
                         print(f"Checking {UserId}")
                         if not await self.bot.IsSenior(UserId) and interaction.guild.get_member(UserId) is not None:
                             print(f"{UserId} is not a senior")
@@ -74,7 +74,7 @@ class rewards(commands.GroupCog, group_name='reward', group_description='Manage 
                     output = ""
                     for row in results:
                         UserId = int(row[0])
-                        if not await self.bot.IsSenior(UserId) and interaction.guild.get_member(UserId) is not None:
+                        if interaction.guild.get_member(UserId) is not None:
                             output += f"<@{row[0]}> - {row[1]}\n"
                     await interaction.followup.send(output, ephemeral=True)
 
