@@ -7,7 +7,6 @@ class rewards(commands.GroupCog, group_name='reward', group_description='Manage 
     @app_commands.command(name='distribute_rewards', description="Distribute rewards based on the past 4 weeks")
     @app_commands.checks.has_role(role_ids.management)
     async def distribute_rewards(self, interaction: discord.Interaction, week_start : str, just_show : bool = False):
-        ids_to_check = [m.id for m in get(interaction.guild.roles, id = role_ids.staff).members]
         await interaction.response.defer(thinking=True, ephemeral=True)
         
         async with aiosqlite.connect(database) as db:
