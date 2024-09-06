@@ -209,6 +209,9 @@ class bot(commands.Bot):
         
         if not self.weekly_quota_reminder_after.is_running():
             self.weekly_quota_reminder_after.start()
+            
+        if not self.experienced_role_distribute.is_running():
+            self.experienced_role_distribute.start()
         
         async with aiosqlite.connect(database) as db:
             #YYYY-MM-DD
@@ -285,6 +288,13 @@ class bot(commands.Bot):
         #     self.synced = True
         print_green(self.guilds)
         print_green(f"Logged in as {self.user}.")
+    
+    @tasks.loop(hours=24)
+    async def experienced_role_distribute(self):
+        guild = aclient.get_guild(guild_id)
+        for m in guild.members:
+            if m.joined_at < datetime.now() - timedelta(days=365) and not m.bot:
+                await m.add_roles(get(aclient.get_guild(guild_id), id=1281614132419891200))
     
     weekly_reminder_time_before = time(hour=18, tzinfo=timezone.utc)
     
