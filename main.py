@@ -292,6 +292,7 @@ class bot(commands.Bot):
     @tasks.loop(hours=24)
     async def experienced_role_distribute(self):
         guild = aclient.get_guild(guild_id)
+        print(str(guild == None))
         for m in guild.members:
             if m.joined_at and m.joined_at < datetime.now(timezone.utc) - timedelta(days=365) and not m.bot:
                 role = get(guild.roles, id=1281614132419891200)
