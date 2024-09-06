@@ -292,9 +292,10 @@ class bot(commands.Bot):
     @tasks.loop(hours=24)
     async def experienced_role_distribute(self):
         guild = aclient.get_guild(guild_id)
-        for m in list(guild.members):
-            if m.joined_at < datetime.now(timezone.utc) - timedelta(days=365) and not m.bot:
-                await m.add_roles(get(aclient.get_guild(guild_id), id=1281614132419891200))
+        for m in guild.members:
+            if m.joined_at and m.joined_at < datetime.now(timezone.utc) - timedelta(days=365) and not m.bot:
+                role = get(guild.roles, id=1281614132419891200)
+                await m.add_roles(role)
     
     weekly_reminder_time_before = time(hour=18, tzinfo=timezone.utc)
     
