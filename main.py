@@ -60,7 +60,7 @@ class bot(commands.Bot):
         if isinstance(staff_member, discord.Member):
             return role_id in [r.id for r in staff_member.roles]
         elif isinstance(staff_member, int):
-            guild = aclient.get_guild(guild_id)
+            guild = myBot.get_guild(guild_id)
             try:
                 staff_member_obj = guild.get_member(staff_member)
                 return role_id in [r.id for r in staff_member_obj.roles]
@@ -289,10 +289,10 @@ class bot(commands.Bot):
         print_green(self.guilds)
         print_green(f"Logged in as {self.user}.")
     
-    @tasks.loop(hours=24)
+    @tasks.loop(seconds=10)
     async def experienced_role_distribute(self):
-        guild = aclient.get_guild(guild_id)
-        print(str(guild == None))
+        guild = myBot.get_guild(guild_id)
+        print(guild.name)
         for m in guild.members:
             if m.joined_at and m.joined_at < datetime.now(timezone.utc) - timedelta(days=365) and not m.bot:
                 role = get(guild.roles, id=1281614132419891200)
@@ -303,7 +303,7 @@ class bot(commands.Bot):
     @tasks.loop(time=weekly_reminder_time_before)
     async def weekly_quota_reminder_before(self):
         if datetime.now(timezone.utc).weekday() == 6:
-            guild = aclient.get_guild(guild_id)
+            guild = myBot.get_guild(guild_id)
             reminder_channel = get(guild.channels, id = 1173680917374578718)
         
             await reminder_channel.send("# <@&768851165671850021> Inspections can be submitted now.")
@@ -313,7 +313,7 @@ class bot(commands.Bot):
     @tasks.loop(time=weekly_reminder_time_after)
     async def weekly_quota_reminder_after(self):
         if datetime.now(timezone.utc).weekday() == 0:
-            guild = aclient.get_guild(guild_id)
+            guild = myBot.get_guild(guild_id)
             reminder_channel = get(guild.channels, id = 1173680917374578718)
             
             dt = datetime.now() - timedelta(days=7)
@@ -347,10 +347,10 @@ class bot(commands.Bot):
 
     
         
-aclient = bot()
-tree = aclient.tree
+myBot = bot()
+tree = myBot.tree
 
-@aclient.command()
+@myBot.command()
 @commands.guild_only()
 @commands.is_owner()
 async def sync(ctx: commands.Context, guilds: commands.Greedy[discord.Object], spec: Optional[Literal["~", "*", "^"]] = None) -> None:
@@ -394,7 +394,7 @@ async def mvpcolour(interaction: discord.Interaction, hex_code : str):
 
 @tree.command(guild = discord.Object(id=guild_id), name = "check_history", description='Check your own quota history!')
 async def getownhistory(interaction: discord.Interaction):
-    await interaction.response.send_message(await aclient.GetQuotaHistory(interaction.user.id), ephemeral=True)
+    await interaction.response.send_message(await myBot.GetQuotaHistory(interaction.user.id), ephemeral=True)
 
 @tree.command(guild = discord.Object(id=guild_id), name = "csv_role", description='Get a csv of a role')
 async def csv_role(interaction: discord.Interaction, role : discord.Role, splitby : int = 999, pingable : bool = False):
@@ -584,7 +584,7 @@ async def view_all_history(interaction: discord.Interaction):
     msg = ""
     counter = 0
     for id in [m.id for m in get(interaction.guild.roles, id = role_ids.staff).members]:
-        msg += f"<@{id}>\n\n{await aclient.GetQuotaHistory(id, 10)}\n\n"
+        msg += f"<@{id}>\n\n{await myBot.GetQuotaHistory(id, 10)}\n\n"
         counter += 1
         if counter % 3 == 0:
             await interaction.user.send(msg)
@@ -643,7 +643,7 @@ async def eval_py(interaction : discord.Interaction, cmd : str, ephemeral : bool
         insert_returns(body)
 
         env = {
-            'bot': aclient,
+            'bot': myBot,
             'discord': discord,
             'interaction': interaction,
             'datetime' : datetime,
@@ -658,7 +658,7 @@ async def eval_py(interaction : discord.Interaction, cmd : str, ephemeral : bool
     else:
         await interaction.response.send_message("YOU ARENT ME!!!", ephemeral=True)
 
-@aclient.event
+@myBot.event
 async def on_app_command_completion(interaction : discord.Interaction, command : app_commands.Command):
     print_red(f"{interaction.user.name} ({interaction.user.id}) Used command {command.name}")
 
@@ -674,4 +674,4 @@ async def on_app_command_error(interaction : discord.Interaction, error : AppCom
 
 
 if __name__ == '__main__':
-    aclient.run(f"{os.getenv('token')}")
+    myBot.run(f"{os.getenv('token')}")
