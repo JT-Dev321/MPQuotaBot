@@ -20,7 +20,7 @@ class parse_data_modal(ui.Modal, title = 'Data parser'):
             output = ""
             
             for name in quotaDict:
-                output += f"`/quota log staff_member:{await interaction.guild.get_member_named(name).id} post_count:{quotaDict[name][0]} ticket_count:{quotaDict[name][1]} week_start: `\n"
+                output += f"`/quota log staff_member:{interaction.guild.get_member_named(name).id} post_count:{quotaDict[name][0]} ticket_count:{quotaDict[name][1]} week_start: `\n"
         else:
             for i in range(0, len(splitData), 6):
                 quotaDict.update({f"{splitData[i]}" : int(splitData[i+4].split(': ')[1])})
@@ -28,7 +28,7 @@ class parse_data_modal(ui.Modal, title = 'Data parser'):
             output = ""
             
             for name in quotaDict:
-                output += f"`/quota log staff_member:{await interaction.guild.get_member_named(name).id} post_count:{quotaDict[name]} ticket_count:0 week_start: `\n"
+                output += f"`/quota log staff_member:{interaction.guild.get_member_named(name).id} post_count:{quotaDict[name]} ticket_count:0 week_start: `\n"
 
         await interaction.response.send_message(output, ephemeral=True)
         
