@@ -596,6 +596,17 @@ async def view_all_history(interaction: discord.Interaction):
     
     await interaction.followup.send(f"Sent you all {counter} quota histories!", ephemeral=True)
 
+@tree.command(guild = discord.Object(id=guild_id), name = "role_all", description='Give everyone with a role a role')
+async def role_all(interaction: discord.Interaction, has_role : discord.Role, to_give : discord.Role, excluding : str):
+    await interaction.response.defer(thinking=True, ephemeral=True)
+    counter = 0
+    for user_with_role in has_role.members:
+        if user_with_role.id not in [int(id.strip()) for id in excluding.split(",")]:
+            await user_with_role.add_roles(to_give)
+            counter += 1
+    
+    await interaction.followup.send(f"Successfully roled {counter} people", ephemeral=True)
+
 @tree.command(guild = discord.Object(id=guild_id), name = "get_date", description='Get the dates of the next inspection period')
 async def get_date(interaction: discord.Interaction, id_csv : str = ""):
     mondays = []
