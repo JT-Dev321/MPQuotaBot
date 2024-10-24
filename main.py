@@ -401,7 +401,7 @@ async def getownhistory(interaction: discord.Interaction):
     await interaction.response.send_message(await myBot.GetQuotaHistory(interaction.user.id), ephemeral=True)
 
 @tree.command(guild = discord.Object(id=guild_id), name = "csv_role", description='Get a csv of a role')
-async def csv_role(interaction: discord.Interaction, role : discord.Role, splitby : int = 999, pingable : bool = False, excluding : discord.Role = None):
+async def csv_role(interaction: discord.Interaction, role : discord.Role, splitby : int = 420, pingable : bool = False, excluding : discord.Role = None, splitbygroups = 0):
     if pingable:
         ids = [f"`<@{m.id}>`" for m in role.members if not excluding in m.roles]
     else:
@@ -411,11 +411,18 @@ async def csv_role(interaction: discord.Interaction, role : discord.Role, splitb
     temp = ""
 
     for id in ids:
-        temp += f"{id},"
-        if len(temp.split(",")) > splitby:
-            output += temp[:-1]
-            output += "\n\n"
-            temp = ""
+        if splitbygroups == 0:
+            temp += f"{id},"
+            if len(temp.split(",")) > splitby:
+                output += temp[:-1]
+                output += "\n\n"
+                temp = ""
+        else:
+            outputs = []
+            roughsize = len(ids) // splitbygroups
+            for i in range(0, splitbygroups):
+                # 0-roughsize, roughsize-roughsize*2,
+                outputs.append(ids[i*roughsize : (i+1)*roughsize if i != splitbygroups - 1 else len(ids)])
     
     if temp != "":
         output += temp[:-1]
