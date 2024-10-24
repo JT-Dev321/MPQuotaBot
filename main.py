@@ -400,6 +400,13 @@ async def mvpcolour(interaction: discord.Interaction, hex_code : str):
 async def getownhistory(interaction: discord.Interaction):
     await interaction.response.send_message(await myBot.GetQuotaHistory(interaction.user.id), ephemeral=True)
 
+@tree.command(guild = discord.Object(id=guild_id), name = "csvpingable", description='Yep')
+async def csvpingable(interaction: discord.Interaction, csv_ids : str):
+    output = ""
+    for id in csv_ids.split(","):
+        output += f"<@{str(id).strip()}>\n"
+    await interaction.response.send_message(output, ephemeral=True)
+    
 @tree.command(guild = discord.Object(id=guild_id), name = "csv_role", description='Get a csv of a role')
 async def csv_role(interaction: discord.Interaction, role : discord.Role, splitby : int = 420, pingable : bool = False, excluding : discord.Role = None, splitbygroups : int = 0):
     if pingable:
