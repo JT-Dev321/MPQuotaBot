@@ -423,11 +423,15 @@ async def csv_role(interaction: discord.Interaction, role : discord.Role, splitb
             for i in range(0, splitbygroups):
                 # 0-roughsize, roughsize-roughsize*2,
                 outputs.append(ids[i*roughsize : (i+1)*roughsize if i != splitbygroups - 1 else len(ids)])
+                
+                output = "\n\n".join([",".join(idlist) for idlist in outputs])
     
     if temp != "":
         output += temp[:-1]
-        
-    await interaction.response.send_message(output, ephemeral=True)  
+    
+
+    await interaction.response.send_message(output, ephemeral=True)
+
 
 @tree.command(guild = discord.Object(id=guild_id), name = "sql", description='Run SQL')
 async def run_sql(interaction: discord.Interaction, sql : str):
