@@ -401,11 +401,11 @@ async def getownhistory(interaction: discord.Interaction):
     await interaction.response.send_message(await myBot.GetQuotaHistory(interaction.user.id), ephemeral=True)
 
 @tree.command(guild = discord.Object(id=guild_id), name = "csv_role", description='Get a csv of a role')
-async def csv_role(interaction: discord.Interaction, role : discord.Role, splitby : int = 999, pingable : bool = False):
+async def csv_role(interaction: discord.Interaction, role : discord.Role, splitby : int = 999, pingable : bool = False, excluding : discord.Role = None):
     if pingable:
-        ids = [f"`<@{m.id}>`" for m in role.members]
+        ids = [f"`<@{m.id}>`" for m in role.members if not excluding in m.roles]
     else:
-        ids = [f"{m.id}" for m in role.members]
+        ids = [f"{m.id}" for m in role.members if not excluding in m.roles]
     
     output = ""
     temp = ""
