@@ -37,7 +37,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
                                 monday = f'{dt.year}-{dt.month}-{dt.day}'
                                 break
                             
-                        activity = self.bot.IsSenior(interaction.guild.get_member_named(name))
+                        activity = await self.bot.IsSenior(interaction.guild.get_member_named(name))
                         if activity == False:
                             activity = None
                         output += f"{interaction.guild.get_member_named(name).mention} - " + await self.bot.logQuota(interaction.guild.get_member_named(name),
