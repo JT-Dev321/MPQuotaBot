@@ -13,6 +13,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
         data = ui.TextInput(label = 'Data', style = discord.TextStyle.paragraph, required = True)
         
         async def on_submit(self, interaction: discord.Interaction) -> None:
+            await interaction.response.defer(thinking=True, ephemeral=True)
             splitData = self.data.value.split('\n')
             print_green("Hi")
             quotaDict = {}
@@ -59,9 +60,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
                         print_green(f"Would log {name} with {quotaDict[name]} posts")
                         # await self.bot.logQuota()
             if output != "":
-                await interaction.response.send_message(output, ephemeral=True)
-            else:
-                await interaction.response.defer()
+                await interaction.followup.send(output, ephemeral=True)
     
     @app_commands.command(name = "get_date", description='Get the dates of the next inspection period')
     async def get_date(self, interaction: discord.Interaction):
