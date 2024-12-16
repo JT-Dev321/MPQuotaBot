@@ -76,6 +76,176 @@ class bot(commands.Bot):
     async def IsIntern(self, staff_member):
         return await self.has_role_f(staff_member, role_ids.intern)
 
+    async def logQuota(self, staff_member : discord.Member, logger : discord.Member, post_count : int, ticket_count : int, week_start : str, activity : bool = None, override_excused : bool = False, apply_rewards : bool = True, auto_strike : bool = True, override_existing : bool = False, dm_user : bool = True):
+        # all wrong to do with senior quota (post count)
+        reward_excused = False
+        striked = False
+        Is_Senior = await myBot.IsSenior(staff_member)
+        
+        # work out the target users quota requirement
+        requirement = 0
+        ticketrequirement = 0
+        if Is_Senior:
+            requirement = await myBot.getSeniorQuota()
+            ticketrequirement = await myBot.getSeniorTicketQuota()
+        elif await myBot.IsSenior(staff_member):
+            requirement = await myBot.getInternQuota()
+        else:
+            requirement = await myBot.getQuota()
+
+        # check if inspector is a senior
+        if not await myBot.IsSenior(logger):
+            return
+
+        #ensure valid date
+        if not await myBot.CheckValidDate(week_start):
+            return
+
+        # checks if theyre a senior but the activity param is empty (somethings wrong)
+        if Is_Senior and activity == None: 
+            await interaction.followup.send("The user you are logging is a senior - You need to fill in the activity parameter", ephemeral=True)
+            return
+
+        # checks if someone is trying to record activity for a non-senior
+        if not Is_Senior and activity != None:
+            return
+
+        # ensure users quota hasnt already been recorded for that week
+        existing_quota = None
+        if not Is_Senior:
+            async with aiosqlite.connect(database) as db:
+                async with db.execute('SELECT InspecteeID FROM Inspections WHERE WeekStart=? AND InspecteeID=?', (week_start,staff_member.id)) as cursor:
+                    existing_quota = await cursor.fetchone()
+        else:
+            async with aiosqlite.connect(database) as db:
+                async with db.execute('SELECT InspecteeID FROM SeniorInspections WHERE WeekStart=? AND InspecteeID=?', (week_start,staff_member.id)) as cursor:
+                    existing_quota = await cursor.fetchone()
+        if existing_quota != None and not override_existing:
+            return
+
+        # Excused
+        excused = False
+        if not override_excused and post_count < requirement:
+            async with aiosqlite.connect(database) as db:
+                async with db.execute('SELECT StaffID FROM Excused WHERE InspectionCount > 0 AND StaffID = ?', (staff_member.id,)) as cursor:
+                    row = await cursor.fetchone()
+                if row is not None:
+                    excused = True
+                    await db.execute('UPDATE Excused SET InspectionCount = InspectionCount - 1 WHERE StaffID = ?', (staff_member.id,))
+                    await db.commit()
+        elif override_excused:
+            excused = True
+        
+        # REWARDS
+        if apply_rewards and not excused and post_count < requirement and not Is_Senior:
+            async with aiosqlite.connect(database) as db: # get rewards
+                async with db.execute('SELECT ID, Type, DateGiven, Charges FROM Rewards WHERE RecipientID=? AND Charges > 0', (staff_member.id,)) as cursor:
+                    results = await cursor.fetchall()
+            
+            valid_rewards = []
+            
+            for r in results:
+                date = str(r[2]).split("-")
+                dt = datetime(int(date[0]), int(date[1]), int(date[2]))
+                if dt > datetime.now() - timedelta(days=31):
+                    valid_rewards.append(r)
+            
+            if len(valid_rewards) > 0: # consume reward if applicable
+                for i in range(2):
+                    for reward in valid_rewards:
+                        # 2 ifs so if half doesnt make them pass and they have an excused, then the excused will activate
+                        if i == 0: # check all the halfs first (less valuable)
+                            if "Half" in reward[1]:
+                                if post_count >= (requirement * 0.5):
+                                    async with aiosqlite.connect(database) as db:
+                                        await db.execute('UPDATE Rewards SET Charges=? WHERE RecipientID=? AND Charges > 0 AND ID=? AND Type=?', (reward[3] - 1, staff_member.id, r[0], "Quota Half"))
+                                        await db.commit()
+                                    reward_excused = True
+                                    break
+                        if i == 1:
+                            if "Excused" in reward[1]:
+                                async with aiosqlite.connect(database) as db:
+                                    await db.execute('UPDATE Rewards SET Charges=? WHERE RecipientID=? AND Charges > 0 AND ID=? AND Type=?', (reward[3] - 1, staff_member.id, r[0], "Quota Excused"))
+                                    await db.commit()
+                                reward_excused = True
+                                break
+
+
+        # STRIKES
+        if auto_strike and not excused and not reward_excused:
+            if not Is_Senior:
+                if post_count < requirement:
+                    striked = True
+                    async with aiosqlite.connect(database) as db:
+                        await db.execute('INSERT INTO Strikes (RecipientID, SeniorID, DateGiven) VALUES (?, ?, ?)', (staff_member.id, logger.id, week_start))
+                        await db.commit()
+            else:
+                if post_count < requirement and not activity:
+                    striked = True
+                    async with aiosqlite.connect(database) as db:
+                        await db.execute('INSERT INTO Strikes (RecipientID, SeniorID, DateGiven) VALUES (?, ?, ?)', (staff_member.id, logger.id, week_start))
+                        await db.commit()
+
+
+        # FINAL SQL
+        async with aiosqlite.connect(database) as db:
+            async with db.execute('SELECT StartDate FROM Weeks WHERE StartDate=?', (week_start,)) as cursor:
+                existing_week = await cursor.fetchone()
+            
+            if existing_week is None:
+                await db.execute('INSERT INTO Weeks (StartDate, PostRequirement, SeniorPostRequirement, InternPostRequirement) VALUES (?, ?, ?, ?)', (week_start, await myBot.getQuota(), await myBot.getSeniorQuota(), await myBot.getInternQuota()))
+                await db.commit()
+            
+            if not Is_Senior:
+                await db.execute('INSERT OR REPLACE INTO Inspections (InspecteeID, InspectorID, PostsCompleted, WeekStart, InactivityExcused, RewardExcused, Pass, TicketsCompleted) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', 
+                                    (staff_member.id, logger.id, post_count, week_start, int(excused), int(reward_excused), int(post_count >= requirement or int(excused) or int(reward_excused)), ticket_count))
+            else:
+                await db.execute('INSERT OR REPLACE INTO SeniorInspections (InspecteeID, InspectorID, PostsCompleted, Activity, WeekStart, InactivityExcused, RewardExcused, Pass, TicketsCompleted) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', 
+                                    (staff_member.id, logger.id, post_count, int(activity), week_start, int(excused), int(reward_excused), int(post_count >= requirement and ticket_count >= ticketrequirement and activity or excused or reward_excused), ticket_count))
+
+            await db.commit()
+
+
+        logchannel = self.get_channel(channel_ids.quota_logs)
+        strikelogchannel = self.get_channel(channel_ids.strike_logs)
+        if Is_Senior:
+            logchannel = self.get_channel(channel_ids.senior_quota_logs)
+            strikelogchannel = self.get_channel(channel_ids.senior_strike_logs)
+        
+        logmsg = f"### {logger.mention} logged {staff_member.mention}'s quota.\n{await myBot.GetQuotaHistory(staff_member.id, 1)}"
+        logmsgsent = await logchannel.send(logmsg)
+        
+        finalmsg = f"Done! - Quota for {staff_member.mention} has been logged successfully."
+
+        if override_existing:
+            finalmsg += f"\nIf this user already had a quota recorded, it has been overridden!\n**Please do the following:**\n- Delete the old log in <#{channel_ids.quota_logs}>\n- Remove any old strikes the user may have gotten (if the old quota recorded as a fail)\n- Replenish any rewards mistakenly consumed by this action"
+
+        if striked:
+            finalmsg += "\n- The user was striked"
+        if reward_excused:
+            finalmsg += "\n- The user was excused by an active reward"
+
+        # STRIKE CHECK
+        strike_streak = await myBot.Get_Consecutive_Strikes(staff_member.id)
+        if strike_streak > 0:
+            finalmsg += f"\n\nPlease note that this user's current consecutive strike streak is now `{strike_streak}`, any actions that need to be taken based on this information are not automated."
+
+        if striked:
+            await strikelogchannel.send(f"{staff_member.mention} [was striked]({logmsgsent.jump_url})\n\nQuota History:\n{await myBot.GetQuotaHistory(staff_member.id)}")
+
+        dm_msg = f"# <:MP:1173683497697808424> | Weekly Inspection Notice\n### {logger.mention} has logged your quota for the week beginning {week_start}\n- Posts: {post_count}"
+        
+        if Is_Senior:
+            dm_msg += f"\n- Activity: {activity}"
+            
+        dm_msg += f"\n\nYour recent quota history:\n{await myBot.GetQuotaHistory(staff_member.id, 5)}"
+        
+        if dm_user:
+            await staff_member.send(dm_msg)
+        
+        return finalmsg
+        
+    
     async def get_variable(self, key):
         async with aiosqlite.connect(database) as db:
             async with db.execute('SELECT value FROM Quotas WHERE key=?', (key,)) as cursor:

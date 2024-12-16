@@ -1,40 +1,44 @@
 from ..imports import *
 
-class parse_data_modal(ui.Modal, title = 'Data parser'):
-
-    def __init__(self):
-        super().__init__()
-
-    data = ui.TextInput(label = 'Data', style = discord.TextStyle.paragraph, required = True)
-    
-    async def on_submit(self, interaction: discord.Interaction) -> None:
-        splitData = self.data.value.split('\n')
-        
-        quotaDict = {}
-        
-        
-        if "Marketplace Tickets:" in str(self.data.value):
-            for i in range(0, len(splitData), 7):
-                quotaDict.update({f"{splitData[i]}" : [int(splitData[i+4].split(': ')[1]), int(splitData[i+5].split(': ')[1])]})
-            
-            output = ""
-            
-            for name in quotaDict:
-                output += f"`/quota log staff_member:{interaction.guild.get_member_named(name).id} post_count:{quotaDict[name][0]} ticket_count:{quotaDict[name][1]} week_start: `\n"
-        else:
-            for i in range(0, len(splitData), 6):
-                quotaDict.update({f"{splitData[i]}" : int(splitData[i+4].split(': ')[1])})
-        
-            output = ""
-            
-            for name in quotaDict:
-                output += f"`/quota log staff_member:{interaction.guild.get_member_named(name).id} post_count:{quotaDict[name]} ticket_count:0 week_start: `\n"
-
-        await interaction.response.send_message(output, ephemeral=True)
         
 class quota(commands.GroupCog, group_name='quota', group_description='Manage quotas'):
     def __init__(self, bot):
         self.bot = bot
+    class parse_data_modal(ui.Modal, title = 'Data parser'):
+        def __init__(self, bot, log : bool):
+            super().__init__()
+            self.log = log
+            self.bot = bot
+
+        data = ui.TextInput(label = 'Data', style = discord.TextStyle.paragraph, required = True)
+        
+        async def on_submit(self, interaction: discord.Interaction) -> None:
+            splitData = self.data.value.split('\n')
+            
+            quotaDict = {}
+            
+            if "Marketplace Tickets:" in str(self.data.value):
+                for i in range(0, len(splitData), 7):
+                    quotaDict.update({f"{splitData[i]}" : [int(splitData[i+4].split(': ')[1]), int(splitData[i+5].split(': ')[1])]})
+                
+                output = ""
+                
+                for name in quotaDict:
+                    output += f"`/quota log staff_member:{interaction.guild.get_member_named(name).id} post_count:{quotaDict[name][0]} ticket_count:{quotaDict[name][1]} week_start: `\n"
+            else:
+                for i in range(0, len(splitData), 6):
+                    quotaDict.update({f"{splitData[i]}" : int(splitData[i+4].split(': ')[1])})
+            
+                output = ""
+                
+                for name in quotaDict:
+                    if not self.log:
+                        output += f"`/quota log staff_member:{interaction.guild.get_member_named(name).id} post_count:{quotaDict[name]} ticket_count:0 week_start: `\n"
+                    else:
+                        print_green(f"Would log {name} with {quotaDict[name]} posts")
+                        # self.bot.logQuota()
+
+            await interaction.response.send_message(output, ephemeral=True)
     
     @app_commands.command(name = "get_date", description='Get the dates of the next inspection period')
     async def get_date(self, interaction: discord.Interaction):
@@ -54,7 +58,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
 
     @app_commands.command(name = "parsedata", description='Parse data')
     async def parseData(self, interaction: discord.Interaction):
-        await interaction.response.send_modal(parse_data_modal())
+        await interaction.response.send_modal(self.parse_data_modal(self.bot, self.bot.Is_Senior(interaction.user)))
         
     @app_commands.command(name = "set", description='Set a quota')
     @app_commands.checks.has_role(role_ids.management)
