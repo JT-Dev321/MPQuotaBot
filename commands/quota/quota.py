@@ -24,7 +24,10 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
                 output = ""
                 
                 for name in quotaDict:
-                    output += f"`/quota log staff_member:{interaction.guild.get_member_named(name).id} post_count:{quotaDict[name][0]} ticket_count:{quotaDict[name][1]} week_start: `\n"
+                    if not self.log:
+                        output += f"`/quota log staff_member:{interaction.guild.get_member_named(name).id} post_count:{quotaDict[name][0]} ticket_count:{quotaDict[name][1]} week_start: `\n"
+                    else:
+                        print_green(f"Would log {name} with {quotaDict[name][0]} posts and {quotaDict[name][1]} tickets")
             else:
                 for i in range(0, len(splitData), 6):
                     quotaDict.update({f"{splitData[i]}" : int(splitData[i+4].split(': ')[1])})
