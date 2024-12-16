@@ -42,6 +42,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
                                                 interaction.user,
                                                 quotaDict[name][0],
                                                 quotaDict[name][1],
+                                                self.bot.IsSenior(interaction.guild.get_member_named(name)),
                                                 monday) + "\n\n"
             else:
                 for i in range(0, len(splitData), 6):
