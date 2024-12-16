@@ -24,6 +24,13 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
                 
                 output = ""
                 
+                monday = ""
+                for i in range(-9,0):
+                    dt = datetime.now() + timedelta(days=i)
+                    if dt.weekday() == 0:
+                        monday = f'{dt.year}-{dt.month}-{dt.day}'
+                        break
+                    
                 for name in quotaDict:
                     if not self.log:
                         output += f"`/quota log staff_member:{interaction.guild.get_member_named(name).id} post_count:{quotaDict[name][0]} ticket_count:{quotaDict[name][1]} week_start: `\n"
@@ -31,12 +38,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
                         #print_green(f"Would log {name} with {quotaDict[name][0]} posts and {quotaDict[name][1]} tickets")
 # async def logQuota(self, staff_member : discord.Member, logger : discord.Member, post_count : int, ticket_count : int, week_start : str, activity : bool = None, override_excused : bool = False, apply_rewards : bool = True, auto_strike : bool = True, override_existing : bool = False, dm_user : bool = True):
                         
-                        monday = ""
-                        for i in range(-9,0):
-                            dt = datetime.now() + timedelta(days=i)
-                            if dt.weekday() == 0:
-                                monday = f'{dt.year}-{dt.month}-{dt.day}'
-                                break
+                        
                             
                         activity = await self.bot.IsSenior(interaction.guild.get_member_named(name))
                         if activity == False:
