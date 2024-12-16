@@ -14,7 +14,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
         
         async def on_submit(self, interaction: discord.Interaction) -> None:
             splitData = self.data.value.split('\n')
-            
+            print_green("Hi")
             quotaDict = {}
             
             if "Marketplace Tickets:" in str(self.data.value):
