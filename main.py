@@ -78,6 +78,7 @@ class bot(commands.Bot):
 
     async def logQuota(self, staff_member : discord.Member, logger : discord.Member, post_count : int, ticket_count : int, week_start : str, activity : bool = None, override_excused : bool = False, apply_rewards : bool = True, auto_strike : bool = True, override_existing : bool = False, dm_user : bool = True):
         # all wrong to do with senior quota (post count)
+        print_green("Log quota being called")
         reward_excused = False
         striked = False
         Is_Senior = await myBot.IsSenior(staff_member)

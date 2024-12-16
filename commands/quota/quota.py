@@ -36,12 +36,13 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
                             if dt.weekday() == 0:
                                 monday = f'{dt.year}-{dt.month}-{dt.day}'
                                 break
+                            
                         
-                        await self.bot.logQuota(interaction.guild.get_member_named(name),
+                        output += await self.bot.logQuota(interaction.guild.get_member_named(name),
                                                 interaction.user,
                                                 quotaDict[name][0],
                                                 quotaDict[name][1],
-                                                monday)
+                                                monday) + "\n\n"
             else:
                 for i in range(0, len(splitData), 6):
                     quotaDict.update({f"{splitData[i]}" : int(splitData[i+4].split(': ')[1])})
