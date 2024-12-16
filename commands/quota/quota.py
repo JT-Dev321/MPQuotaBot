@@ -27,7 +27,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
                     if not self.log:
                         output += f"`/quota log staff_member:{interaction.guild.get_member_named(name).id} post_count:{quotaDict[name][0]} ticket_count:{quotaDict[name][1]} week_start: `\n"
                     else:
-                        print_green(f"Would log {name} with {quotaDict[name][0]} posts and {quotaDict[name][1]} tickets")
+                        #print_green(f"Would log {name} with {quotaDict[name][0]} posts and {quotaDict[name][1]} tickets")
 # async def logQuota(self, staff_member : discord.Member, logger : discord.Member, post_count : int, ticket_count : int, week_start : str, activity : bool = None, override_excused : bool = False, apply_rewards : bool = True, auto_strike : bool = True, override_existing : bool = False, dm_user : bool = True):
                         
                         monday = ""
@@ -37,13 +37,15 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
                                 monday = f'{dt.year}-{dt.month}-{dt.day}'
                                 break
                             
-                        
-                        output += await self.bot.logQuota(interaction.guild.get_member_named(name),
+                        activity = self.bot.IsSenior(interaction.guild.get_member_named(name))
+                        if activity == False:
+                            activity = None
+                        output += f"{interaction.guild.get_member_named(name).mention} - " + await self.bot.logQuota(interaction.guild.get_member_named(name),
                                                 interaction.user,
                                                 quotaDict[name][0],
                                                 quotaDict[name][1],
                                                 monday,
-                                                await self.bot.IsSenior(interaction.guild.get_member_named(name))) + "\n\n"
+                                                activity) + "\n\n"
             else:
                 for i in range(0, len(splitData), 6):
                     quotaDict.update({f"{splitData[i]}" : int(splitData[i+4].split(': ')[1])})

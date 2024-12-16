@@ -96,19 +96,19 @@ class bot(commands.Bot):
 
         # check if inspector is a senior
         if not await myBot.IsSenior(logger):
-            return
+            return "Is a senior"
 
         #ensure valid date
         if not await myBot.CheckValidDate(week_start):
-            return
+            return "Invalid date"
 
         # checks if theyre a senior but the activity param is empty (somethings wrong)
         if Is_Senior and activity == None: 
-            return
+            return "Fill in activity for seniors"
 
         # checks if someone is trying to record activity for a non-senior
         if not Is_Senior and activity != None:
-            return
+            return "Do not put activity"
 
         # ensure users quota hasnt already been recorded for that week
         existing_quota = None
