@@ -103,7 +103,6 @@ class bot(commands.Bot):
 
         # checks if theyre a senior but the activity param is empty (somethings wrong)
         if Is_Senior and activity == None: 
-            await interaction.followup.send("The user you are logging is a senior - You need to fill in the activity parameter", ephemeral=True)
             return
 
         # checks if someone is trying to record activity for a non-senior
