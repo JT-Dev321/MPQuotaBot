@@ -28,6 +28,20 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
                         output += f"`/quota log staff_member:{interaction.guild.get_member_named(name).id} post_count:{quotaDict[name][0]} ticket_count:{quotaDict[name][1]} week_start: `\n"
                     else:
                         print_green(f"Would log {name} with {quotaDict[name][0]} posts and {quotaDict[name][1]} tickets")
+# async def logQuota(self, staff_member : discord.Member, logger : discord.Member, post_count : int, ticket_count : int, week_start : str, activity : bool = None, override_excused : bool = False, apply_rewards : bool = True, auto_strike : bool = True, override_existing : bool = False, dm_user : bool = True):
+                        
+                        monday = ""
+                        for i in range(-9,0):
+                            dt = datetime.now() + timedelta(days=i)
+                            if dt.weekday() == 0:
+                                monday = f'{dt.year}-{dt.month}-{dt.day}'
+                                break
+                        
+                        await self.bot.logQuota(interaction.guild.get_member_named(name),
+                                                interaction.user,
+                                                quotaDict[name][0],
+                                                quotaDict[name][1],
+                                                monday)
             else:
                 for i in range(0, len(splitData), 6):
                     quotaDict.update({f"{splitData[i]}" : int(splitData[i+4].split(': ')[1])})
@@ -40,8 +54,10 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
                     else:
                         print_green(f"Would log {name} with {quotaDict[name]} posts")
                         # await self.bot.logQuota()
-
-            await interaction.response.send_message(output, ephemeral=True)
+            if output != "":
+                await interaction.response.send_message(output, ephemeral=True)
+            else:
+                await interaction.response.defer()
     
     @app_commands.command(name = "get_date", description='Get the dates of the next inspection period')
     async def get_date(self, interaction: discord.Interaction):
