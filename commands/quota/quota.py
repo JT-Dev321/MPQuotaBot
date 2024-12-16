@@ -36,7 +36,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
                         output += f"`/quota log staff_member:{interaction.guild.get_member_named(name).id} post_count:{quotaDict[name]} ticket_count:0 week_start: `\n"
                     else:
                         print_green(f"Would log {name} with {quotaDict[name]} posts")
-                        # self.bot.logQuota()
+                        # await self.bot.logQuota()
 
             await interaction.response.send_message(output, ephemeral=True)
     
@@ -58,7 +58,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
 
     @app_commands.command(name = "parsedata", description='Parse data')
     async def parseData(self, interaction: discord.Interaction):
-        await interaction.response.send_modal(self.parse_data_modal(self.bot, self.bot.IsSenior(interaction.user)))
+        await interaction.response.send_modal(self.parse_data_modal(self.bot, await self.bot.IsSenior(interaction.user)))
         
     @app_commands.command(name = "set", description='Set a quota')
     @app_commands.checks.has_role(role_ids.management)
