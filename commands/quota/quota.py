@@ -94,11 +94,15 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
 
     @app_commands.command(name = "inactivity_add", description='Add a user to inactivity')
     @app_commands.checks.has_role(role_ids.management)
-    async def inactivity_add(self, interaction: discord.Interaction, staff_member : discord.Member, inspection_count : int):
+    async def inactivity_add(self, interaction: discord.Interaction, inspection_count : int, staff_member : discord.Member = None, role : discord.Role = None):
         async with aiosqlite.connect(database) as db:
-            await db.execute('INSERT OR REPLACE INTO Excused (StaffID, InspectionCount) VALUES (?, ?)', (staff_member.id, inspection_count))
+            if staff_member is not None:
+                await db.execute('INSERT OR REPLACE INTO Excused (StaffID, InspectionCount) VALUES (?, ?)', (staff_member.id, inspection_count))
+            elif role is not None:
+                for id in [i.id for i in role.members]:
+                    await db.execute('INSERT OR REPLACE INTO Excused (StaffID, InspectionCount) VALUES (?, ?)', (id, inspection_count))
             await db.commit()
-            await interaction.response.send_message("Successfully added user!", ephemeral=True)
+            await interaction.response.send_message("Successfully added!", ephemeral=True)
         
     @app_commands.command(name = "inactivity_view", description='View all active inactivity notices.')
     @app_commands.checks.has_role(role_ids.management)
