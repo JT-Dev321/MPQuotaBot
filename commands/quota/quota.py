@@ -412,6 +412,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
             
             sortedData = sorted(passrates, key=lambda x: x[1])
             
+            output = ""
             for v in sortedData:
                 output += f"<@{v[0]}> | `{v[1]}`%\n"
             await interaction.response.send_message(output, ephemeral=True)
