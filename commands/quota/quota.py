@@ -97,10 +97,18 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
     async def inactivity_add(self, interaction: discord.Interaction, inspection_count : int, staff_member : discord.Member = None, role : discord.Role = None):
         async with aiosqlite.connect(database) as db:
             if staff_member is not None:
-                await db.execute('INSERT OR REPLACE INTO Excused (StaffID, InspectionCount) VALUES (?, ?)', (staff_member.id, inspection_count))
+                await db.execute("""
+                    INSERT INTO Excused (StaffID, InspectionCount)
+                    VALUES (?, ?)
+                    ON CONFLICT(StaffID) DO UPDATE SET InspectionCount = InspectionCount + ?
+                """, (staff_member.id, inspection_count, inspection_count))
             elif role is not None:
-                for id in [i.id for i in role.members]:
-                    await db.execute('INSERT OR REPLACE INTO Excused (StaffID, InspectionCount) VALUES (?, ?)', (id, inspection_count))
+                for id in [m.id for m in role.members]:
+                    await db.execute("""
+                        INSERT INTO Excused (StaffID, InspectionCount)
+                        VALUES (?, ?)
+                        ON CONFLICT(StaffID) DO UPDATE SET InspectionCount = InspectionCount + ?
+                    """, (id, inspection_count, inspection_count))
             await db.commit()
             await interaction.response.send_message("Successfully added!", ephemeral=True)
         
@@ -364,6 +372,25 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
     async def gethistory(self, interaction: discord.Interaction, staff_member : discord.Member):
         await interaction.response.send_message(await self.bot.GetQuotaHistory(staff_member.id), ephemeral=True)
 
+    
+    @app_commands.command(name = "get_lifetime_history", description='Get a lifetime quota history')
+    async def getlifehistory(self, interaction: discord.Interaction, staff_member : discord.Member):
+        rows = None
+        
+        async with aiosqlite.connect(database) as db:
+            async with db.execute("""SELECT Pass
+                                    FROM Inspections
+                                    WHERE InspecteeID = ?
+                                    """, (staff_member)) as cursor:
+                rows = await cursor.fetchall()
+            
+        PFList = [bool(int(row[0])) for row in rows]
+        passes = [PF for PF in PFList if PF]
+        passRate = round(len(passes) / len(PFList), 2)
+        failRate = round(100 - passRate, 2)
+        
+        await interaction.response.send_message(f"Pass: {len(passes)} | `{passRate}%`\nFail: {len(PFList) - len(passes)} | `{failRate}%`", ephemeral=True)
+    
     @app_commands.command(name = "mvp", description='Get the mvp list for a week')
     @app_commands.describe(week_start="Format: YYYY-MM-DD | Must use Monday of week")
     async def getmvp(self, interaction: discord.Interaction, week_start : str, post_threshold : int, ticket_threshold : int, form_announcement : bool = False, give_role : bool = False):
