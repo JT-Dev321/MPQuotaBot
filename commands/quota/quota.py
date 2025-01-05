@@ -408,13 +408,13 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
                 passRate = round(len(passes) / len(PFList) * 100, 2) if PFList else 0
                 failRate = round(100 - passRate, 2)
                 
-                passrates.append([id, passRate])
+                passrates.append([id, passRate, len(PFList)])
             
             sortedData = sorted(passrates, key=lambda x: x[1])
             
             output = ""
             for v in sortedData:
-                output += f"<@{v[0]}> | `{v[1]}`%\n"
+                output += f"<@{v[0]}> | `{v[1]}`% | {v[2]}\n"
             await interaction.response.send_message(output, ephemeral=True)
     
     @app_commands.command(name = "mvp", description='Get the mvp list for a week')
