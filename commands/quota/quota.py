@@ -405,7 +405,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
                     
                 PFList = [bool(int(row[0])) for row in rows]
                 passes = [PF for PF in PFList if PF]
-                passRate = round(len(passes) / len(PFList) * 100, 2)
+                passRate = round(len(passes) / len(PFList) * 100, 2) if PFList else 0
                 failRate = round(100 - passRate, 2)
                 
                 output += f"<@{id}> | `{passRate}`%\n"
