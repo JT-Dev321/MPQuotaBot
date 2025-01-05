@@ -386,7 +386,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
             
         PFList = [bool(int(row[0])) for row in rows]
         passes = [PF for PF in PFList if PF]
-        passRate = round(len(passes) / len(PFList), 2)
+        passRate = round(len(passes) / len(PFList) * 100, 2)
         failRate = round(100 - passRate, 2)
         
         await interaction.response.send_message(f"Pass: {len(passes)} | `{passRate}%`\nFail: {len(PFList) - len(passes)} | `{failRate}%`", ephemeral=True)
