@@ -410,7 +410,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
                 
                 passrates.append([id, passRate])
             
-            sortedData = sorted(data, key=lambda x: x[1])
+            sortedData = sorted(passrates, key=lambda x: x[1])
             
             for v in sortedData:
                 output += f"<@{v[0]}> | `{v[1]}`%\n"
