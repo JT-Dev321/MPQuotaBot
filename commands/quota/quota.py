@@ -379,9 +379,9 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
         
         async with aiosqlite.connect(database) as db:
             async with db.execute("""SELECT Pass
-                                    FROM Inspections
+                                    FROM Inspections    
                                     WHERE InspecteeID = ?
-                                    """, (staff_member)) as cursor:
+                                    """, (staff_member.id,)) as cursor:
                 rows = await cursor.fetchall()
             
         PFList = [bool(int(row[0])) for row in rows]
