@@ -394,7 +394,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
             await interaction.response.send_message(f"Pass: {len(passes)} | `{passRate}%`\nFail: {len(PFList) - len(passes)} | `{failRate}%`", ephemeral=True)
         elif role:
             ids = [m.id for m in role.members]
-            output = ""
+            passrates = []
             for id in ids:
                 async with aiosqlite.connect(database) as db:
                     async with db.execute("""SELECT Pass
@@ -408,7 +408,12 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
                 passRate = round(len(passes) / len(PFList) * 100, 2) if PFList else 0
                 failRate = round(100 - passRate, 2)
                 
-                output += f"<@{id}> | `{passRate}`%\n"
+                passrates.append([id, passRate])
+            
+            sortedData = sorted(data, key=lambda x: x[1])
+            
+            for v in sortedData:
+                output += f"<@{v[0]}> | `{v[1]}`%\n"
             await interaction.response.send_message(output, ephemeral=True)
     
     @app_commands.command(name = "mvp", description='Get the mvp list for a week')
