@@ -215,7 +215,7 @@ class bot(commands.Bot):
         logmsg = f"### {logger.mention} logged {staff_member.mention}'s quota.\n{await myBot.GetQuotaHistory(staff_member.id, 1)}"
         logmsgsent = await logchannel.send(logmsg)
         
-        finalmsg = f"Done! - Quota for {staff_member.mention} has been logged successfully."
+        finalmsg = f"Quota logged successfully."
 
         if override_existing:
             finalmsg += f"\nIf this user already had a quota recorded, it has been overridden!\n**Please do the following:**\n- Delete the old log in <#{channel_ids.quota_logs}>\n- Remove any old strikes the user may have gotten (if the old quota recorded as a fail)\n- Replenish any rewards mistakenly consumed by this action"
@@ -854,7 +854,7 @@ async def eval_py(interaction : discord.Interaction, cmd : str, ephemeral : bool
         }
         exec(compile(parsed, filename="<ast>", mode="exec"), env)
 
-        result = (await eval(f"{fn_name}()", env))
+        result = str(await eval(f"{fn_name}()", env))
         if len(result) == 0:
             result = "No return value"
         await interaction.response.send_message(result, ephemeral=ephemeral)
