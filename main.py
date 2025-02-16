@@ -456,6 +456,8 @@ class bot(commands.Bot):
         # if not self.synced:
         #     await tree.sync(guild = discord.Object(id=guild_id))
         #     self.synced = True
+        if not self.experienced_role_distribute.is_running():
+            self.experienced_role_distribute.start()
         print_green(self.guilds)
         print_green(f"Logged in as {self.user}.")
     
