@@ -461,7 +461,7 @@ class bot(commands.Bot):
         print_green(self.guilds)
         print_green(f"Logged in as {self.user}.")
     
-    @tasks.loop(seconds=5)
+    @tasks.loop(hours=1)
     async def experienced_role_distribute(self):
         print_green("Experienced Role Task")
         guild = myBot.get_guild(guild_id)
