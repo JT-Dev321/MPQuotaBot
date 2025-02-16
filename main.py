@@ -462,7 +462,6 @@ class bot(commands.Bot):
     @tasks.loop(hours=24)
     async def experienced_role_distribute(self):
         guild = myBot.get_guild(guild_id)
-        print(guild.name)
         for m in guild.members:
             if m.joined_at and m.joined_at < datetime.now(timezone.utc) - timedelta(days=182) and not m.bot and not await self.has_role_f(m, 768851165671850023):
                 role = get(guild.roles, id=1281614132419891200)
@@ -470,7 +469,6 @@ class bot(commands.Bot):
                 if m.joined_at and m.joined_at < datetime.now(timezone.utc) - timedelta(days=365) and not m.bot and not await self.has_role_f(m, 768851165671850023):
                     role = get(guild.roles, id=1281621829936615484)
                     await m.add_roles(role)
-            
     
     weekly_reminder_time_before = time(hour=18, tzinfo=timezone.utc)
     
