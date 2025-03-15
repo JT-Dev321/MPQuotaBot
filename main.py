@@ -817,25 +817,42 @@ async def get_date(interaction: discord.Interaction, id_csv : str = ""):
         output += f" | `{i}` days ago\n"
         # /quota department:Marketplace quota_start: user_ids:
     await interaction.response.send_message(f"{output}", ephemeral=True)
-    
-@tree.command(guild = discord.Object(id=guild_id), name = "parse_and_dm", description='Parse data and DM users their quiz scores')
-@app_commands.describe(data="The data to parse and send as DMs")
-async def parse_and_dm(interaction: discord.Interaction, data: str):
-    lines = data.split('\n')
-    for line in lines:
-        if '|' in line:
-            username, score = line.split('|')
-            username = username.strip()
-            score = score.strip()
-            user = get(interaction.guild.members, name=username)
-            if user:
-                try:
-                    await user.send(f"Your score: {score}")
-                except discord.Forbidden:
-                    await interaction.response.send_message(f"Could not DM {username}", ephemeral=True)
-            else:
-                await interaction.response.send_message(f"User {username} not found", ephemeral=True)
-    await interaction.response.send_message("DMs sent!", ephemeral=True)
+
+class ParseDataModal(ui.Modal, title='Data parser'):
+    def __init__(self):
+        super().__init__()
+
+    data = ui.TextInput(label='Data', style=discord.TextStyle.paragraph, required=True)
+
+    async def on_submit(self, interaction: discord.Interaction) -> None:
+        await interaction.response.defer(thinking=True, ephemeral=True)
+        split_data = self.data.value.split('\n')
+        
+        # Process the data here
+        result = ""
+        counter = 0
+        for line in split_data:
+            if '|' in line:
+                username, score = line.split('|')
+                username = username.strip()
+                score = score.strip()
+                user = get(interaction.guild.members, name=username)
+                if user:
+                    try:
+                        await user.send(f"Your score: {score}")
+                        result += f"Sent {username} a message\n"
+                        counter += 1
+                    except discord.Forbidden:
+                        result += f"Could not DM {username}\n"
+                else:
+                    result += f"User {username} not found\n"
+        
+        await interaction.followup.send(f"Sent `{counter}` messages.\n\n{result}", ephemeral=True)
+
+@tree.command(guild=discord.Object(id=guild_id), name="dm_quiz_data", description="Open a modal to parse data")
+async def dm_quiz_data(interaction: discord.Interaction):
+    modal = ParseDataModal()
+    await interaction.response.send_modal(modal)
 
 def parse_timezone(name):
     timezone = name.split(" | GMT")[1]
