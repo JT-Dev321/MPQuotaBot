@@ -837,6 +837,7 @@ class ParseDataModal(ui.Modal, title='Data parser'):
                 username = username.strip()
                 score = score.strip()
                 user = get(interaction.guild.members, name=username)
+                username = "`username`"
                 if user:
                     try:
                         await user.send(f"Your score: {score}")
