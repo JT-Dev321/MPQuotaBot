@@ -817,6 +817,25 @@ async def get_date(interaction: discord.Interaction, id_csv : str = ""):
         output += f" | `{i}` days ago\n"
         # /quota department:Marketplace quota_start: user_ids:
     await interaction.response.send_message(f"{output}", ephemeral=True)
+    
+@tree.command(guild = discord.Object(id=guild_id), name = "parse_and_dm", description='Parse data and DM users their quiz scores')
+@app_commands.describe(data="The data to parse and send as DMs")
+async def parse_and_dm(interaction: discord.Interaction, data: str):
+    lines = data.split('\n')
+    for line in lines:
+        if '|' in line:
+            username, score = line.split('|')
+            username = username.strip()
+            score = score.strip()
+            user = get(interaction.guild.members, name=username)
+            if user:
+                try:
+                    await user.send(f"Your score: {score}")
+                except discord.Forbidden:
+                    await interaction.response.send_message(f"Could not DM {username}", ephemeral=True)
+            else:
+                await interaction.response.send_message(f"User {username} not found", ephemeral=True)
+    await interaction.response.send_message("DMs sent!", ephemeral=True)
 
 def parse_timezone(name):
     timezone = name.split(" | GMT")[1]
