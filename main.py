@@ -13,6 +13,7 @@ import re
 import math
 import itertools
 import ast
+import aiofiles
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -865,6 +866,8 @@ async def eval_py(interaction : discord.Interaction, cmd : str, ephemeral : bool
 @myBot.event
 async def on_app_command_completion(interaction : discord.Interaction, command : app_commands.Command):
     print_red(f"{interaction.user.name} ({interaction.user.id}) Used command {command.name}")
+    async with aiofiles.open("command_logs.txt", "a") as f:
+        await f.write(f"{datetime.now().strftime("%Y-%m-%d %H:%M:%S")} | {interaction.user.name} ({interaction.user.id}) Used command {command.name}" + "\n")
 
 @tree.error
 async def on_app_command_error(interaction : discord.Interaction, error : AppCommandError):
