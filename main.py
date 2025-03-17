@@ -796,6 +796,18 @@ async def role_all(interaction: discord.Interaction, has_role : discord.Role, to
             counter += 1
     
     await interaction.followup.send(f"Successfully roled {counter} people", ephemeral=True)
+    
+@tree.command(guild = discord.Object(id=guild_id), name = "role_all_csv", description='Give everyone in a csv a role')
+async def role_all_csv(interaction: discord.Interaction, csv : str, to_give : discord.Role, excluding : str):
+    await interaction.response.defer(thinking=True, ephemeral=True)
+    counter = 0
+    for id in csv.split(","):
+        id = int(id.strip())
+        if id not in [int(id_excl.strip()) for id_excl in excluding.split(",")]:
+            await get(id, interaction.guild.members).add_roles(to_give)
+            counter += 1
+    
+    await interaction.followup.send(f"Successfully roled {counter} people", ephemeral=True)
 
 @tree.command(guild = discord.Object(id=guild_id), name = "get_date", description='Get the dates of the next inspection period')
 async def get_date(interaction: discord.Interaction, id_csv : str = ""):
