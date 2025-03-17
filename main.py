@@ -804,7 +804,7 @@ async def role_all_csv(interaction: discord.Interaction, csv : str, to_give : di
     for id in csv.split(","):
         id = int(id.strip())
         if id not in [int(id_excl.strip()) for id_excl in excluding.split(",")]:
-            await get(id, interaction.guild.members).add_roles(to_give)
+            await get(interaction.guild.members, id=id).add_roles(to_give)
             counter += 1
     
     await interaction.followup.send(f"Successfully roled {counter} people", ephemeral=True)
