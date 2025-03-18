@@ -416,7 +416,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
             
             output = ""
             for v in sortedData:
-                output += f"<@{v[0]}>:\n- Pass: `{v[1]}`% ({v[2]})\n- Avg: {v[3]}\n\n"
+                output += f"<@{v[0]}>:\n- Pass: `{v[1]}`% ({v[2]})\n- Avg: {round(v[3])}\n\n"
             await interaction.response.send_message(output, ephemeral=True)
     
     @app_commands.command(name = "mvp", description='Get the mvp list for a week')
