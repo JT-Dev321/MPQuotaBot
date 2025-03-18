@@ -380,7 +380,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
             rows = None
             
             async with aiosqlite.connect(database) as db:
-                async with db.execute("""SELECT Pass
+                async with db.execute("""SELECT Pass, PostsCompleted, TicketsCompleted
                                         FROM Inspections    
                                         WHERE InspecteeID = ?
                                         """, (staff_member.id,)) as cursor:
@@ -389,15 +389,16 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
             PFList = [bool(int(row[0])) for row in rows]
             passes = [PF for PF in PFList if PF]
             passRate = round(len(passes) / len(PFList) * 100, 2)
+            avgPosts = sum([int(row[0]) for row in rows]) / len(rows)
             failRate = round(100 - passRate, 2)
             
-            await interaction.response.send_message(f"Pass: {len(passes)} | `{passRate}%`\nFail: {len(PFList) - len(passes)} | `{failRate}%`", ephemeral=True)
+            await interaction.response.send_message(f"Pass: {len(passes)} | `{passRate}%`\nFail: {len(PFList) - len(passes)} | `{failRate}%`\nAverage Posts: {avgPosts}", ephemeral=True)
         elif role:
             ids = [m.id for m in role.members]
             passrates = []
             for id in ids:
                 async with aiosqlite.connect(database) as db:
-                    async with db.execute("""SELECT Pass
+                    async with db.execute("""SELECT Pass, PostsCompleted, TicketsCompleted
                                             FROM Inspections    
                                             WHERE InspecteeID = ?
                                             """, (id,)) as cursor:
@@ -406,15 +407,16 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
                 PFList = [bool(int(row[0])) for row in rows]
                 passes = [PF for PF in PFList if PF]
                 passRate = round(len(passes) / len(PFList) * 100, 2) if PFList else 0
+                avgPosts = sum([int(row[1]) for row in rows]) / len(rows) if rows else 0
                 failRate = round(100 - passRate, 2)
                 
-                passrates.append([id, passRate, len(PFList)])
+                passrates.append([id, passRate, len(PFList), avgPosts])
             
             sortedData = sorted(passrates, key=lambda x: x[1])
             
             output = ""
             for v in sortedData:
-                output += f"<@{v[0]}> | `{v[1]}`% | {v[2]}\n"
+                output += f"<@{v[0]}>:\n- Pass: `{v[1]}`% ({v[2]})\n- Avg: {v[3]}\n\n"
             await interaction.response.send_message(output, ephemeral=True)
     
     @app_commands.command(name = "mvp", description='Get the mvp list for a week')
