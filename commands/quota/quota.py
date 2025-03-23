@@ -98,16 +98,14 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
         async with aiosqlite.connect(database) as db:
             if staff_member is not None:
                 await db.execute("""
-                    INSERT INTO Excused (StaffID, InspectionCount)
+                    INSERT INTO OR IGNORE Excused (StaffID, InspectionCount)
                     VALUES (?, ?)
-                    ON CONFLICT(StaffID) DO UPDATE SET InspectionCount = InspectionCount + ?
                 """, (staff_member.id, inspection_count, inspection_count))
             elif role is not None:
                 for id in [m.id for m in role.members]:
                     await db.execute("""
-                        INSERT INTO Excused (StaffID, InspectionCount)
+                        INSERT OR IGNORE INTO Excused (StaffID, InspectionCount)
                         VALUES (?, ?)
-                        ON CONFLICT(StaffID) DO UPDATE SET InspectionCount = InspectionCount + ?
                     """, (id, inspection_count, inspection_count))
             await db.commit()
             await interaction.response.send_message("Successfully added!", ephemeral=True)

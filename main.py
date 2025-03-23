@@ -90,7 +90,7 @@ class bot(commands.Bot):
         if Is_Senior:
             requirement = await myBot.getSeniorQuota()
             ticketrequirement = await myBot.getSeniorTicketQuota()
-        elif await myBot.IsSenior(staff_member):
+        elif await myBot.IsIntern(staff_member):
             requirement = await myBot.getInternQuota()
         else:
             requirement = await myBot.getQuota()
