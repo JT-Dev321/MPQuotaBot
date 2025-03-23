@@ -1,4 +1,4 @@
-from ..imports import *
+from .imports import *
 
 class intern(commands.GroupCog, group_name='intern', group_description='Manage interns'):
     def __init__(self, bot):

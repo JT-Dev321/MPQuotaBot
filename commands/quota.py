@@ -1,4 +1,4 @@
-from ..imports import *
+from .imports import *
 
         
 class quota(commands.GroupCog, group_name='quota', group_description='Manage quotas'):

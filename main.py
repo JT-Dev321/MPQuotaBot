@@ -371,8 +371,8 @@ class bot(commands.Bot):
     
     async def setup_hook(self) -> None:
         
-        await self.load_extension("commands.rewards.rewards")
-        await self.load_extension("commands.quota.quota")
+        await self.load_extension("commands.rewards")
+        await self.load_extension("commands.quota")
         # await self.load_extension("commands.intern.intern")
         
         if not self.weekly_quota_reminder_before.is_running():
