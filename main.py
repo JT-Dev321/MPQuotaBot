@@ -831,7 +831,7 @@ async def get_date(interaction: discord.Interaction, id_csv : str = ""):
     await interaction.response.send_message(f"{output}", ephemeral=True)
     
 @tree.command(guild = discord.Object(id=guild_id), name = "parse_users", description='Fish out usernames from a messy string')
-async def parse_users(interaction: discord.Interaction, string : str):
+async def parse_users(interaction: discord.Interaction, string : str, only_mentions : bool = False):
     splitData = re.split(r"[,;:\s]+", string)
     
     output = ""
@@ -843,7 +843,10 @@ async def parse_users(interaction: discord.Interaction, string : str):
         else:
             user = get(interaction.guild.members, name=potentialUser)
         if user:
-            output += f"{user.mention} (`<@{user.id}>`)\n"
+            if only_mentions:
+                output += f"`{user.mention}`\n"
+            else:
+                output += f"{user.name} (`<@{user.id}>`)\n"
     await interaction.response.send_message(f"{output}", ephemeral=True)
 
 class ParseDataModal(ui.Modal, title='Data parser'):
