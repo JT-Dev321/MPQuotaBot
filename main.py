@@ -829,6 +829,22 @@ async def get_date(interaction: discord.Interaction, id_csv : str = ""):
         output += f" | `{i}` days ago\n"
         # /quota department:Marketplace quota_start: user_ids:
     await interaction.response.send_message(f"{output}", ephemeral=True)
+    
+@tree.command(guild = discord.Object(id=guild_id), name = "parse_users", description='Fish out usernames from a messy string')
+async def parse_users(interaction: discord.Interaction, string : str):
+    splitData = re.split(r"[,;:\s]+", string)
+    
+    output = ""
+    
+    for potentialUser in splitData:
+        potentialUser = potentialUser.strip()
+        if potentialUser.isnumeric():
+            user = get(interaction.guild.members, id=int(potentialUser))
+        else:
+            user = get(interaction.guild.members, name=potentialUser)
+        if user:
+            output += f"{user.mention} (`<@{user.id}>`)\n"
+    await interaction.response.send_message(f"{output}", ephemeral=True)
 
 class ParseDataModal(ui.Modal, title='Data parser'):
     def __init__(self):
