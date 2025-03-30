@@ -812,23 +812,22 @@ async def role_all_csv(interaction: discord.Interaction, csv : str, to_give : di
 @tree.command(guild = discord.Object(id=guild_id), name = "get_date", description='Get the dates of the next inspection period')
 async def get_date(interaction: discord.Interaction, id_csv : str = ""):
     mondays = []
-    for i in range(-9,0):
-        dt = datetime.now() + timedelta(days=i)
+    counter = 0
+    while len(mondays) < 2:
+        dt = datetime.now() - timedelta(days=counter)
+        counter += 1
         if dt.weekday() == 0:
-            mondays.append(f"{dt.month}/{dt.day}/{dt.year}|{abs(i)}")
-        
+            mondays.append(dt)
+    
     output = ""
     for m in mondays:
-        date = str(m).split("|")[0]
-        i = str(m).split("|")[1]
-        output += f"`/quota department:Marketplace quota_start:{date}"
+        output += f"```/quota department:Marketplace quota_start:{m.strftime("%m/%d/%Y")} quota_end:{(m + timedelta(days=6)).strftime("%m/%d/%Y")}"
         if len(id_csv) > 0:
             output += f" user_ids:{id_csv}`"
         else:
-            output += "`"
-        output += f" | `{i}` days ago\n"
-        # /quota department:Marketplace quota_start: user_ids:
-    await interaction.response.send_message(f"{output}", ephemeral=True)
+            output += "```"
+        output += f" | `{(datetime.now() - m).days}` days ago\n"
+    await interaction.response.send_message(output, ephemeral=True)
     
 @tree.command(guild = discord.Object(id=guild_id), name = "parse_users", description='Fish out usernames from a messy string')
 async def parse_users(interaction: discord.Interaction, string : str, only_mentions : bool = False):
