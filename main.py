@@ -825,7 +825,7 @@ async def get_date(interaction: discord.Interaction, id_csv : str = ""):
         output += f"```/quota department:Marketplace quota_start:{m.strftime("%m/%d/%Y")} quota_end:{(m + timedelta(days=6)).strftime("%m/%d/%Y")}"
         if len(id_csv) > 0:
             output += f" user_ids:{id_csv}"
-        output += "```"
+        output += "```\n"
     await interaction.response.send_message(output, ephemeral=True)
     
 @tree.command(guild = discord.Object(id=guild_id), name = "parse_users", description='Fish out usernames from a messy string')
