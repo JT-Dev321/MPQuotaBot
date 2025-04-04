@@ -58,9 +58,13 @@ class bot(commands.Bot):
         self.synced = False
     
     async def remove_role_from_thread(self, thread, role):
+        print("Started")
         for m in role.members:
+            print("Loop 1")
             if m in thread.members:
+                print("Loop 2")
                 await thread.remove_user(m)
+                print("Removed user")
     
     async def has_role_f(self, staff_member, role_id):
         if isinstance(staff_member, discord.Member):
