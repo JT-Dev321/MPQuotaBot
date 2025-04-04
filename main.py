@@ -57,6 +57,11 @@ class bot(commands.Bot):
         
         self.synced = False
     
+    async def remove_role_from_thread(thread, role):
+        for m in role.members:
+            if m in thread.members:
+                await thread.remove_user(m)
+    
     async def has_role_f(self, staff_member, role_id):
         if isinstance(staff_member, discord.Member):
             return role_id in [r.id for r in staff_member.roles]
