@@ -61,10 +61,7 @@ class bot(commands.Bot):
         print("Started")
         for m in role.members:
             print("Loop 1")
-            if m in thread.members:
-                print("Loop 2")
-                await thread.remove_user(m)
-                print("Removed user")
+            await thread.remove_user(m)
     
     async def has_role_f(self, staff_member, role_id):
         if isinstance(staff_member, discord.Member):
