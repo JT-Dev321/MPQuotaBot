@@ -777,12 +777,12 @@ async def make_intern_groups(interaction: discord.Interaction, copyable : bool =
 
 @tree.command(guild = discord.Object(id=guild_id), name = "view_all_history", description='View everyones quota history')
 @app_commands.checks.has_role(role_ids.management)
-async def view_all_history(interaction: discord.Interaction):
+async def view_all_history(interaction: discord.Interaction, role : discord.Role, amount : int = 10):
     await interaction.response.defer(thinking=True, ephemeral=True)
     msg = ""
     counter = 0
     for id in [m.id for m in get(interaction.guild.roles, id = role_ids.staff).members]:
-        msg += f"<@{id}>\n\n{await myBot.GetQuotaHistory(id, 10)}\n\n"
+        msg += f"<@{id}>\n\n{await myBot.GetQuotaHistory(id, amount)}\n\n"
         counter += 1
         if counter % 3 == 0:
             await interaction.user.send(msg)
