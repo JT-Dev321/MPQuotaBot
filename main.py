@@ -216,8 +216,13 @@ class bot(commands.Bot):
             strikelogchannel = self.get_channel(channel_ids.senior_strike_logs)
         
         logmsg = ""
-        if post_count > await self.get_variable("post_limit"):
+        print("A")
+        if post_count > int(await self.get_variable("post_limit")):
+            print(int(await self.get_variable("post_limit")))
+            print(post_count > int(await self.get_variable("post_limit")))
+            print("B")
             logmsg += f"# ⚠️ Quota Limit Exceeded ⚠️\n"
+        print("C")
         logmsg += f"### {logger.mention} logged {staff_member.mention}'s quota.\n{await myBot.GetQuotaHistory(staff_member.id, 1)}"
         logmsgsent = await logchannel.send(logmsg)
         
