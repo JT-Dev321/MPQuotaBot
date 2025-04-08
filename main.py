@@ -79,7 +79,7 @@ class bot(commands.Bot):
         return await self.has_role_f(staff_member, role_ids.senior)
 
     async def IsIntern(self, staff_member):
-        return await self.has_role_f(staff_member, role_ids.intern)
+        return await self.has_role_f(staff_member, role_ids.intern) and not await self.has_role_f(staff_member, role_ids.staff)
 
     async def logQuota(self, staff_member : discord.Member, logger : discord.Member, post_count : int, ticket_count : int, week_start : str, activity : bool = None, override_excused : bool = False, apply_rewards : bool = True, auto_strike : bool = True, override_existing : bool = False, dm_user : bool = True):
         # all wrong to do with senior quota (post count)
@@ -89,19 +89,17 @@ class bot(commands.Bot):
         Is_Senior = await myBot.IsSenior(staff_member)
         
         # work out the target users quota requirement
-        requirement = 0
+        requirement = await myBot.getQuota()
         ticketrequirement = 0
         if Is_Senior:
             requirement = await myBot.getSeniorQuota()
             ticketrequirement = await myBot.getSeniorTicketQuota()
         elif await myBot.IsIntern(staff_member):
             requirement = await myBot.getInternQuota()
-        else:
-            requirement = await myBot.getQuota()
 
         # check if inspector is a senior
         if not await myBot.IsSenior(logger):
-            return "Is a senior"
+            return "Logger not senior"
 
         #ensure valid date
         if not await myBot.CheckValidDate(week_start):
