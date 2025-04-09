@@ -100,13 +100,13 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
                 await db.execute("""
                     INSERT INTO OR IGNORE Excused (StaffID, InspectionCount)
                     VALUES (?, ?)
-                """, (staff_member.id, inspection_count, inspection_count))
+                """, (staff_member.id, inspection_count))
             elif role is not None:
                 for id in [m.id for m in role.members]:
                     await db.execute("""
                         INSERT OR IGNORE INTO Excused (StaffID, InspectionCount)
                         VALUES (?, ?)
-                    """, (id, inspection_count, inspection_count))
+                    """, (id, inspection_count))
             await db.commit()
             await interaction.response.send_message("Successfully added!", ephemeral=True)
         
