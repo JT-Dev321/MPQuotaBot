@@ -98,7 +98,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
         async with aiosqlite.connect(database) as db:
             if staff_member is not None:
                 await db.execute("""
-                    INSERT INTO OR IGNORE Excused (StaffID, InspectionCount)
+                    INSERT OR IGNORE INTO Excused (StaffID, InspectionCount)
                     VALUES (?, ?)
                 """, (staff_member.id, inspection_count))
             elif role is not None:
