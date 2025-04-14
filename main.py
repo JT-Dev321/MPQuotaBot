@@ -832,7 +832,7 @@ async def get_date(interaction: discord.Interaction, id_csv : str = ""):
     output = ""
     for m in mondays:
         output += f"### {(datetime.now() - m).days} days ago\n"
-        output += f"```/quota department:Marketplace quota_start:{m.strftime("%m/%d/%Y")} quota_end:{(m + timedelta(days=6)).strftime("%m/%d/%Y")}"
+        output += f"```/quota department:Marketplace quota_start:{m.strftime("%m/%d/%Y")} quota_end:{(m + timedelta(days=7)).strftime("%m/%d/%Y")}"
         if len(id_csv) > 0:
             output += f" user_ids:{id_csv}"
         output += "```\n"
