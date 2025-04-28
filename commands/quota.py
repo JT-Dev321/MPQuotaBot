@@ -32,18 +32,17 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
                         break
                     
                 for name in quotaDict:
+                    member = interaction.guild.get_member_named(name)
+                    if member is None:
+                        output += f"Could not find {name} in the server\n\n"
+                        continue
                     if not self.log:
-                        output += f"`/quota log staff_member:{interaction.guild.get_member_named(name).id} post_count:{quotaDict[name][0]} ticket_count:{quotaDict[name][1]} week_start: `\n"
+                        output += f"`/quota log staff_member:{member.id} post_count:{quotaDict[name][0]} ticket_count:{quotaDict[name][1]} week_start: `\n"
                     else:
-                        #print_green(f"Would log {name} with {quotaDict[name][0]} posts and {quotaDict[name][1]} tickets")
-# async def logQuota(self, staff_member : discord.Member, logger : discord.Member, post_count : int, ticket_count : int, week_start : str, activity : bool = None, override_excused : bool = False, apply_rewards : bool = True, auto_strike : bool = True, override_existing : bool = False, dm_user : bool = True):
-                        
-                        
-                            
-                        activity = await self.bot.IsSenior(interaction.guild.get_member_named(name))
+                        activity = await self.bot.IsSenior(member)
                         if activity == False:
                             activity = None
-                        output += f"{interaction.guild.get_member_named(name).mention} - " + await self.bot.logQuota(interaction.guild.get_member_named(name),
+                        output += f"{member.mention} - " + await self.bot.logQuota(member,
                                                 interaction.user,
                                                 quotaDict[name][0],
                                                 quotaDict[name][1],
@@ -56,8 +55,12 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
                 output = ""
                 
                 for name in quotaDict:
+                    member = interaction.guild.get_member_named(name)
+                    if member is None:
+                        output += f"Could not find {name} in the server\n\n"
+                        continue
                     if not self.log:
-                        output += f"`/quota log staff_member:{interaction.guild.get_member_named(name).id} post_count:{quotaDict[name]} ticket_count:0 week_start: `\n"
+                        output += f"`/quota log staff_member:{member.id} post_count:{quotaDict[name]} ticket_count:0 week_start: `\n"
                     else:
                         print_green(f"Would log {name} with {quotaDict[name]} posts")
                         # await self.bot.logQuota()
