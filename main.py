@@ -850,8 +850,8 @@ async def top_performer(interaction: discord.Interaction, weeks : int = 4, amoun
             posts = {}
             tickets = {}
             for row in results:
-                posts[int(row[0])] = int(row[1])
-                tickets[int(row[0])] = int(row[2])
+                posts[int(row[0])] = int(row[1] if row[1] is not None else 0)
+                tickets[int(row[0])] = int(row[2] if row[2] is not None else 0)
             top_posts = heapq.nlargest(amount, posts.items(), key=lambda x: x[1])
             top_tickets = heapq.nlargest(amount, tickets.items(), key=lambda x: x[1])
             await interaction.followup.send(f"{top_posts}\n{top_tickets}", ephemeral=True)
