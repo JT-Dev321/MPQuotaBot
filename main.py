@@ -826,6 +826,9 @@ async def role_all_csv(interaction: discord.Interaction, csv : str, to_give : di
 @tree.command(guild = discord.Object(id=guild_id), name = "top_performer", description='Get the top performers')
 @app_commands.checks.has_role(role_ids.management)
 async def top_performer(interaction: discord.Interaction, weeks : int = 4, amount : int = 3):
+    await interaction.response.defer(thinking=True, ephemeral=True)
+    top_posts = None
+    top_tickets = None
     async with aiosqlite.connect(database) as db:
         query = f"""
             WITH RankedInspections AS (
@@ -854,7 +857,7 @@ async def top_performer(interaction: discord.Interaction, weeks : int = 4, amoun
                 tickets[int(row[0])] = int(row[2] if row[2] is not None else 0)
             top_posts = heapq.nlargest(amount, posts.items(), key=lambda x: x[1])
             top_tickets = heapq.nlargest(amount, tickets.items(), key=lambda x: x[1])
-            await interaction.followup.send(f"{top_posts}\n{top_tickets}", ephemeral=True)
+    await interaction.followup.send(f"{top_posts}\n{top_tickets}", ephemeral=True)
 
 @tree.command(guild = discord.Object(id=guild_id), name = "get_date", description='Get the dates of the next inspection period')
 async def get_date(interaction: discord.Interaction, id_csv : str = ""):
