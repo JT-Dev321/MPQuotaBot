@@ -14,6 +14,7 @@ import math
 import itertools
 import ast
 import aiofiles
+import heapq
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -821,6 +822,39 @@ async def role_all_csv(interaction: discord.Interaction, csv : str, to_give : di
             counter += 1
     
     await interaction.followup.send(f"Successfully roled {counter} people", ephemeral=True)
+
+@tree.command(guild = discord.Object(id=guild_id), name = "top_performer", description='Get the top performers')
+@app_commands.checks.has_role(role_ids.management)
+async def top_performer(interaction: discord.Interaction):
+    async with aiosqlite.connect(database) as db:
+        query = """
+            SELECT InspecteeID, SUM(PostsCompleted) AS PostsCompletedSum
+            FROM (
+                SELECT InspecteeID, PostsCompleted, TicketsCompleted
+                    ROW_NUMBER() OVER (
+                        PARTITION BY InspecteeID 
+                        ORDER BY 
+                            CAST(SUBSTR(WeekStart, 1, INSTR(WeekStart, '-') - 1) AS INT) DESC,
+                            CAST(SUBSTR(WeekStart, INSTR(WeekStart, '-') + 1, INSTR(SUBSTR(WeekStart, INSTR(WeekStart, '-') + 1), '-') - 1) AS INT) DESC,
+                            CAST(SUBSTR(WeekStart, INSTR(SUBSTR(WeekStart, INSTR(WeekStart, '-') + 1), '-') + INSTR(WeekStart, '-') + 1) AS INT) DESC
+                    ) AS RowNum
+                FROM Inspections
+            ) sub
+            WHERE RowNum <= 4
+            GROUP BY InspecteeID
+            ORDER BY PostsCompletedSum;
+        """
+        async with db.execute(query) as cursor:
+            results = await cursor.fetchall()
+            output = ""
+            posts = {}
+            tickets = {}
+            for row in results:
+                posts[int(row[0])] = int(row[1])
+                tickets[int(row[0])] = int(row[2])
+            top_posts = heapq.nlargest(3, posts.items(), key=lambda x: x[1])
+            top_tickets = heapq.nlargest(3, tickets.items(), key=lambda x: x[1])
+            await interaction.followup.send(f"{top_posts}\n{top_tickets}", ephemeral=True)
 
 @tree.command(guild = discord.Object(id=guild_id), name = "get_date", description='Get the dates of the next inspection period')
 async def get_date(interaction: discord.Interaction, id_csv : str = ""):

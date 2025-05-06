@@ -13,7 +13,7 @@ class rewards(commands.GroupCog, group_name='reward', group_description='Manage 
             query = """
                 SELECT InspecteeID, SUM(PostsCompleted) AS PostsCompletedSum
                 FROM (
-                    SELECT InspecteeID, PostsCompleted,
+                    SELECT InspecteeID, PostsCompleted, TicketsCompleted
                         ROW_NUMBER() OVER (
                             PARTITION BY InspecteeID 
                             ORDER BY 
@@ -75,7 +75,7 @@ class rewards(commands.GroupCog, group_name='reward', group_description='Manage 
                     for row in results:
                         UserId = int(row[0])
                         if interaction.guild.get_member(UserId) is not None:
-                            output += f"<@{row[0]}> - {row[1]}\n"
+                            output += f"<@{row[0]}> - {row[1]} - {row[2]}\n"
                     await interaction.followup.send(output, ephemeral=True)
 
     @app_commands.command(name='check_rewards', description="Check a users rewards")
