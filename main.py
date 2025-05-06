@@ -808,13 +808,16 @@ async def role_all(interaction: discord.Interaction, has_role : discord.Role, to
     await interaction.followup.send(f"Successfully roled {counter} people", ephemeral=True)
     
 @tree.command(guild = discord.Object(id=guild_id), name = "role_all_csv", description='Give everyone in a csv a role')
-async def role_all_csv(interaction: discord.Interaction, csv : str, to_give : discord.Role, excluding : str):
+async def role_all_csv(interaction: discord.Interaction, csv : str, to_give : discord.Role, excluding : str, remove : bool = False):
     await interaction.response.defer(thinking=True, ephemeral=True)
     counter = 0
     for id in csv.split(","):
         id = int(id.strip())
         if id not in [int(id_excl.strip()) for id_excl in excluding.split(",")]:
-            await get(interaction.guild.members, id=id).add_roles(to_give)
+            if remove:
+                await get(interaction.guild.members, id=id).remove_roles(to_give)
+            else:
+                await get(interaction.guild.members, id=id).add_roles(to_give)
             counter += 1
     
     await interaction.followup.send(f"Successfully roled {counter} people", ephemeral=True)
