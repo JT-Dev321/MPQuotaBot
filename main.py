@@ -828,25 +828,25 @@ async def role_all_csv(interaction: discord.Interaction, csv : str, to_give : di
 async def top_performer(interaction: discord.Interaction, weeks : int = 4, amount : int = 3):
     async with aiosqlite.connect(database) as db:
         query = f"""
-            SELECT InspecteeID, SUM(PostsCompleted) AS PostsCompletedSum
-            FROM (
-                SELECT InspecteeID, PostsCompleted, TicketsCompleted
+            WITH RankedInspections AS (
+                SELECT InspecteeID, PostsCompleted, TicketsCompleted,
                     ROW_NUMBER() OVER (
-                        PARTITION BY InspecteeID 
+                        PARTITION BY InspecteeID
                         ORDER BY 
                             CAST(SUBSTR(WeekStart, 1, INSTR(WeekStart, '-') - 1) AS INT) DESC,
                             CAST(SUBSTR(WeekStart, INSTR(WeekStart, '-') + 1, INSTR(SUBSTR(WeekStart, INSTR(WeekStart, '-') + 1), '-') - 1) AS INT) DESC,
                             CAST(SUBSTR(WeekStart, INSTR(SUBSTR(WeekStart, INSTR(WeekStart, '-') + 1), '-') + INSTR(WeekStart, '-') + 1) AS INT) DESC
                     ) AS RowNum
                 FROM Inspections
-            ) sub
+            )
+            SELECT InspecteeID, SUM(PostsCompleted) AS PostsCompletedSum, SUM(TicketsCompleted) AS TicketsCompletedSum
+            FROM RankedInspections
             WHERE RowNum <= {weeks}
             GROUP BY InspecteeID
-            ORDER BY PostsCompletedSum;
+            ORDER BY PostsCompletedSum DESC;
         """
         async with db.execute(query) as cursor:
             results = await cursor.fetchall()
-            output = ""
             posts = {}
             tickets = {}
             for row in results:
