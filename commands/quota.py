@@ -207,7 +207,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
     
     @app_commands.command(name = "get_lifetime_history", description='Get a lifetime quota history')
     async def getlifehistory(self, interaction: discord.Interaction, staff_member : discord.Member = None, role : discord.Role = None):
-        
+        await interaction.response.defer(thinking=True, ephemeral=True)
         if staff_member:
             rows = None
             
@@ -221,10 +221,10 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
             PFList = [bool(int(row[0])) for row in rows]
             passes = [PF for PF in PFList if PF]
             passRate = round(len(passes) / len(PFList) * 100, 2)
-            avgPosts = sum([int(row[0]) for row in rows]) / len(rows)
+            avgPosts = sum([int(row[1]) for row in rows]) / len(rows)
             failRate = round(100 - passRate, 2)
             
-            await interaction.response.send_message(f"Pass: {len(passes)} | `{passRate}%`\nFail: {len(PFList) - len(passes)} | `{failRate}%`\nAverage Posts: {avgPosts}", ephemeral=True)
+            await interaction.followup.send(f"Pass: {len(passes)} | `{passRate}%`\nFail: {len(PFList) - len(passes)} | `{failRate}%`\nAverage Posts: {avgPosts}", ephemeral=True)
         elif role:
             ids = [m.id for m in role.members if await self.bot.IsSenior(m.id) == False]
             passrates = []
@@ -247,9 +247,19 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
             sortedData = sorted(passrates, key=lambda x: x[1])
             
             output = ""
+            embedList = []
             for v in sortedData:
-                output += f"<@{v[0]}>:\n- Pass: `{v[1]}`% ({v[2]})\n- Avg: {round(v[3])}\n\n"
-            await interaction.response.send_message(output, ephemeral=True)
+                stringToAdd = f"<@{v[0]}>:\n- Pass: `{v[1]}`% ({v[2]})\n- Avg: {round(v[3])}\n\n"
+                if len(output) + len(stringToAdd) > 2000:
+                    embed = discord.Embed(
+                        color = colours.mp_purple,
+                        description = output
+                    )
+                    embedList.append(embed)
+                    output = ""
+                else:
+                    output += stringToAdd
+            await interaction.followup.send(embeds=embedList, ephemeral=True)
     
     @app_commands.command(name = "mvp", description='Get the mvp list for a week')
     @app_commands.describe(week_start="Format: YYYY-MM-DD | Must use Monday of week")
