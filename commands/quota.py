@@ -261,7 +261,12 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
                     output = ""
                 else:
                     output += stringToAdd
-            embedList.append(embed)
+            if len(output) > 0:
+                embed = discord.Embed(
+                    color = colours.mp_purple,
+                    description = output
+                )
+                embedList.append(embed)
             await interaction.followup.send(embeds=embedList, ephemeral=True)
     
     @app_commands.command(name = "mvp", description='Get the mvp list for a week')
