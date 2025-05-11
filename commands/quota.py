@@ -242,12 +242,13 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
                 avgPosts = sum([int(row[1]) for row in rows]) / len(rows) if rows else 0
                 failRate = round(100 - passRate, 2)
                 
-                
-                passrates.append([id, passRate, len(PFList), avgPosts, len(rows)])
+                if len(rows) > amount:
+                    passrates.append([id, passRate, len(PFList), avgPosts])
             
-            sortedData = sorted(passrates, key=lambda x: x[4])
+            sortedData = sorted(passrates, key=lambda x: x[1])
             
             output = ""
+            embed = None
             embedList = []
             for v in sortedData:
                 stringToAdd = f"<@{v[0]}>:\n- Pass: `{v[1]}`% ({v[2]})\n- Avg: {round(v[3])}\n\n"
