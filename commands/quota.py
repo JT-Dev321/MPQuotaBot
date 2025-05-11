@@ -259,8 +259,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
                     )
                     embedList.append(embed)
                     output = ""
-                else:
-                    output += stringToAdd
+                output += stringToAdd
             if len(output) > 0:
                 embed = discord.Embed(
                     color = colours.mp_purple,
