@@ -206,7 +206,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
 
     
     @app_commands.command(name = "get_lifetime_history", description='Get a lifetime quota history')
-    async def getlifehistory(self, interaction: discord.Interaction, staff_member : discord.Member = None, role : discord.Role = None):
+    async def getlifehistory(self, interaction: discord.Interaction, staff_member : discord.Member = None, role : discord.Role = None, amount : int = 10):
         await interaction.response.defer(thinking=True, ephemeral=True)
         if staff_member:
             rows = None
@@ -242,9 +242,10 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
                 avgPosts = sum([int(row[1]) for row in rows]) / len(rows) if rows else 0
                 failRate = round(100 - passRate, 2)
                 
-                passrates.append([id, passRate, len(PFList), avgPosts])
+                
+                passrates.append([id, passRate, len(PFList), avgPosts, len(rows)])
             
-            sortedData = sorted(passrates, key=lambda x: x[1])
+            sortedData = sorted(passrates, key=lambda x: x[4])
             
             output = ""
             embedList = []
@@ -259,6 +260,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
                     output = ""
                 else:
                     output += stringToAdd
+            embedList.append(embed)
             await interaction.followup.send(embeds=embedList, ephemeral=True)
     
     @app_commands.command(name = "mvp", description='Get the mvp list for a week')
