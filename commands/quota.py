@@ -88,7 +88,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
         await interaction.response.send_modal(self.parse_data_modal(self.bot, log))
         
     @app_commands.command(name = "set", description='Set a quota')
-    @app_commands.checks.has_role(role_ids.management)
+    @app_commands.checks.has_role(RoleIds.MANAGEMENT)
     async def set_quota(self, interaction: discord.Interaction, role : str, value : int):
         prev = await self.bot.get_variable(role)
         await self.bot.set_variable(role, value)
@@ -96,7 +96,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
         await interaction.response.send_message(f"Changed quota for `{role}` from `{prev}` to `{value}`", ephemeral=True)
 
     @app_commands.command(name = "inactivity_add", description='Add a user to inactivity')
-    @app_commands.checks.has_role(role_ids.management)
+    @app_commands.checks.has_role(RoleIds.MANAGEMENT)
     async def inactivity_add(self, interaction: discord.Interaction, inspection_count : int, staff_member : discord.Member = None, role : discord.Role = None):
         async with aiosqlite.connect(database) as db:
             if staff_member is not None:
@@ -114,7 +114,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
             await interaction.response.send_message("Successfully added!", ephemeral=True)
         
     @app_commands.command(name = "inactivity_view", description='View all active inactivity notices.')
-    @app_commands.checks.has_role(role_ids.management)
+    @app_commands.checks.has_role(RoleIds.MANAGEMENT)
     async def inactivity_view(self, interaction: discord.Interaction):
         async with aiosqlite.connect(database) as db:
             async with db.execute('SELECT StaffID, InspectionCount FROM Excused WHERE InspectionCount > 0') as cursor:
@@ -125,7 +125,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
         for row in results:
             output += f"- <@{row[0]}> - `{row[1]}`\n"
         
-        await interaction.response.send_message(embed=discord.Embed(title = f"Current Inactivity Notices", description=output, colour=colours.mp_purple), ephemeral=True)
+        await interaction.response.send_message(embed=discord.Embed(title = f"Current Inactivity Notices", description=output, colour=ColourHexes.MP_PURPLE), ephemeral=True)
         
     @app_commands.command(name = "log", description='Log a quota for an individual')
     @app_commands.describe(week_start="Format: YYYY-MM-DD | Must use Monday of week", activity="Senior Only", override_excused="Use to override excused", apply_rewards="Default: True", auto_strike="Default: True", override_existing="Default: False", dm_user="Default: True")
@@ -160,8 +160,8 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
         output = ""
         loggedLoggers = [] # ids
         loggedStaff = [] # list of ids
-        expectedStaff = [m.id for m in get(interaction.guild.roles, id = role_ids.staff).members + get(interaction.guild.roles, id = role_ids.intern).members]
-        expectedLoggers = [m.id for m in get(interaction.guild.roles, id = role_ids.senior).members]
+        expectedStaff = [m.id for m in get(interaction.guild.roles, id = RoleIds.STAFF).members + get(interaction.guild.roles, id = RoleIds.INTERN).members]
+        expectedLoggers = [m.id for m in get(interaction.guild.roles, id = RoleIds.SENIOR).members]
         
         totalPosts = 0
         totalTickets = 0
@@ -196,9 +196,9 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
         else:
             output3 = "Nobody missing!"
         
-        await interaction.followup.send(embeds=[discord.Embed(title = "Results", description=f"Total Posts: `{totalPosts}`\nTotal Tickets: `{totalTickets}`\n\n**USERNAME: POSTS | TICKETS**\n{output}", colour=colours.mp_purple), 
-                                                discord.Embed(title = "Missing Users", description=output2, colour=colours.mp_purple), 
-                                                discord.Embed(title = "Missing Loggers", description=output3, colour=colours.mp_purple)], ephemeral = True)
+        await interaction.followup.send(embeds=[discord.Embed(title = "Results", description=f"Total Posts: `{totalPosts}`\nTotal Tickets: `{totalTickets}`\n\n**USERNAME: POSTS | TICKETS**\n{output}", colour=ColourHexes.MP_PURPLE), 
+                                                discord.Embed(title = "Missing Users", description=output2, colour=ColourHexes.MP_PURPLE), 
+                                                discord.Embed(title = "Missing Loggers", description=output3, colour=ColourHexes.MP_PURPLE)], ephemeral = True)
 
     @app_commands.command(name = "get_history", description='Get a users most recent weeks of quota history')
     async def gethistory(self, interaction: discord.Interaction, staff_member : discord.Member):
@@ -254,7 +254,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
                 stringToAdd = f"<@{v[0]}>:\n- Pass: `{v[1]}`% ({v[2]})\n- Avg: {round(v[3])}\n\n"
                 if len(output) + len(stringToAdd) > 2000:
                     embed = discord.Embed(
-                        color = colours.mp_purple,
+                        color = ColourHexes.MP_PURPLE,
                         description = output
                     )
                     embedList.append(embed)
@@ -262,7 +262,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
                 output += stringToAdd
             if len(output) > 0:
                 embed = discord.Embed(
-                    color = colours.mp_purple,
+                    color = ColourHexes.MP_PURPLE,
                     description = output
                 )
                 embedList.append(embed)
@@ -322,7 +322,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
                 output += f"\n### :Crown2Silver: - <@{ticketresults[i][0]}> - {ticketresults[i][1]} tickets"
         
         if give_role:
-            mvp_role = get(interaction.guild.roles, id=role_ids.mvp)
+            mvp_role = get(interaction.guild.roles, id=RoleIds.MVP)
             
             for user in mvp_role.members:
                 await user.remove_roles(mvp_role)

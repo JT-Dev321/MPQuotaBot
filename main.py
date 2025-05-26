@@ -9,6 +9,7 @@ import time
 from datetime import datetime, timedelta, time, timezone
 import asyncio
 from typing import Literal, Optional
+from enum import Enum
 import re
 import math
 import itertools
@@ -30,27 +31,27 @@ def print_green(text):
     print(f"\033[1;32m{text}\033[0m")
 
 
-class colours():
-    red = 0xFF0000
-    darkred = 0x8b0000
-    orange = 0xFFA500
-    green = 0x00FF00
-    darkorange = 0xDC582A
-    mp_purple = 0xA46FFF
+class ColourHexes():
+    RED = 0xFF0000
+    DARK_RED = 0x8b0000
+    ORANGE = 0xFFA500
+    GREEN = 0x00FF00
+    DARK_ORANGE = 0xDC582A
+    MP_PURPLE = 0xA46FFF
 
-class channel_ids():
-    quota_logs = 1208810891626151976
-    strike_logs = 1208827574998933616
-    senior_quota_logs = 1259211052164583425
-    senior_strike_logs = 1259211191650222130
+class ChannelIds():
+    QUOTA_LOGS = 1208810891626151976
+    STRIKE_LOGS = 1208827574998933616
+    SENIOR_QUOTA_LOGS = 1259211052164583425
+    SENIOR_STRIKE_LOGS = 1259211191650222130
 
-class role_ids():
-    management = 768851165671850022
-    senior = 768851165671850021
-    intern = 1234584425547694081
-    staff = 796462879246909532
-    candidate = 768851165671850017
-    mvp = 1270033237049348116
+class RoleIds():
+    MANAGEMENT = 768851165671850022
+    SENIOR = 768851165671850021
+    INTERN = 1234584425547694081
+    STAFF = 796462879246909532
+    CANDIDATE = 768851165671850017
+    MVP = 1270033237049348116
 
 class bot(commands.Bot):
     def __init__(self):
@@ -74,13 +75,13 @@ class bot(commands.Bot):
                 return False
     
     async def IsManagement(self, staff_member):
-        return await self.has_role_f(staff_member, role_ids.management)
+        return await self.has_role_f(staff_member, RoleIds.MANAGEMENT)
 
     async def IsSenior(self, staff_member):
-        return await self.has_role_f(staff_member, role_ids.senior)
+        return await self.has_role_f(staff_member, RoleIds.SENIOR)
 
     async def IsIntern(self, staff_member):
-        return await self.has_role_f(staff_member, role_ids.intern) and not await self.has_role_f(staff_member, role_ids.staff)
+        return await self.has_role_f(staff_member, RoleIds.INTERN) and not await self.has_role_f(staff_member, RoleIds.STAFF)
 
     async def logQuota(self, staff_member : discord.Member, logger : discord.Member, post_count : int, ticket_count : int, week_start : str, activity : bool = None, override_excused : bool = False, apply_rewards : bool = True, auto_strike : bool = True, override_existing : bool = False, dm_user : bool = True):
         # all wrong to do with senior quota (post count)
@@ -210,11 +211,11 @@ class bot(commands.Bot):
             await db.commit()
 
 
-        logchannel = self.get_channel(channel_ids.quota_logs)
-        strikelogchannel = self.get_channel(channel_ids.strike_logs)
+        logchannel = self.get_channel(ChannelIds.QUOTA_LOGS)
+        strikelogchannel = self.get_channel(ChannelIds.STRIKE_LOGS)
         if Is_Senior:
-            logchannel = self.get_channel(channel_ids.senior_quota_logs)
-            strikelogchannel = self.get_channel(channel_ids.senior_strike_logs)
+            logchannel = self.get_channel(ChannelIds.SENIOR_QUOTA_LOGS)
+            strikelogchannel = self.get_channel(ChannelIds.SENIOR_STRIKE_LOGS)
         
         logmsg = ""
         print("A")
@@ -230,7 +231,7 @@ class bot(commands.Bot):
         finalmsg = f"Quota logged successfully."
 
         if override_existing:
-            finalmsg += f"\nIf this user already had a quota recorded, it has been overridden!\n**Please do the following:**\n- Delete the old log in <#{channel_ids.quota_logs}>\n- Remove any old strikes the user may have gotten (if the old quota recorded as a fail)\n- Replenish any rewards mistakenly consumed by this action"
+            finalmsg += f"\nIf this user already had a quota recorded, it has been overridden!\n**Please do the following:**\n- Delete the old log in <#{ChannelIds.QUOTA_LOGS}>\n- Remove any old strikes the user may have gotten (if the old quota recorded as a fail)\n- Replenish any rewards mistakenly consumed by this action"
 
         if striked:
             finalmsg += "\n- The user was striked"
@@ -257,6 +258,37 @@ class bot(commands.Bot):
         
         return finalmsg
         
+    async def csv_role(role : discord.Role, splitby : int, pingable : bool, excluding : discord.Role, splitbygroups : int, return_list : bool = False):
+        if pingable:
+            ids = [f"`<@{m.id}>`" for m in role.members if not excluding in m.roles]
+        else:
+            ids = [f"{m.id}" for m in role.members if not excluding in m.roles]
+        
+        output = ""
+        temp = ""
+
+        for id in ids:
+            if splitbygroups == 0:
+                temp += f"{id},"
+                if len(temp.split(",")) > splitby:
+                    output += temp[:-1]
+                    output += "\n\n"
+                    temp = ""
+            else:
+                outputs = []
+                roughsize = len(ids) // splitbygroups
+                for i in range(0, splitbygroups):
+                    # 0-roughsize, roughsize-roughsize*2,
+                    outputs.append(ids[i*roughsize : (i+1)*roughsize if i != splitbygroups - 1 else len(ids)])
+                    
+                    output = "\n\n".join([",".join(idlist) for idlist in outputs])
+        
+        if temp != "":
+            output += temp[:-1]
+        
+        if return_list:
+            return output.split("\n\n")
+        return output
     
     async def get_variable(self, key):
         async with aiosqlite.connect(database) as db:
@@ -320,18 +352,18 @@ class bot(commands.Bot):
         output = "```ansi\n"
         for row in rows:
             if int(row[4]) == 1:
-                output += f"[0;34m{row[0]} - Reward Excused - {row[2]} posts\n"
+                output += f"[0;34m{row[0]} - Reward Excused"
             elif int(row[3] == 1):
-                output += f"[0;33m{row[0]} - Inactivity Excused - {row[2]} posts\n"
+                output += f"[0;33m{row[0]} - Inactivity Excused"
             elif int(row[1]) == 1:
-                output += f"[0;32m{row[0]} - Pass - {row[2]} posts - {row[5]} tickets\n"
+                output += f"[0;32m{row[0]} - Pass"
             else:
-                output += f"[0;31m{row[0]} - Fail - {row[2]} posts - {row[5]} tickets\n"
+                output += f"[0;31m{row[0]} - Fail"
+            output +=  f" - {row[2]} posts - {row[5]} tickets\n"
         output += "```"
         if (len(rows) == 0):
             output = "No Results"
         return output
-        # maybe done idk
 
     async def Get_Consecutive_Strikes(self, staff_member : int): # only accurate if quota logs are fully up to date
         flat_list = []
@@ -492,8 +524,15 @@ class bot(commands.Bot):
         if datetime.now(timezone.utc).weekday() == 6:
             guild = myBot.get_guild(guild_id)
             reminder_channel = get(guild.channels, id = 1173680917374578718)
-        
-            await reminder_channel.send("# <@&768851165671850021> Inspections can be submitted now.")
+            seniorList = [m for m in get(guild.roles, id = RoleIds.SENIOR).members if not self.has_role_f(m, RoleIds.MANAGEMENT)]
+            seniorCount = len(seniorList)
+            groups = self.csv_role(role=get(guild.roles, id = RoleIds.STAFF), excluding=get(guild.roles, id = RoleIds.SENIOR), splitbygroups=seniorCount, return_list=True)
+            output = ""
+            for i in range(0, seniorCount):
+                output += f"## Group {seniorList[i].mention}\n{groups[i]}\n\n"
+            if len(groups) != seniorCount:
+                output += f"## Someone Else\n{groups[seniorCount]}\n\n"
+            await reminder_channel.send(f"# <@&768851165671850021> Inspections can be submitted now.\n\nPlease inspect these groups:{output}")
     
     weekly_reminder_time_after = time(hour=12, tzinfo=timezone.utc)
 
@@ -524,7 +563,7 @@ class bot(commands.Bot):
             
             loggedLoggers = [row[0] for row in results1] + [row[0] for row in results2]
 
-            expectedLoggers = [m.id for m in get(guild.roles, id = role_ids.senior).members]
+            expectedLoggers = [m.id for m in get(guild.roles, id = RoleIds.SENIOR).members]
             
             missingLoggers = list(set(loggedLoggers).symmetric_difference(set(expectedLoggers)))
             
@@ -573,9 +612,9 @@ async def sync(ctx: commands.Context, guilds: commands.Greedy[discord.Object], s
 
 @tree.command(guild = discord.Object(id=guild_id), name = "mvp_colour", description='Choose the MVP role colour')
 @app_commands.describe(hex_code="Expects 6 characters representing a colour. E.g: FF13A5")
-@app_commands.checks.has_role(role_ids.mvp)
+@app_commands.checks.has_role(RoleIds.MVP)
 async def mvpcolour(interaction: discord.Interaction, hex_code : str):
-    await get(interaction.guild.roles, id = role_ids.mvp).edit(colour=discord.Colour.from_str(f"0x{hex_code}"))
+    await get(interaction.guild.roles, id = RoleIds.MVP).edit(colour=discord.Colour.from_str(f"0x{hex_code}"))
     
     await interaction.response.send_message("Success!", ephemeral=True)
 
@@ -589,9 +628,8 @@ async def csvpingable(interaction: discord.Interaction, csv_ids : str):
     for id in csv_ids.split(","):
         output += f"<@{str(id).strip()}>\n"
     await interaction.response.send_message(f"```{output}```", ephemeral=True)
-    
-@tree.command(guild = discord.Object(id=guild_id), name = "csv_role", description='Get a csv of a role')
-async def csv_role(interaction: discord.Interaction, role : discord.Role, splitby : int = 420, pingable : bool = False, excluding : discord.Role = None, splitbygroups : int = 0):
+
+async def csv_role(role : discord.Role, splitby : int, pingable : bool, excluding : discord.Role, splitbygroups : int):
     if pingable:
         ids = [f"`<@{m.id}>`" for m in role.members if not excluding in m.roles]
     else:
@@ -618,9 +656,12 @@ async def csv_role(interaction: discord.Interaction, role : discord.Role, splitb
     
     if temp != "":
         output += temp[:-1]
-    
+        
+    return output
 
-    await interaction.response.send_message(output, ephemeral=True)
+@tree.command(guild = discord.Object(id=guild_id), name = "csv_role", description='Get a csv of a role')
+async def csv_role_cmd(interaction: discord.Interaction, role : discord.Role, splitby : int = 420, pingable : bool = False, excluding : discord.Role = None, splitbygroups : int = 0):
+    await interaction.response.send_message(await csv_role(role, splitby, pingable, excluding, splitbygroups), ephemeral=True)
 
 
 @tree.command(guild = discord.Object(id=guild_id), name = "sql", description='Run SQL')
@@ -648,13 +689,13 @@ async def run_sql(interaction: discord.Interaction, sql : str):
         await interaction.response.send_message("not for you go away!", ephemeral=True)
 
 @tree.command(guild = discord.Object(id=guild_id), name = "make_groups", description='Sorts interns into sr timezone groups')
-@app_commands.checks.has_role(role_ids.management)
+@app_commands.checks.has_role(RoleIds.MANAGEMENT)
 async def make_intern_groups(interaction: discord.Interaction, copyable : bool = False, csv_groups : bool = False):
     
     interns = []
     leaders = []
     
-    candidate_role = get(interaction.guild.roles, id = role_ids.candidate)
+    candidate_role = get(interaction.guild.roles, id = RoleIds.CANDIDATE)
 
     for m in candidate_role.members:
         if m.nick != None:
@@ -775,7 +816,7 @@ async def make_intern_groups(interaction: discord.Interaction, copyable : bool =
         await interaction.response.send_message(output)
     else:
         embed = discord.Embed(
-            color = colours.mp_purple,
+            color = ColourHexes.MP_PURPLE,
             description = output,
             title = "Intern groupings"
         )
@@ -783,7 +824,7 @@ async def make_intern_groups(interaction: discord.Interaction, copyable : bool =
     # print(sort_interns(leaders, interns))
 
 @tree.command(guild = discord.Object(id=guild_id), name = "view_all_history", description='View everyones quota history')
-@app_commands.checks.has_role(role_ids.management)
+@app_commands.checks.has_role(RoleIds.MANAGEMENT)
 async def view_all_history(interaction: discord.Interaction, role : discord.Role, amount : int = 10):
     await interaction.response.defer(thinking=True, ephemeral=True)
     msg = ""
@@ -824,7 +865,7 @@ async def role_all_csv(interaction: discord.Interaction, csv : str, to_give : di
     await interaction.followup.send(f"Successfully roled {counter} people", ephemeral=True)
 
 @tree.command(guild = discord.Object(id=guild_id), name = "top_performer", description='Get the top performers')
-@app_commands.checks.has_role(role_ids.management)
+@app_commands.checks.has_role(RoleIds.MANAGEMENT)
 async def top_performer(interaction: discord.Interaction, weeks : int = 4, amount : int = 3):
     await interaction.response.defer(thinking=True, ephemeral=True)
     top_posts = None

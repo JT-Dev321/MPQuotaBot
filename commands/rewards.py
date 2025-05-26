@@ -5,7 +5,7 @@ class rewards(commands.GroupCog, group_name='reward', group_description='Manage 
         self.bot = bot
     
     @app_commands.command(name='distribute_rewards', description="Distribute rewards based on the past 4 weeks")
-    @app_commands.checks.has_role(role_ids.management)
+    @app_commands.checks.has_role(RoleIds.MANAGEMENT)
     async def distribute_rewards(self, interaction: discord.Interaction, week_start : str, just_show : bool = False):
         await interaction.response.defer(thinking=True, ephemeral=True)
         

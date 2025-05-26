@@ -13,4 +13,4 @@ import re
 import math
 import itertools
 import ast
-from main import role_ids,channel_ids,colours,print_green,print_red
+from main import RoleIds,ChannelIds,ColourHexes,print_green,print_red
