@@ -37,4 +37,4 @@ jobs:
           script: |
             source ~/.profile
             cd ${{ secrets.SSH_DIRECTORY_PATH }}
-            pm2 restart MPQuotaBot
+            pm2 restart Marketplace-Bot
