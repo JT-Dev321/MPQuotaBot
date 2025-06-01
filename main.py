@@ -891,6 +891,8 @@ async def top_performer(interaction: discord.Interaction, weeks : int = 4, amoun
             posts = {}
             tickets = {}
             for row in results:
+                if interaction.guild.get_member(int(row[0])) is None:
+                    continue
                 posts[int(row[0])] = int(row[1] if row[1] is not None else 0)
                 tickets[int(row[0])] = int(row[2] if row[2] is not None else 0)
             top_posts = heapq.nlargest(amount, posts.items(), key=lambda x: x[1])
