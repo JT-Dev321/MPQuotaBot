@@ -258,7 +258,7 @@ class bot(commands.Bot):
         
         return finalmsg
         
-    async def csv_role(role : discord.Role, splitby : int, pingable : bool, excluding : discord.Role, splitbygroups : int, return_list : bool = False):
+    async def csv_role(role : discord.Role, splitby : int = 420, pingable : bool = False, excluding : discord.Role = None, splitbygroups : int = 0, return_list : bool = False):
         if pingable:
             ids = [f"`<@{m.id}>`" for m in role.members if not excluding in m.roles]
         else:
@@ -629,39 +629,9 @@ async def csvpingable(interaction: discord.Interaction, csv_ids : str):
         output += f"<@{str(id).strip()}>\n"
     await interaction.response.send_message(f"```{output}```", ephemeral=True)
 
-async def csv_role(role : discord.Role, splitby : int, pingable : bool, excluding : discord.Role, splitbygroups : int):
-    if pingable:
-        ids = [f"`<@{m.id}>`" for m in role.members if not excluding in m.roles]
-    else:
-        ids = [f"{m.id}" for m in role.members if not excluding in m.roles]
-    
-    output = ""
-    temp = ""
-
-    for id in ids:
-        if splitbygroups == 0:
-            temp += f"{id},"
-            if len(temp.split(",")) > splitby:
-                output += temp[:-1]
-                output += "\n\n"
-                temp = ""
-        else:
-            outputs = []
-            roughsize = len(ids) // splitbygroups
-            for i in range(0, splitbygroups):
-                # 0-roughsize, roughsize-roughsize*2,
-                outputs.append(ids[i*roughsize : (i+1)*roughsize if i != splitbygroups - 1 else len(ids)])
-                
-                output = "\n\n".join([",".join(idlist) for idlist in outputs])
-    
-    if temp != "":
-        output += temp[:-1]
-        
-    return output
-
 @tree.command(guild = discord.Object(id=guild_id), name = "csv_role", description='Get a csv of a role')
 async def csv_role_cmd(interaction: discord.Interaction, role : discord.Role, splitby : int = 420, pingable : bool = False, excluding : discord.Role = None, splitbygroups : int = 0):
-    await interaction.response.send_message(await csv_role(role, splitby, pingable, excluding, splitbygroups), ephemeral=True)
+    await interaction.response.send_message(await myBot.csv_role(role, splitby, pingable, excluding, splitbygroups), ephemeral=True)
 
 
 @tree.command(guild = discord.Object(id=guild_id), name = "sql", description='Run SQL')
