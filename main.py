@@ -524,9 +524,9 @@ class bot(commands.Bot):
         if datetime.now(timezone.utc).weekday() == 6:
             guild = myBot.get_guild(guild_id)
             reminder_channel = get(guild.channels, id = 1173680917374578718)
-            seniorList = [m for m in get(guild.roles, id = RoleIds.SENIOR).members if not self.has_role_f(m, RoleIds.MANAGEMENT)]
+            seniorList = [m for m in get(guild.roles, id = RoleIds.SENIOR).members if not await self.has_role_f(m, RoleIds.MANAGEMENT)]
             seniorCount = len(seniorList)
-            groups = self.csv_role(role=get(guild.roles, id = RoleIds.STAFF), excluding=get(guild.roles, id = RoleIds.SENIOR), splitbygroups=seniorCount, return_list=True)
+            groups = await self.csv_role(role=get(guild.roles, id = RoleIds.STAFF), excluding=get(guild.roles, id = RoleIds.SENIOR), splitbygroups=seniorCount, return_list=True)
             output = ""
             for i in range(0, seniorCount):
                 output += f"## Group {seniorList[i].mention}\n{groups[i]}\n\n"
@@ -898,7 +898,7 @@ async def top_performer(interaction: discord.Interaction, weeks : int = 4, amoun
             for row in results:
                 if interaction.guild.get_member(int(row[0])) is None:
                     continue
-                if myBot.IsSenior(int(row[0])):
+                if await myBot.IsSenior(int(row[0])):
                     continue
                 posts[int(row[0])] = int(row[1] if row[1] is not None else 0)
                 tickets[int(row[0])] = int(row[2] if row[2] is not None else 0)
