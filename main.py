@@ -526,7 +526,7 @@ class bot(commands.Bot):
             reminder_channel = get(guild.channels, id = 1173680917374578718)
             seniorList = [m for m in get(guild.roles, id = RoleIds.SENIOR).members if not await self.has_role_f(m, RoleIds.MANAGEMENT)]
             seniorCount = len(seniorList)
-            groups = await self.csv_role(role=get(guild.roles, id = RoleIds.STAFF), excluding=get(guild.roles, id = RoleIds.SENIOR), splitbygroups=seniorCount, return_list=True)
+            groups = await self.csv_role(get(guild.roles, id = RoleIds.STAFF), excluding=get(guild.roles, id = RoleIds.SENIOR), splitbygroups=seniorCount, return_list=True)
             output = ""
             for i in range(0, seniorCount):
                 output += f"## Group {seniorList[i].mention}\n{groups[i]}\n\n"
