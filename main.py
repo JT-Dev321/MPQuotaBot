@@ -258,7 +258,7 @@ class bot(commands.Bot):
         
         return finalmsg
         
-    async def csv_role(role : discord.Role, splitby : int = 420, pingable : bool = False, excluding : discord.Role = None, splitbygroups : int = 0, return_list : bool = False):
+    async def csv_role(self, role : discord.Role, splitby : int = 420, pingable : bool = False, excluding : discord.Role = None, splitbygroups : int = 0, return_list : bool = False):
         if pingable:
             ids = [f"`<@{m.id}>`" for m in role.members if not excluding in m.roles]
         else:
