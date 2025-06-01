@@ -16,10 +16,7 @@ class rewards(commands.GroupCog, group_name='reward', group_description='Manage 
                     SELECT InspecteeID, PostsCompleted, TicketsCompleted
                         ROW_NUMBER() OVER (
                             PARTITION BY InspecteeID 
-                            ORDER BY 
-                                CAST(SUBSTR(WeekStart, 1, INSTR(WeekStart, '-') - 1) AS INT) DESC,
-                                CAST(SUBSTR(WeekStart, INSTR(WeekStart, '-') + 1, INSTR(SUBSTR(WeekStart, INSTR(WeekStart, '-') + 1), '-') - 1) AS INT) DESC,
-                                CAST(SUBSTR(WeekStart, INSTR(SUBSTR(WeekStart, INSTR(WeekStart, '-') + 1), '-') + INSTR(WeekStart, '-') + 1) AS INT) DESC
+                            ORDER BY DATE(WeekStart) DESC
                         ) AS RowNum
                     FROM Inspections
                 ) sub

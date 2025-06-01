@@ -1,8 +1,8 @@
 name: deploy
-on:
-  push:
-    branches:
-      - main
+# on:
+#   push:
+#     branches:
+#       - main
 jobs:
   deploy:
     name: Deploy to VPS
@@ -20,13 +20,13 @@ jobs:
         run: ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
 
       - name: Send build files to VPS
-        run: rsync -avz -r --delete --include="main.py" --exclude="*" . ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:${{ secrets.SSH_DIRECTORY_PATH }}/build
+        run: rsync -avz -r --delete --include="main.py" --exclude="*" . ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:${{ secrets.SSH_DIRECTORY_PATH }}
 
       - name: Send other files to VPS
         run: rsync -avs -r --delete --include="requirements.txt" --include="currentquota.txt" --exclude="*" . ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:${{ secrets.SSH_DIRECTORY_PATH }}
 
       - name: Hi ahmood
-        run: rsync -avs -r --delete --include="commands/" --include="commands/**" --exclude="*" . ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:${{ secrets.SSH_DIRECTORY_PATH }}/build
+        run: rsync -avs -r --delete --include="commands/" --include="commands/**" --exclude="*" . ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:${{ secrets.SSH_DIRECTORY_PATH }}
 
       - name: Restart PM2 Process
         uses: appleboy/ssh-action@master
