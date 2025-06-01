@@ -873,25 +873,30 @@ async def top_performer(interaction: discord.Interaction, weeks : int = 4, amoun
     async with aiosqlite.connect(database) as db:
         query = f"""
             WITH RankedInspections AS (
-                SELECT InspecteeID, PostsCompleted, TicketsCompleted,
-                    ROW_NUMBER() OVER (
-                        PARTITION BY InspecteeID
-                        ORDER BY DATE(WeekStart) DESC
-                    ) AS RowNum
-                FROM Inspections
+            SELECT InspecteeID, PostsCompleted, TicketsCompleted,
+                ROW_NUMBER() OVER (
+                    PARTITION BY InspecteeID
+                    ORDER BY
+                        CAST(substr(WeekStart, 1, instr(WeekStart, '-') - 1) AS INT) DESC,
+                        CAST(substr(WeekStart, instr(WeekStart, '-') + 1,
+                            instr(substr(WeekStart, instr(WeekStart, '-') + 1), '-') - 1) AS INT) DESC,
+                        CAST(substr(WeekStart,
+                            length(WeekStart) - instr(substr(WeekStart, instr(WeekStart, '-') + 1), '-') + 2) AS INT) DESC
+                ) AS RowNum
+            FROM Inspections
             )
             SELECT InspecteeID, SUM(PostsCompleted) AS PostsCompletedSum, SUM(TicketsCompleted) AS TicketsCompletedSum
             FROM RankedInspections
             WHERE RowNum <= {weeks}
             GROUP BY InspecteeID
             ORDER BY PostsCompletedSum DESC;
-        """
+            """
         async with db.execute(query) as cursor:
             results = await cursor.fetchall()
             posts = {}
             tickets = {}
             for row in results:
-                if interaction.guild.get_member(int(row[0])) is None or myBot.IsSenior(interaction.guild.get_member(int(row[0]))):
+                if interaction.guild.get_member(int(row[0])) is None or myBot.IsSenior(int(row[0])):
                     continue
                 posts[int(row[0])] = int(row[1] if row[1] is not None else 0)
                 tickets[int(row[0])] = int(row[2] if row[2] is not None else 0)
