@@ -18,5 +18,10 @@
         "titleBar.inactiveBackground": "#7a2b5899",
         "titleBar.inactiveForeground": "#e7e7e799"
     },
-    "peacock.color": "#7a2b58"
+    "peacock.color": "#7a2b58",
+    "pylint.args": [
+        "--disable=missing-class-docstring",
+        "--disable=missing-function-docstring",
+        "--max-line-length=150"
+    ]
 }

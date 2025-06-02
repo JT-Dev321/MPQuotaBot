@@ -1,6 +1,13 @@
-from .imports import *
+from main import QUOTA_DATABASE
+import discord
+from discord import ButtonStyle, app_commands, ui
+from discord.ext import tasks, commands
+from discord.utils import get
+from discord.app_commands import AppCommandError, Group
+import aiosqlite
+from datetime import datetime, timedelta
+from main import RoleIds,ChannelIds,ColourHexes,print_green,print_red
 
-        
 class quota(commands.GroupCog, group_name='quota', group_description='Manage quotas'):
     def __init__(self, bot):
         self.bot = bot
@@ -98,7 +105,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
     @app_commands.command(name = "inactivity_add", description='Add a user to inactivity')
     @app_commands.checks.has_role(RoleIds.MANAGEMENT)
     async def inactivity_add(self, interaction: discord.Interaction, inspection_count : int, staff_member : discord.Member = None, role : discord.Role = None):
-        async with aiosqlite.connect(database) as db:
+        async with aiosqlite.connect(QUOTA_DATABASE) as db:
             if staff_member is not None:
                 await db.execute("""
                     INSERT OR IGNORE INTO Excused (StaffID, InspectionCount)
@@ -116,7 +123,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
     @app_commands.command(name = "inactivity_view", description='View all active inactivity notices.')
     @app_commands.checks.has_role(RoleIds.MANAGEMENT)
     async def inactivity_view(self, interaction: discord.Interaction):
-        async with aiosqlite.connect(database) as db:
+        async with aiosqlite.connect(QUOTA_DATABASE) as db:
             async with db.execute('SELECT StaffID, InspectionCount FROM Excused WHERE InspectionCount > 0') as cursor:
                 results = await cursor.fetchall()
         
@@ -139,7 +146,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
     async def viewWeek(self, interaction: discord.Interaction, week_start : str):
         await interaction.response.defer(thinking=True, ephemeral=True)
         
-        async with aiosqlite.connect(database) as db:
+        async with aiosqlite.connect(QUOTA_DATABASE) as db:
             async with db.execute("""SELECT InspecteeID, PostsCompleted, InspectorID, TicketsCompleted
                                 FROM Inspections
                                 WHERE WeekStart=?
@@ -147,7 +154,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
                 results1 = await cursor.fetchall()
         
         
-        async with aiosqlite.connect(database) as db:
+        async with aiosqlite.connect(QUOTA_DATABASE) as db:
             async with db.execute("""SELECT InspecteeID, PostsCompleted, InspectorID, TicketsCompleted
                                 FROM SeniorInspections
                                 WHERE WeekStart=?
@@ -211,7 +218,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
         if staff_member:
             rows = None
             
-            async with aiosqlite.connect(database) as db:
+            async with aiosqlite.connect(QUOTA_DATABASE) as db:
                 async with db.execute("""SELECT Pass, PostsCompleted, TicketsCompleted
                                         FROM Inspections    
                                         WHERE InspecteeID = ?
@@ -229,7 +236,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
             ids = [m.id for m in role.members if await self.bot.IsSenior(m.id) == False]
             passrates = []
             for id in ids:
-                async with aiosqlite.connect(database) as db:
+                async with aiosqlite.connect(QUOTA_DATABASE) as db:
                     async with db.execute("""SELECT Pass, PostsCompleted, TicketsCompleted
                                             FROM Inspections    
                                             WHERE InspecteeID = ?
@@ -273,7 +280,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
     async def getmvp(self, interaction: discord.Interaction, week_start : str, post_threshold : int, ticket_threshold : int, form_announcement : bool = False, give_role : bool = False):
         await interaction.response.defer(thinking=True, ephemeral=True)
         
-        async with aiosqlite.connect(database) as db:
+        async with aiosqlite.connect(QUOTA_DATABASE) as db:
             async with db.execute("""SELECT InspecteeID, PostsCompleted 
                                 FROM Inspections
                                 WHERE WeekStart=? AND PostsCompleted > ?
@@ -281,7 +288,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
                 results1 = await cursor.fetchall()
         
         
-        async with aiosqlite.connect(database) as db:
+        async with aiosqlite.connect(QUOTA_DATABASE) as db:
             async with db.execute("""SELECT InspecteeID, PostsCompleted 
                                 FROM SeniorInspections
                                 WHERE WeekStart=? AND PostsCompleted > ?
@@ -289,7 +296,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
                 results2 = await cursor.fetchall()
         
         
-        async with aiosqlite.connect(database) as db:
+        async with aiosqlite.connect(QUOTA_DATABASE) as db:
             async with db.execute("""SELECT InspecteeID, TicketsCompleted 
                                 FROM Inspections
                                 WHERE WeekStart=? AND TicketsCompleted > ?
@@ -297,7 +304,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
                 results3 = await cursor.fetchall()
         
         
-        async with aiosqlite.connect(database) as db:
+        async with aiosqlite.connect(QUOTA_DATABASE) as db:
             async with db.execute("""SELECT InspecteeID, TicketsCompleted 
                                 FROM SeniorInspections
                                 WHERE WeekStart=? AND TicketsCompleted > ?
@@ -350,7 +357,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
     async def autocomplete_callback(self, interaction: discord.Interaction, current: str):
         choicelist = []
         
-        async with aiosqlite.connect(database) as db:
+        async with aiosqlite.connect(QUOTA_DATABASE) as db:
             async with await db.execute("SELECT key, value FROM Quotas") as cursor:
                 results = await cursor.fetchall()
         
