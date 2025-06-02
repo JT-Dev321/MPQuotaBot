@@ -10,7 +10,7 @@ from main import RoleIds,ChannelIds,ColourHexes,print_green,print_red
 
 class quota(commands.GroupCog, group_name='quota', group_description='Manage quotas'):
     def __init__(self, bot):
-        self.bot = bot
+        self.Bot = bot
     class parse_data_modal(ui.Modal, title = 'Data parser'):
         def __init__(self, bot, log : bool):
             super().__init__()
@@ -46,10 +46,10 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
                     if not self.log:
                         output += f"`/quota log staff_member:{member.id} post_count:{quotaDict[name][0]} ticket_count:{quotaDict[name][1]} week_start: `\n"
                     else:
-                        activity = await self.bot.IsSenior(member)
+                        activity = await self.bot.is_senior(member)
                         if activity == False:
                             activity = None
-                        output += f"{member.mention} - " + await self.bot.logQuota(member,
+                        output += f"{member.mention} - " + await self.bot.log_quota(member,
                                                 interaction.user,
                                                 quotaDict[name][0],
                                                 quotaDict[name][1],
@@ -70,7 +70,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
                         output += f"`/quota log staff_member:{member.id} post_count:{quotaDict[name]} ticket_count:0 week_start: `\n"
                     else:
                         print_green(f"Would log {name} with {quotaDict[name]} posts")
-                        # await self.bot.logQuota()
+                        # await self.bot.log_quota()
             if output != "":
                 await interaction.followup.send(output, ephemeral=True)
     
@@ -92,13 +92,13 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
 
     @app_commands.command(name = "parsedata", description='Parse data')
     async def parseData(self, interaction: discord.Interaction, log : bool):
-        await interaction.response.send_modal(self.parse_data_modal(self.bot, log))
+        await interaction.response.send_modal(self.parse_data_modal(self.Bot, log))
         
     @app_commands.command(name = "set", description='Set a quota')
     @app_commands.checks.has_role(RoleIds.MANAGEMENT)
     async def set_quota(self, interaction: discord.Interaction, role : str, value : int):
-        prev = await self.bot.get_variable(role)
-        await self.bot.set_variable(role, value)
+        prev = await self.Bot.get_variable(role)
+        await self.Bot.set_variable(role, value)
         
         await interaction.response.send_message(f"Changed quota for `{role}` from `{prev}` to `{value}`", ephemeral=True)
 
@@ -138,7 +138,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
     @app_commands.describe(week_start="Format: YYYY-MM-DD | Must use Monday of week", activity="Senior Only", override_excused="Use to override excused", apply_rewards="Default: True", auto_strike="Default: True", override_existing="Default: False", dm_user="Default: True")
     async def logQuota(self, interaction: discord.Interaction, staff_member : discord.Member, post_count : int, ticket_count : int, week_start : str, activity : bool = None, override_excused : bool = False, apply_rewards : bool = True, auto_strike : bool = True, override_existing : bool = False, dm_user : bool = True):
         await interaction.response.defer(thinking=True, ephemeral=True)
-        response = await self.bot.logQuota(staff_member, interaction.user, post_count, ticket_count, week_start, activity, override_excused, apply_rewards, auto_strike, override_existing, dm_user)
+        response = await self.bot.log_quota(staff_member, interaction.user, post_count, ticket_count, week_start, activity, override_excused, apply_rewards, auto_strike, override_existing, dm_user)
         await interaction.followup.send(response, ephemeral=True)
         
     @app_commands.command(name = "check_week", description='View information about a specific week')
@@ -209,7 +209,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
 
     @app_commands.command(name = "get_history", description='Get a users most recent weeks of quota history')
     async def gethistory(self, interaction: discord.Interaction, staff_member : discord.Member):
-        await interaction.response.send_message(await self.bot.GetQuotaHistory(staff_member.id), ephemeral=True)
+        await interaction.response.send_message(await self.Bot.get_quota_history(staff_member.id), ephemeral=True)
 
     
     @app_commands.command(name = "get_lifetime_history", description='Get a lifetime quota history')
@@ -233,7 +233,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
             
             await interaction.followup.send(f"Pass: {len(passes)} | `{passRate}%`\nFail: {len(PFList) - len(passes)} | `{failRate}%`\nAverage Posts: {avgPosts}", ephemeral=True)
         elif role:
-            ids = [m.id for m in role.members if await self.bot.IsSenior(m.id) == False]
+            ids = [m.id for m in role.members if await self.bot.is_senior(m.id) == False]
             passrates = []
             for id in ids:
                 async with aiosqlite.connect(QUOTA_DATABASE) as db:
