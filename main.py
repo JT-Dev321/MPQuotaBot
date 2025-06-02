@@ -532,7 +532,7 @@ class bot(commands.Bot):
                 output += f"## Group {seniorList[i].mention}\n{groups[i]}\n\n"
             if len(groups) != seniorCount:
                 output += f"## Someone Else\n{groups[seniorCount]}\n\n"
-            await reminder_channel.send(f"# <@&768851165671850021> Inspections can be submitted now.\n\nPlease inspect these groups:{output}")
+            await reminder_channel.send(f"# <@&768851165671850021> Inspections can be submitted now.\n\nPlease inspect these groups:\n{output}")
     
     weekly_reminder_time_after = time(hour=12, tzinfo=timezone.utc)
 
@@ -846,12 +846,7 @@ async def top_performer(interaction: discord.Interaction, weeks : int = 4, amoun
             SELECT InspecteeID, PostsCompleted, TicketsCompleted,
                 ROW_NUMBER() OVER (
                     PARTITION BY InspecteeID
-                    ORDER BY
-                        CAST(substr(WeekStart, 1, instr(WeekStart, '-') - 1) AS INT) DESC,
-                        CAST(substr(WeekStart, instr(WeekStart, '-') + 1,
-                            instr(substr(WeekStart, instr(WeekStart, '-') + 1), '-') - 1) AS INT) DESC,
-                        CAST(substr(WeekStart,
-                            length(WeekStart) - instr(substr(WeekStart, instr(WeekStart, '-') + 1), '-') + 2) AS INT) DESC
+                    ORDER BY ID DESC
                 ) AS RowNum
             FROM Inspections
             )
