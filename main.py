@@ -133,6 +133,7 @@ class Bot(commands.Bot):
                 if row is not None:
                     excused = True
                     await db.execute('UPDATE Excused SET InspectionCount = InspectionCount - 1 WHERE StaffID = ?', (staff_member.id,))
+                    await db.execute('DELETE FROM Excused WHERE InspectionCount = 0 AND StaffID = ?', (staff_member.id,))
                     await db.commit()
         elif override_excused:
             excused = True
