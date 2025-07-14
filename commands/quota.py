@@ -341,7 +341,19 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
             await interaction.followup.send(f"```\n# <@&796462879246909532> Weekly Notice - {week_start.replace("-", "/")}\n\n{output}\n\n\nSigned,\n### :MLeader: | *deepforce123*\n```", ephemeral=True)
         else:
             await interaction.followup.send(f"```\n{output}\n```", ephemeral=True)
-            
+    
+    @app_commands.command(name = "clear_logs", description='Clear all logs of a senior for a specific week')
+    @app_commands.describe(week_start="Format: YYYY-MM-DD | Must use Monday of week")
+    @app_commands.checks.has_role(RoleIds.MANAGEMENT)
+    async def clear_logs(self, interaction: discord.Interaction, week_start : str, inspector : discord.Member):
+        await interaction.response.defer(thinking=True)
+
+        async with aiosqlite.connect(QUOTA_DATABASE) as db:
+            await db.execute("DELETE FROM Inspections WHERE WeekStart=? AND InspectorID=?", (week_start, inspector.id))
+            await db.commit()
+
+        await interaction.followup.send(f"Cleared logs for <@{inspector.id}> for the week starting {week_start.replace('-', '/')}", ephemeral=True)
+
     @logQuota.autocomplete('week_start')
     async def autocomplete_callback(self, interaction: discord.Interaction, current: str):
         choicelist = []   
