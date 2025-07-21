@@ -17,7 +17,6 @@ from dotenv import load_dotenv
 load_dotenv()
 
 GUILD_ID = 768851165671850015
-
 QUOTA_DATABASE = 'quotaDB.sqlite'
 
 def print_red(text):
@@ -511,7 +510,11 @@ class Bot(commands.Bot):
         if datetime.now(timezone.utc).weekday() == 6:
             guild = myBot.get_guild(GUILD_ID)
             reminder_channel = get(guild.channels, id = 1173680917374578718)
-            senior_list = [m for m in get(guild.roles, id = RoleIds.SENIOR).members if not await self.has_role_f(m, RoleIds.MANAGEMENT)]
+            async with aiosqlite.connect(QUOTA_DATABASE) as db:
+                async with db.execute('SELECT StaffID FROM Excused WHERE InspectionCount > 0') as cursor:
+                    rows = await cursor.fetchall()
+            inactive_staff = [row[0] for row in rows]
+            senior_list = [m for m in get(guild.roles, id = RoleIds.SENIOR).members if not await self.has_role_f(m, RoleIds.MANAGEMENT) and m.id not in inactive_staff]
             senior_count = len(senior_list)
             groups = await self.csv_role(get(guild.roles, id = RoleIds.STAFF),
                                          excluding=get(guild.roles, id = RoleIds.SENIOR),
@@ -864,6 +867,8 @@ async def get_date(interaction: discord.Interaction, id_csv : str = ""):
         if len(id_csv) > 0:
             output += f" user_ids:{id_csv}"
         output += "```\n"
+        if len(id_csv) > 10:
+            output += "\n**More than 10 IDs, you cannot copy all of the data into the parse command**\n"
     await interaction.response.send_message(output, ephemeral=True)
 
 @tree.command(guild = discord.Object(id=GUILD_ID), name = "parse_users", description='Fish out usernames from a messy string')
