@@ -514,7 +514,7 @@ class Bot(commands.Bot):
                 async with db.execute('SELECT StaffID FROM Excused WHERE InspectionCount > 0') as cursor:
                     rows = await cursor.fetchall()
             inactive_staff = [row[0] for row in rows]
-            senior_list = [m for m in get(guild.roles, id = RoleIds.SENIOR).members if not await self.has_role_f(m, RoleIds.MANAGEMENT) and m.id not in inactive_staff]
+            senior_list = [m for m in get(guild.roles, id = RoleIds.SENIOR).members if not await self.has_role_f(m, RoleIds.MANAGEMENT)]
             senior_count = len(senior_list)
             groups = await self.csv_role(get(guild.roles, id = RoleIds.STAFF),
                                          excluding=get(guild.roles, id = RoleIds.SENIOR),
