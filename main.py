@@ -867,7 +867,7 @@ async def get_date(interaction: discord.Interaction, id_csv : str = ""):
         if len(id_csv) > 0:
             output += f" user_ids:{id_csv}"
         output += "```\n"
-        if len(id_csv) > 10:
+        if len(id_csv.split(",")) > 10:
             output += "\n**More than 10 IDs, you cannot copy all of the data into the parse command**\n"
     await interaction.response.send_message(output, ephemeral=True)
 
