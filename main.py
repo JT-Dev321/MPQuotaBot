@@ -39,6 +39,7 @@ class ChannelIds():
     STRIKE_LOGS = 1208827574998933616
     SENIOR_QUOTA_LOGS = 1259211052164583425
     SENIOR_STRIKE_LOGS = 1259211191650222130
+    SENIOR_CHAT = 1173680917374578718
 
 class RoleIds():
     MANAGEMENT = 768851165671850022
@@ -509,18 +510,19 @@ class Bot(commands.Bot):
     async def weekly_quota_reminder_before(self, force = False):
         if datetime.now(timezone.utc).weekday() == 6 or force:
             guild = myBot.get_guild(GUILD_ID)
-            reminder_channel = get(guild.channels, id = 1173680917374578718)
+            reminder_channel = get(guild.channels, id = ChannelIds.SENIOR_CHAT)
             async with aiosqlite.connect(QUOTA_DATABASE) as db:
                 async with db.execute('SELECT StaffID FROM Excused WHERE InspectionCount > 0') as cursor:
                     rows = await cursor.fetchall()
             inactive_staff = [row[0] for row in rows]
             senior_list = [m for m in get(guild.roles, id = RoleIds.SENIOR).members if not await self.has_role_f(m, RoleIds.MANAGEMENT) and m.id not in inactive_staff]
             senior_count = len(senior_list)
-            groups = await self.csv_role(get(guild.roles, id = RoleIds.STAFF),
-                                         excluding=get(guild.roles, id = RoleIds.SENIOR),
-                                         splitbygroups=senior_count,
-                                         return_list=True
-                                         )
+            groups = await self.csv_role(
+                get(guild.roles, id = RoleIds.STAFF),
+                excluding=get(guild.roles, id = RoleIds.SENIOR),
+                splitbygroups=senior_count,
+                return_list=True
+                )
             output = ""
             for i in range(0, senior_count):
                 output += f"## Group {senior_list[i].mention}\n{groups[i]}\n\n"
@@ -534,7 +536,7 @@ class Bot(commands.Bot):
     async def weekly_quota_reminder_after(self):
         if datetime.now(timezone.utc).weekday() == 0:
             guild = myBot.get_guild(GUILD_ID)
-            reminder_channel = get(guild.channels, id = 1173680917374578718)
+            reminder_channel = get(guild.channels, id = ChannelIds.SENIOR_CHAT)
             dt = datetime.now() - timedelta(days=7)
             week_start = f"{dt.year}-{dt.month}-{dt.day}"
             async with aiosqlite.connect(QUOTA_DATABASE) as db:
@@ -889,6 +891,12 @@ async def parse_users(interaction: discord.Interaction, string : str, only_menti
             else:
                 output += f"{user.name} (`<@{user.id}>`)\n"
     await interaction.response.send_message(f"{output}", ephemeral=True)
+
+@tree.command(guild = discord.Object(id=GUILD_ID), name = "weekly_inspection", description='Trigger the weekly inspection')
+@app_commands.checks.has_role(RoleIds.MANAGEMENT)
+async def trigger_weekly_inspection(interaction: discord.Interaction):
+    await myBot.weekly_quota_reminder_before(force=True)
+    await interaction.response.send_message("Weekly inspection reminder sent!", ephemeral=True)
 
 class ParseDataModal(ui.Modal, title='Data parser'):
     def __init__(self):
