@@ -104,7 +104,7 @@ class Bot(commands.Bot):
             return "Invalid date"
 
         # checks if theyre a senior but the activity param is empty (somethings wrong)
-        if Is_Senior and activity == None: 
+        if Is_Senior and activity == None:
             return "Fill in activity for seniors"
 
         # checks if someone is trying to record activity for a non-senior
@@ -121,7 +121,7 @@ class Bot(commands.Bot):
             async with aiosqlite.connect(QUOTA_DATABASE) as db:
                 async with db.execute('SELECT InspecteeID FROM SeniorInspections WHERE WeekStart=? AND InspecteeID=?', (week_start,staff_member.id)) as cursor:
                     existing_quota = await cursor.fetchone()
-        if existing_quota != None and not override_existing:
+        if existing_quota is not None and not override_existing:
             return
 
         # Excused
