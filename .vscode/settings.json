@@ -22,6 +22,7 @@
     "pylint.args": [
         "--disable=missing-class-docstring",
         "--disable=missing-function-docstring",
-        "--max-line-length=150"
+        "--max-line-length=500",
+        "--disable=trailing-whitespace"
     ]
 }

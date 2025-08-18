@@ -133,7 +133,16 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
             output += f"- <@{row[0]}> - `{row[1]}`\n"
         
         await interaction.response.send_message(embed=discord.Embed(title = f"Current Inactivity Notices", description=output, colour=ColourHexes.MP_PURPLE), ephemeral=True)
-        
+
+    @app_commands.command(name = "inactivity_remove", description='Remove a user from inactivity')
+    @app_commands.checks.has_role(RoleIds.MANAGEMENT)
+    async def inactivity_remove(self, interaction: discord.Interaction, staff_member : discord.Member):
+        async with aiosqlite.connect(QUOTA_DATABASE) as db:
+            await db.execute('DELETE FROM Excused WHERE StaffID = ?', (staff_member.id,))
+            await db.commit()
+        await interaction.response.send_message("Successfully removed from inactivity!", ephemeral=True)
+    
+
     @app_commands.command(name = "log", description='Log a quota for an individual')
     @app_commands.describe(week_start="Format: YYYY-MM-DD | Must use Monday of week", activity="Senior Only", override_excused="Use to override excused", apply_rewards="Default: True", auto_strike="Default: True", override_existing="Default: False", dm_user="Default: True")
     async def logQuota(self, interaction: discord.Interaction, staff_member : discord.Member, post_count : int, ticket_count : int, week_start : str, activity : bool = None, override_excused : bool = False, apply_rewards : bool = True, auto_strike : bool = True, override_existing : bool = False, dm_user : bool = True):
@@ -341,7 +350,19 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
             await interaction.followup.send(f"```\n# <@&796462879246909532> Weekly Notice - {week_start.replace("-", "/")}\n\n{output}\n\n\nSigned,\n### :MLeader: | *deepforce123*\n```", ephemeral=True)
         else:
             await interaction.followup.send(f"```\n{output}\n```", ephemeral=True)
-            
+    
+    @app_commands.command(name = "clear_logs", description='Clear all logs of a senior for a specific week')
+    @app_commands.describe(week_start="Format: YYYY-MM-DD | Must use Monday of week")
+    @app_commands.checks.has_role(RoleIds.MANAGEMENT)
+    async def clear_logs(self, interaction: discord.Interaction, week_start : str, inspector : discord.Member):
+        await interaction.response.defer(thinking=True)
+
+        async with aiosqlite.connect(QUOTA_DATABASE) as db:
+            await db.execute("DELETE FROM Inspections WHERE WeekStart=? AND InspectorID=?", (week_start, inspector.id))
+            await db.commit()
+
+        await interaction.followup.send(f"Cleared logs for <@{inspector.id}> for the week starting {week_start.replace('-', '/')}", ephemeral=True)
+
     @logQuota.autocomplete('week_start')
     async def autocomplete_callback(self, interaction: discord.Interaction, current: str):
         choicelist = []   
