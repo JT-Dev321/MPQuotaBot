@@ -803,17 +803,20 @@ async def role_all(interaction: discord.Interaction, has_role : discord.Role, to
     await interaction.followup.send(f"Successfully roled {counter} people", ephemeral=True)
 
 @tree.command(guild = discord.Object(id=GUILD_ID), name = "role_all_csv", description='Give everyone in a csv a role')
-async def role_all_csv(interaction: discord.Interaction, csv : str, to_give : discord.Role, excluding : str, remove : bool = False):
+async def role_all_csv(interaction: discord.Interaction, csv : str, to_give : discord.Role, excluding : str = "1,2", remove : bool = False):
     await interaction.response.defer(thinking=True, ephemeral=True)
     counter = 0
     for uid in csv.split(","):
         uid = int(uid.strip())
         if uid not in [int(id_excl.strip()) for id_excl in excluding.split(",")]:
-            if remove:
-                await get(interaction.guild.members, id=uid).remove_roles(to_give)
-            else:
-                await get(interaction.guild.members, id=uid).add_roles(to_give)
-            counter += 1
+            try:
+                if remove:
+                    await get(interaction.guild.members, id=uid).remove_roles(to_give)
+                else:
+                    await get(interaction.guild.members, id=uid).add_roles(to_give)
+                counter += 1
+            except:
+                pass # User is not a member
     await interaction.followup.send(f"Successfully roled {counter} people", ephemeral=True)
 
 @tree.command(guild = discord.Object(id=GUILD_ID), name = "top_performer", description='Get the top performers')
