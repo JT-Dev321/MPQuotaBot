@@ -242,7 +242,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
             
             await interaction.followup.send(f"Pass: {len(passes)} | `{passRate}%`\nFail: {len(PFList) - len(passes)} | `{failRate}%`\nAverage Posts: {avgPosts}", ephemeral=True)
         elif role:
-            ids = [m.id for m in role.members if await self.bot.is_senior(m.id) == False]
+            ids = [m.id for m in role.members if await self.Bot.is_senior(m.id) == False]
             passrates = []
             for id in ids:
                 async with aiosqlite.connect(QUOTA_DATABASE) as db:
