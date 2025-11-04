@@ -73,22 +73,6 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
                         # await self.bot.log_quota()
             if output != "":
                 await interaction.followup.send(output, ephemeral=True)
-    
-    @app_commands.command(name = "get_date", description='Get the dates of the next inspection period')
-    async def get_date(self, interaction: discord.Interaction):
-        mondays = []
-        for i in range(-9,0):
-            dt = datetime.now() + timedelta(days=i)
-            if dt.weekday() == 0:
-                mondays.append(f"{dt.month}/{dt.day}/{dt.year}|{abs(i)}")
-            
-        output = ""
-        for m in mondays:
-            date = str(m).split("|")[0]
-            i = str(m).split("|")[1]
-            output += f"`{date}` was `{i}` days ago\n"
-        
-        await interaction.response.send_message(f"{output}", ephemeral=True)
 
     @app_commands.command(name = "parsedata", description='Parse data')
     async def parseData(self, interaction: discord.Interaction, log : bool):
