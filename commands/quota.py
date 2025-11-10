@@ -75,6 +75,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
                 await interaction.followup.send(output, ephemeral=True)
 
     @app_commands.command(name = "parsedata", description='Parse data')
+    @app_commands.checks.has_role(RoleIds.SENIOR)
     async def parseData(self, interaction: discord.Interaction, log : bool):
         await interaction.response.send_modal(self.parse_data_modal(self.Bot, log))
         
