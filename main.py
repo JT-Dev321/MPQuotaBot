@@ -870,13 +870,18 @@ async def get_date(interaction: discord.Interaction, id_csv : str = ""):
             mondays.append(dt)
     output = ""
     for m in mondays:
-        output += f"### {(datetime.now() - m).days} days ago\n"
-        output += f"```/quota department:Marketplace quota_start:{m.strftime("%m/%d/%Y")} quota_end:{(m + timedelta(days=7)).strftime("%m/%d/%Y")}"
-        if len(id_csv) > 0:
-            output += f" user_ids:{id_csv}"
-        output += "```\n"
-        if len(id_csv.split(",")) > 10:
-            output += "\n**More than 10 IDs, you cannot copy all of the data into the parse command**\n"
+        if len(id_csv) == 0:
+            output += f"### {(datetime.now() - m).days} days ago\n"
+            output += f"```/quota department:Marketplace quota_start:{m.strftime("%m/%d/%Y")} quota_end:{(m + timedelta(days=7)).strftime("%m/%d/%Y")}```"
+        else:
+            output += f"### {(datetime.now() - m).days} days ago\n"
+            for i in range(0, len(id_csv.split(",")), 10):
+                id_chunk = ",".join(id_csv.split(",")[i:i+10])
+                output += f"```/quota department:Marketplace quota_start:{m.strftime("%m/%d/%Y")} quota_end:{(m + timedelta(days=7)).strftime("%m/%d/%Y")}"
+                output += f" user_ids:{id_chunk}"
+                output += "```\n"
+            if len(id_csv.split(",")) > 10:
+                output += "\n**More than 10 IDs, you cannot copy all of the data into the parse command**\n"
     await interaction.response.send_message(output, ephemeral=True)
 
 @tree.command(guild = discord.Object(id=GUILD_ID), name = "parse_users", description='Fish out usernames from a messy string')
