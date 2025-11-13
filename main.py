@@ -781,7 +781,7 @@ async def make_intern_groups(interaction: discord.Interaction, copyable : bool =
     # print(sort_interns(leaders, interns))
 
 @tree.command(guild = discord.Object(id=GUILD_ID), name = "assign_prefix", description='Give everyone a prefix in their nickname')
-@app_commands.checks.has_role(RoleIds.MANAGEMENT)
+@app_commands.checks.has_role(RoleIds.SENIOR)
 async def assign_prefix(interaction: discord.Interaction, new_prefix : str, old_prefix : str = None):
     await interaction.response.defer(thinking=True, ephemeral=True)
     counter = 0
