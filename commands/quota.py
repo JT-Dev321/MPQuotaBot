@@ -13,10 +13,11 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
     def __init__(self, bot):
         self.Bot = bot
     class parse_data_modal(ui.Modal, title = 'Data parser'):
-        def __init__(self, bot, log : bool):
+        def __init__(self, bot, log : bool, week_start : str):
             super().__init__()
             self.log = log
             self.bot = bot
+            self.week_start = week_start
 
         data = ui.TextInput(label = 'Data', style = discord.TextStyle.paragraph, required = True)
         
@@ -32,12 +33,12 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
                 
                 output = ""
                 
-                monday = ""
-                for i in range(-9,0):
-                    dt = datetime.now() + timedelta(days=i)
-                    if dt.weekday() == 0:
-                        monday = f'{dt.year}-{dt.month}-{dt.day}'
-                        break
+                # monday = ""
+                # for i in range(-9,0):
+                #     dt = datetime.now() + timedelta(days=i)
+                #     if dt.weekday() == 0:
+                #         monday = f'{dt.year}-{dt.month}-{dt.day}'
+                #         break
                     
                 for name in quotaDict:
                     member = interaction.guild.get_member_named(name)
@@ -54,7 +55,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
                                                 interaction.user,
                                                 quotaDict[name][0],
                                                 quotaDict[name][1],
-                                                monday,
+                                                self.week_start,
                                                 activity) + "\n\n"
             else:
                 for i in range(0, len(splitData), 6):
@@ -77,8 +78,8 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
 
     @app_commands.command(name = "parsedata", description='Parse data')
     @app_commands.checks.has_role(RoleIds.SENIOR)
-    async def parse_data(self, interaction: discord.Interaction, log : bool):
-        await interaction.response.send_modal(self.parse_data_modal(self.Bot, log))
+    async def parse_data(self, interaction: discord.Interaction, week_start : str, log : bool = True):
+        await interaction.response.send_modal(self.parse_data_modal(self.Bot, log, week_start))
         
     @app_commands.command(name = "set", description='Set a quota')
     @app_commands.checks.has_role(RoleIds.MANAGEMENT)
@@ -350,6 +351,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
         await interaction.followup.send(f"Cleared logs for <@{inspector.id}> for the week starting {week_start.replace('-', '/')}", ephemeral=True)
 
     @logQuota.autocomplete('week_start')
+    @parse_data.autocomplete('week_start')
     async def autocomplete_callback(self, interaction: discord.Interaction, current: str):
         choicelist = []   
         
