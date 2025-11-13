@@ -1018,7 +1018,7 @@ async def on_message(message : discord.Message):
     
     if message.author.id == 247034267601862656:
         if "chills" in message.content.lower():
-            await message.channel.send("Chills bro, chills.")
+            await message.reply("Chills bro, chills.")
 @tree.error
 async def on_app_command_error(interaction : discord.Interaction, error : AppCommandError):
     print_red(error)
