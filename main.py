@@ -1011,6 +1011,14 @@ async def on_app_command_completion(interaction : discord.Interaction, command :
     async with aiofiles.open("command_logs.txt", "a") as f:
         await f.write(f"{datetime.now().strftime("%Y-%m-%d %H:%M:%S")} | {interaction.user.name} ({interaction.user.id}) Used command {command.name}" + "\n")
 
+@myBot.event
+async def on_message(message : discord.Message):
+    if message.author == myBot.user:
+        return
+    
+    if message.author.id == 247034267601862656:
+        if "chills" in message.content.lower():
+            await message.channel.send("Chills bro, chills.")
 @tree.error
 async def on_app_command_error(interaction : discord.Interaction, error : AppCommandError):
     print_red(error)
