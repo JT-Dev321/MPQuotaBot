@@ -355,7 +355,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
     async def autocomplete_callback(self, interaction: discord.Interaction, current: str):
         choicelist = []   
         
-        for i in range(-9,0):
+        for i in range(-32,0):
             dt = datetime.now() + timedelta(days=i)
             if dt.weekday() == 0:
                 choicelist.append(app_commands.Choice(name = f'{dt.year}-{dt.month}-{dt.day}', value = f'{dt.year}-{dt.month}-{dt.day}'))
