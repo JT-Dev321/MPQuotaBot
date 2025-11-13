@@ -788,7 +788,7 @@ async def assign_prefix(interaction: discord.Interaction, new_prefix : str, old_
     for m in interaction.guild.members:
         if old_prefix is not None:
             if m.nick is not None and m.nick.startswith(old_prefix):
-                new_nick = new_prefix + m.nick[len(old_prefix)+1:]
+                new_nick = new_prefix + m.nick[len(old_prefix):]
                 try:
                     await m.edit(nick=new_nick)
                     counter += 1
