@@ -48,7 +48,7 @@ class quota(commands.GroupCog, group_name='quota', group_description='Manage quo
                         output += f"`/quota log staff_member:{member.id} post_count:{quotaDict[name][0]} ticket_count:{quotaDict[name][1]} week_start: `\n"
                     else:
                         activity = await self.bot.is_senior(member)
-                        if activity == False:
+                        if not activity:
                             activity = None
                         output += f"{member.mention} - " + await self.bot.log_quota(member,
                                                 interaction.user,
