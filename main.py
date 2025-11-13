@@ -780,6 +780,30 @@ async def make_intern_groups(interaction: discord.Interaction, copyable : bool =
         await interaction.response.send_message(embed=embed)
     # print(sort_interns(leaders, interns))
 
+@tree.command(guild = discord.Object(id=GUILD_ID), name = "assign_prefix", description='Give everyone a prefix in their nickname')
+@app_commands.checks.has_role(RoleIds.MANAGEMENT)
+async def assign_prefix(interaction: discord.Interaction, new_prefix : str, old_prefix : str = None):
+    await interaction.response.defer(thinking=True, ephemeral=True)
+    counter = 0
+    for m in interaction.guild.members:
+        if old_prefix is not None:
+            if m.nick is not None and m.nick.startswith(old_prefix):
+                new_nick = new_prefix + m.nick[len(old_prefix)+1:]
+                try:
+                    await m.edit(nick=new_nick)
+                    counter += 1
+                except:
+                    pass # missing permissions
+        else:
+            if m.nick is not None and not m.nick.startswith(new_prefix):
+                new_nick = new_prefix + " " + m.nick
+                try:
+                    await m.edit(nick=new_nick)
+                    counter += 1
+                except:
+                    pass # missing permissions
+    await interaction.followup.send(f"Successfully changed {counter} nicknames", ephemeral=True)
+
 @tree.command(guild = discord.Object(id=GUILD_ID), name = "view_all_history", description='View everyones quota history')
 @app_commands.checks.has_role(RoleIds.MANAGEMENT)
 async def view_all_history(interaction: discord.Interaction, role : discord.Role, amount : int = 10):
